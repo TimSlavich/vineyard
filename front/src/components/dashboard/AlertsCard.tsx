@@ -1,0 +1,55 @@
+import React, { useMemo } from 'react';
+import Card from '../ui/Card';
+import AlertItem from '../ui/AlertItem';
+import Button from '../ui/Button';
+import { Link } from 'react-router-dom';
+import { useAlerts } from '../../services/notificationService';
+
+const AlertsCard: React.FC = () => {
+  const [alerts, markAsRead] = useAlerts();
+
+  // Мемоизация сортировки оповещений для повышения производительности
+  const recentAlerts = useMemo(() => {
+    return [...alerts]
+      .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
+      .slice(0, 4);
+  }, [alerts]);
+
+  return (
+    <Card
+      title="Останні сповіщення"
+      className="h-full"
+      footer={
+        <div className="flex justify-center">
+          <Link to="/notifications">
+            <Button
+              variant="ghost"
+              className="text-primary w-full text-center"
+              aria-label="Переглянути всі сповіщення"
+            >
+              Переглянути всі сповіщення
+            </Button>
+          </Link>
+        </div>
+      }
+    >
+      <div className="space-y-2">
+        {recentAlerts.length > 0 ? (
+          recentAlerts.map(alert => (
+            <AlertItem
+              key={alert.id}
+              alert={alert}
+              onClick={() => markAsRead(alert.id)}
+            />
+          ))
+        ) : (
+          <p className="text-gray-500 text-center py-4 font-roboto">
+            Немає сповіщень
+          </p>
+        )}
+      </div>
+    </Card>
+  );
+};
+
+export default React.memo(AlertsCard);
