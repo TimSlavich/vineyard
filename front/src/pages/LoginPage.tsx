@@ -26,7 +26,7 @@ const LoginPage: React.FC = () => {
       // Проверяем наличие localStorage и сохраняем данные
       const userData = {
         email,
-        name: 'Demo User',
+        name: 'User',
         avatar: 'https://i.pravatar.cc/150?img=1',
       };
 

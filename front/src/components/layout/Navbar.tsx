@@ -30,7 +30,8 @@ const Navbar: React.FC = () => {
   const pageAndUserState = useMemo(() => {
     const isHomePage = location.pathname === '/';
     const isUserAuthenticated = isAuthenticated();
-    const userData = getUserData() || currentUser;
+    // Получаем данные пользователя только если авторизован, иначе null
+    const userData = isUserAuthenticated ? getUserData() : null;
 
     return { isHomePage, isUserAuthenticated, userData };
   }, [location.pathname]);
@@ -159,18 +160,21 @@ const Navbar: React.FC = () => {
 
           {/* Right section */}
           <div className="hidden sm:flex items-center">
-            {isHomePage && !isUserAuthenticated ? (
+            {!isUserAuthenticated ? (
               <div className="flex space-x-4">
                 <Link to="/login">
                   <Button
-                    variant={isScrolled ? 'outline' : 'ghost'}
-                    className={!isScrolled ? 'text-white border-white hover:bg-white hover:bg-opacity-10' : ''}
+                    variant={isScrolled || !isHomePage ? 'outline' : 'ghost'}
+                    className={!isScrolled && isHomePage ? 'text-white border-white hover:bg-white hover:bg-opacity-10' : ''}
                   >
                     Увійти
                   </Button>
                 </Link>
                 <Link to="/register">
-                  <Button variant={isScrolled ? 'primary' : 'ghost'} className={!isScrolled ? 'bg-white text-primary hover:bg-gray-100' : ''}>
+                  <Button
+                    variant={isScrolled || !isHomePage ? 'primary' : 'ghost'}
+                    className={!isScrolled && isHomePage ? 'bg-white text-primary hover:bg-gray-100' : ''}
+                  >
                     Зареєструватися
                   </Button>
                 </Link>
@@ -193,7 +197,7 @@ const Navbar: React.FC = () => {
                       <div className="flex items-center">
                         <img
                           className="h-8 w-8 rounded-full object-cover"
-                          src={userData.avatar}
+                          src={userData?.avatar}
                           alt="Аватар користувача"
                         />
                         <ChevronDown size={16} className="ml-1 text-gray-500" />
@@ -204,10 +208,9 @@ const Navbar: React.FC = () => {
                   {profileMenuOpen && (
                     <div className="absolute right-0 mt-2 w-48 rounded-component bg-white py-1 shadow-elevated ring-1 ring-black ring-opacity-5">
                       <div className="px-4 py-2 border-b border-gray-100">
-                        <p className="text-sm font-medium text-gray-900">{userData.name}</p>
-                        <p className="text-xs text-gray-500">{userData.email}</p>
+                        <p className="text-sm font-medium text-gray-900">{userData?.name}</p>
+                        <p className="text-xs text-gray-500">{userData?.email}</p>
                       </div>
-                      <Link to="/profile" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Ваш профіль</Link>
                       <Link to="/settings" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Налаштування</Link>
                       <div className="border-t border-gray-100">
                         <button
@@ -269,19 +272,16 @@ const Navbar: React.FC = () => {
                 <div className="flex-shrink-0">
                   <img
                     className="h-10 w-10 rounded-full object-cover"
-                    src={userData.avatar}
+                    src={userData?.avatar}
                     alt="Аватар користувача"
                   />
                 </div>
                 <div className="ml-3">
-                  <div className="text-base font-medium text-gray-800">{userData.name}</div>
-                  <div className="text-sm font-medium text-gray-500">{userData.email}</div>
+                  <div className="text-base font-medium text-gray-800">{userData?.name}</div>
+                  <div className="text-sm font-medium text-gray-500">{userData?.email}</div>
                 </div>
               </div>
               <div className="mt-3 px-2 space-y-1">
-                <Link to="/profile" className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:bg-gray-100 hover:text-primary">
-                  Ваш профіль
-                </Link>
                 <Link to="/settings" className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:bg-gray-100 hover:text-primary">
                   Налаштування
                 </Link>
@@ -295,7 +295,7 @@ const Navbar: React.FC = () => {
             </div>
           )}
 
-          {isHomePage && !isUserAuthenticated && (
+          {!isUserAuthenticated && (
             <div className="pt-4 pb-3 border-t border-gray-200">
               <div className="px-4 flex flex-col space-y-2">
                 <Link to="/login" className="w-full">
