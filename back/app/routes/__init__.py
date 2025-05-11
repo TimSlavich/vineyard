@@ -1,18 +1,35 @@
-"""
-API routes for the application.
-"""
+"""API маршруты приложения"""
 
 from fastapi import APIRouter
 
-from app.routes import auth, sensors, fertilizer, reports, settings, devices
+from app.routes import (
+    auth,
+    sensors,
+    devices,
+    fertilizer,
+    calibration,
+    diagnostic,
+    settings,
+    reports,
+)
 
-# Create main API router
+# Создание главного роутера
 api_router = APIRouter()
 
-# Include all routers
-api_router.include_router(auth.router, prefix="/auth", tags=["Authentication"])
-api_router.include_router(sensors.router, prefix="/sensors", tags=["Sensors"])
-api_router.include_router(fertilizer.router, prefix="/fertilizer", tags=["Fertilizers"])
-api_router.include_router(reports.router, prefix="/reports", tags=["Reports"])
-api_router.include_router(settings.router, prefix="/settings", tags=["Settings"])
-api_router.include_router(devices.router, prefix="/devices", tags=["Devices"])
+# Подключение роутеров
+api_router.include_router(auth.router, prefix="/auth", tags=["auth"])
+api_router.include_router(sensors.router, prefix="/sensors", tags=["sensors"])
+api_router.include_router(devices.router, prefix="/devices", tags=["devices"])
+api_router.include_router(fertilizer.router, prefix="/fertilizer", tags=["fertilizer"])
+api_router.include_router(
+    calibration.router, prefix="/calibration", tags=["calibration"]
+)
+api_router.include_router(diagnostic.router, prefix="/diagnostic", tags=["diagnostic"])
+api_router.include_router(settings.router, prefix="/settings", tags=["settings"])
+api_router.include_router(reports.router, prefix="/reports", tags=["reports"])
+
+# Создание роутера для API
+router = APIRouter()
+
+# Подключение API роутера к основному роутеру
+router.include_router(api_router, prefix="/api")

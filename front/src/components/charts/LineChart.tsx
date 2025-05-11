@@ -18,6 +18,7 @@ interface LineChartProps {
   timeFormat?: 'hour' | 'day' | 'month';
   showCard?: boolean;
   height?: number;
+  noDataMessage?: string;
 }
 
 const LineChart: React.FC<LineChartProps> = ({
@@ -28,9 +29,10 @@ const LineChart: React.FC<LineChartProps> = ({
   timeFormat = 'hour',
   showCard = true,
   height = 200,
+  noDataMessage = 'Немає даних для відображення'
 }) => {
   if (data.length === 0) {
-    return <div className="text-center py-10 text-gray-500">Немає даних для відображення</div>;
+    return <div className="text-center py-10 text-gray-500">{noDataMessage}</div>;
   }
 
   // Сортируем данные по времени

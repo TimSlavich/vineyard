@@ -11,19 +11,19 @@ from app.core.config import settings
 
 class InterceptHandler(logging.Handler):
     """
-    Intercept standard logging and redirect to loguru.
+    Перехват стандартного логирования и перенаправление в loguru.
 
-    See: https://loguru.readthedocs.io/en/stable/overview.html#entirely-compatible-with-standard-logging
+    См.: https://loguru.readthedocs.io/en/stable/overview.html#entirely-compatible-with-standard-logging
     """
 
     def emit(self, record: logging.LogRecord) -> None:
-        # Get corresponding Loguru level if it exists
+        # Получение соответствующего уровня Loguru, если он существует
         try:
             level = logger.level(record.levelname).name
         except ValueError:
             level = record.levelno
 
-        # Find caller from where originated the logged message
+        # Нахождение вызывающего кода, откуда произошло логируемое сообщение
         frame, depth = logging.currentframe(), 2
         while frame.f_code.co_filename == logging.__file__:  # type: ignore
             frame = cast(FrameType, frame.f_back)
@@ -36,30 +36,43 @@ class InterceptHandler(logging.Handler):
 
 def setup_logging() -> None:
     """
-    Configure logging with loguru.
+    Настройка логирования с использованием loguru.
     """
-    # Remove default loggers
+    # Удаление логгеров по умолчанию
     logger.remove()
 
-    # Intercept everything at the root logger
+    # Создание директории для логов, если она не существует
+    log_dir = Path("logs")
+    log_dir.mkdir(exist_ok=True)
+
+    log_file_path = log_dir / "app.log"
+
+    # Перехват всего в корневом логгере
     logging.root.handlers = [InterceptHandler()]
     logging.root.setLevel(settings.LOG_LEVEL)
 
-    # Add loguru handler for all modules
+    # Добавление обработчиков loguru
     logger.configure(
         handlers=[
             {
                 "sink": sys.stdout,
                 "level": settings.LOG_LEVEL,
                 "format": "<green>{time:YYYY-MM-DD HH:mm:ss}</green> | <level>{level: <8}</level> | <cyan>{name}</cyan>:<cyan>{function}</cyan>:<cyan>{line}</cyan> - <level>{message}</level>",
-            }
+            },
+            {
+                "sink": str(log_file_path),
+                "level": "DEBUG",
+                "rotation": "10 MB",
+                "compression": "zip",
+                "format": "{time:YYYY-MM-DD HH:mm:ss} | {level: <8} | {name}:{function}:{line} - {message}",
+            },
         ]
     )
 
-    # Explicitly set log levels for third party modules
-    for _log in ["uvicorn", "uvicorn.error", "uvicorn.access", "fastapi"]:
-        _logger = logging.getLogger(_log)
+    # Явная установка уровней логирования для сторонних модулей
+    for logger_name in ["uvicorn", "uvicorn.error", "uvicorn.access", "fastapi"]:
+        _logger = logging.getLogger(logger_name)
         _logger.handlers = [InterceptHandler()]
         _logger.propagate = False
 
-    logger.info("Logging setup complete.")
+    logger.debug(f"Логирование настроено: {log_file_path.absolute()}")

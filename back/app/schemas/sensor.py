@@ -2,7 +2,7 @@ from typing import Optional, Dict, Any, List
 from datetime import datetime
 from enum import Enum
 
-from pydantic import BaseModel, Field, validator
+from pydantic import BaseModel, Field, validator, field_validator
 
 
 class SensorTypeEnum(str, Enum):
@@ -34,10 +34,34 @@ class SensorDataBase(BaseModel):
 
 
 # Schema for creating sensor data
-class SensorDataCreate(SensorDataBase):
-    """Schema for creating sensor data."""
+class SensorDataCreate(BaseModel):
+    """
+    Schema for creating new sensor data.
+    """
 
-    pass
+    sensor_id: str
+    type: SensorTypeEnum
+    value: float
+    unit: str
+    location_id: str
+    device_id: Optional[str] = None
+    status: Optional[str] = None
+    metadata: Optional[Dict[str, Any]] = None
+    user_id: Optional[int] = None  # Добавляем опциональное поле user_id
+
+    class Config:
+        """Configuration for the schema."""
+
+        from_attributes = True
+
+    @field_validator("value")
+    def check_value_range(cls, v: float) -> float:
+        """
+        Validator to ensure sensor value is reasonable.
+        """
+        if v < -1000 or v > 1000000:
+            raise ValueError("Sensor value out of expected range (-1000 to 1000000)")
+        return v
 
 
 # Schema for updating sensor data

@@ -27,6 +27,7 @@ interface ComparativeChartProps {
     height?: number;
     showDots?: boolean;
     strokeWidth?: number;
+    noDataMessage?: string;
 }
 
 const ComparativeChart: React.FC<ComparativeChartProps> = ({
@@ -35,10 +36,11 @@ const ComparativeChart: React.FC<ComparativeChartProps> = ({
     timeFormat = 'hour',
     height = 300,
     showDots = true,
-    strokeWidth = 2.5
+    strokeWidth = 2.5,
+    noDataMessage = 'Немає даних для відображення'
 }) => {
     if (!series || series.length === 0) {
-        return <div className="text-center py-10 text-gray-500">Немає даних для відображення</div>;
+        return <div className="text-center py-10 text-gray-500">{noDataMessage}</div>;
     }
 
     // Преобразуем данные для построения графика

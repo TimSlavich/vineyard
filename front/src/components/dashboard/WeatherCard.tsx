@@ -9,32 +9,62 @@ interface WeatherCardProps {
 }
 
 const WeatherCard: React.FC<WeatherCardProps> = ({ data }) => {
-  // Мемоизация прогноза для повышения производительности
-  const forecastItems = useMemo(() => {
-    return data.forecast.map((day, index) => (
-      <div key={index} className="flex flex-col items-center">
-        <span className="text-xs font-medium text-gray-700 mb-1 font-roboto">
-          {translateShortDay(day.day)}
-        </span>
-        <div className="p-1">
-          {getWeatherIcon(day.icon)}
-        </div>
-        <div className="flex text-xs mt-1 justify-between w-full">
-          <span className="text-gray-800 font-medium font-roboto">
-            {day.temperature.max}°
-          </span>
-          <span className="text-gray-500 font-roboto">
-            {day.temperature.min}°
-          </span>
-        </div>
-        {day.precipitation > 0 && (
-          <span className="text-xs text-blue-500 mt-1 font-roboto">
-            {day.precipitation}%
-          </span>
-        )}
+  // Визначаємо іконку та тип погоди на основі температури
+  const weatherIconAndCondition = useMemo(() => {
+    const temp = data.current.temperature;
+
+    // Визначаємо погодну умову на основі температури
+    let condition = data.current.condition;
+    let icon = data.current.icon;
+
+    // Дуже спрощена логіка для визначення іконки і умови за температурою
+    if (temp >= 30) {
+      condition = 'Hot';
+      icon = 'sun';
+    } else if (temp >= 25) {
+      condition = 'Sunny';
+      icon = 'sun';
+    } else if (temp >= 20) {
+      condition = 'Partly Cloudy';
+      icon = 'cloud-sun';
+    } else if (temp >= 15) {
+      condition = 'Mild';
+      icon = 'cloud';
+    } else if (temp >= 10) {
+      condition = 'Cool';
+      icon = 'cloud';
+    } else {
+      condition = 'Cold';
+      icon = 'cloud-snow';
+    }
+
+    return { condition, icon };
+  }, [data.current.temperature]);
+
+  // Створення елементів прогнозу
+  const forecastItems = data.forecast.map((day, index) => (
+    <div key={index} className="flex flex-col items-center">
+      <span className="text-xs font-medium text-gray-700 mb-1 font-roboto">
+        {translateShortDay(day.day)}
+      </span>
+      <div className="p-1">
+        {getWeatherIcon(day.icon)}
       </div>
-    ));
-  }, [data.forecast]);
+      <div className="flex text-xs mt-1 justify-between w-full">
+        <span className="text-gray-800 font-medium font-roboto">
+          {day.temperature.max}°
+        </span>
+        <span className="text-gray-500 font-roboto">
+          {day.temperature.min}°
+        </span>
+      </div>
+      {day.precipitation > 0 && (
+        <span className="text-xs text-blue-500 mt-1 font-roboto">
+          {day.precipitation}%
+        </span>
+      )}
+    </div>
+  ));
 
   return (
     <Card title="Погодні умови" className="h-full">
@@ -42,14 +72,14 @@ const WeatherCard: React.FC<WeatherCardProps> = ({ data }) => {
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center">
             <div className="p-3 bg-gray-100 rounded-full mr-4">
-              {getWeatherIcon(data.current.icon)}
+              {getWeatherIcon(weatherIconAndCondition.icon)}
             </div>
             <div>
               <p className="text-2xl font-semibold font-inter">
                 {data.current.temperature}°C
               </p>
               <p className="text-gray-600 text-sm font-roboto">
-                {translateWeatherCondition(data.current.condition)}
+                {translateWeatherCondition(weatherIconAndCondition.condition)}
               </p>
             </div>
           </div>
@@ -67,7 +97,7 @@ const WeatherCard: React.FC<WeatherCardProps> = ({ data }) => {
                 Вітер:
               </span>
               <span className="text-sm font-medium text-gray-800 font-roboto">
-                {data.current.windSpeed} км/год {data.current.windDirection}
+                {data.current.windSpeed} км/г {data.current.windDirection}
               </span>
             </div>
           </div>

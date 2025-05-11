@@ -1,47 +1,69 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import Button from '../components/ui/Button';
-import { Mail, Lock, EyeOff, Eye, AlertCircle } from 'lucide-react';
+import { Lock, EyeOff, Eye, AlertCircle, User } from 'lucide-react';
 import { setAuthenticated } from '../utils/storage';
+import { userApi } from '../services/api/userApi';
 
 const LoginPage: React.FC = () => {
-  const [email, setEmail] = useState('');
+  const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
   const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
 
     // Simple validation
-    if (!email || !password) {
-      setError('Please fill in all fields');
+    if (!username || !password) {
+      setError('Пожалуйста, заполните все поля');
       return;
     }
 
     try {
-      // Проверяем наличие localStorage и сохраняем данные
-      const userData = {
-        email,
-        name: 'User',
-        avatar: 'https://i.pravatar.cc/150?img=1',
-      };
+      setLoading(true);
 
-      const isAuthSuccess = setAuthenticated(true, userData);
+      // Вызываем метод логина
+      await userApi.login({
+        username,
+        password
+      });
 
-      if (!isAuthSuccess) {
-        setError('Ошибка при сохранении данных авторизации. Проверьте настройки браузера.');
-        return;
+      // После успешного входа пытаемся получить данные пользователя
+      let userData;
+      try {
+        userData = await userApi.getProfile();
+      } catch (profileError) {
+        console.warn('Не удалось получить профиль пользователя, создаем базовый профиль:', profileError);
+        // Создаем базовый объект пользователя на основе данных авторизации
+        userData = {
+          id: Math.floor(Math.random() * 10000) + 1, // Генерируем случайный ID вместо 0
+          username,
+          email: '',
+          first_name: '',
+          last_name: '',
+          is_active: true,
+          is_admin: false,
+          role: 'viewer',
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        };
       }
+
+      // Сохраняем статус авторизации и данные пользователя
+      setAuthenticated(true, userData);
 
       // Перенаправление на dashboard
       navigate('/dashboard');
-    } catch (err) {
+    } catch (err: any) {
       console.error('Ошибка при входе:', err);
-      setError('Произошла ошибка при входе. Попробуйте еще раз.');
+      setError(err.message || 'Произошла ошибка при входе. Проверьте имя пользователя и пароль.');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -98,20 +120,20 @@ const LoginPage: React.FC = () => {
 
             <form onSubmit={handleSubmit}>
               <div className="mb-6">
-                <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1 font-roboto">
-                  Email
+                <label htmlFor="username" className="block text-sm font-medium text-gray-700 mb-1 font-roboto">
+                  Username
                 </label>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <Mail size={18} className="text-gray-400" />
+                    <User size={18} className="text-gray-400" />
                   </div>
                   <input
-                    id="email"
-                    type="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
+                    id="username"
+                    type="text"
+                    value={username}
+                    onChange={(e) => setUsername(e.target.value)}
                     className="pl-10 block w-full rounded-component border-gray-300 bg-gray-50 shadow-sm focus:border-primary focus:ring focus:ring-primary focus:ring-opacity-50 font-roboto"
-                    placeholder="you@example.com"
+                    placeholder="your_username"
                   />
                 </div>
               </div>
@@ -164,8 +186,13 @@ const LoginPage: React.FC = () => {
                 </label>
               </div>
 
-              <Button type="submit" fullWidth size="lg">
-                Sign in
+              <Button
+                type="submit"
+                fullWidth
+                size="lg"
+                disabled={loading}
+              >
+                {loading ? 'Вход...' : 'Sign in'}
               </Button>
             </form>
 

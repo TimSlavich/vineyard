@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useCallback, memo } from 'react';
+import React, { useEffect } from 'react';
 import Navbar from './Navbar';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { isAuthenticated, isLocalStorageAvailable } from '../../utils/storage';
@@ -7,61 +7,51 @@ interface LayoutProps {
   children: React.ReactNode;
 }
 
-const Layout: React.FC<LayoutProps> = ({ children }) => {
+const Layout = ({ children }: LayoutProps) => {
   const location = useLocation();
   const navigate = useNavigate();
 
-  // Мемоизация состояний страниц
-  const pageStates = useMemo(() => {
-    const pathname = location.pathname;
-    return {
-      isHomePage: pathname === '/',
-      isAboutPage: pathname === '/about',
-      isContactPage: pathname === '/contact',
-      isPrivacyPage: pathname === '/privacy-policy',
-      isTermsPage: pathname === '/terms',
-      isCookiesPage: pathname === '/cookies-policy',
-      isLoginPage: pathname === '/login' || pathname === '/register',
-    };
-  }, [location.pathname]);
+  // Определение типов страниц
+  const pathname = location.pathname;
+  const isHomePage = pathname === '/';
+  const isAboutPage = pathname === '/about';
+  const isContactPage = pathname === '/contact';
+  const isPrivacyPage = pathname === '/privacy-policy';
+  const isTermsPage = pathname === '/terms';
+  const isCookiesPage = pathname === '/cookies-policy';
+  const isLoginPage = pathname === '/login' || pathname === '/register';
 
-  const { isHomePage, isAboutPage, isContactPage, isPrivacyPage, isTermsPage, isCookiesPage, isLoginPage } = pageStates;
+  // Проверка публичной страницы (с футером)
+  const isPublicPage = isHomePage || isAboutPage || isContactPage || isPrivacyPage || isTermsPage || isCookiesPage;
 
-  // Проверка, является ли текущая страница публичной (с футером)
-  const isPublicPage = useMemo(() => {
-    return isHomePage || isAboutPage || isContactPage || isPrivacyPage || isTermsPage || isCookiesPage;
-  }, [isHomePage, isAboutPage, isContactPage, isPrivacyPage, isTermsPage, isCookiesPage]);
+  // Классы для main
+  const mainClasses = `flex-grow w-full ${isHomePage || isLoginPage ? '' : 'pt-16 bg-gray-100'}`;
 
-  // Вычисление классов для main
-  const mainClasses = useMemo(() => {
-    return `flex-grow w-full ${isHomePage || isLoginPage ? '' : 'pt-16 bg-gray-100'}`;
-  }, [isHomePage, isLoginPage]);
-
-  // Функция для обработки переходов по ссылкам с прокруткой страницы вверх
-  const handleNavigation = useCallback((path: string) => {
+  // Функция для обработки переходов по ссылкам
+  const handleNavigation = (path: string) => {
     // Если мы уже на этой странице, просто прокручиваем вверх
     if (location.pathname === path) {
       window.scrollTo({ top: 0, behavior: 'smooth' });
     } else {
-      // Иначе переходим на новую страницу (при загрузке страницы эффект useEffect прокрутит вверх)
+      // Иначе переходим на новую страницу
       navigate(path);
     }
-  }, [location.pathname, navigate]);
+  };
 
-  // Проверяем аутентификацию при изменении пути
+  // Проверка аутентификации при изменении пути
   useEffect(() => {
     try {
       const isLSAvailable = isLocalStorageAvailable();
       if (isLSAvailable) {
-        const isUserAuthenticated = isAuthenticated();
+        isAuthenticated();
       }
     } catch (err) {
       // Ошибка при проверке аутентификации
     }
   }, [location.pathname]);
 
-  // Получаем текущий год для футера
-  const currentYear = useMemo(() => new Date().getFullYear(), []);
+  // Текущий год для футера
+  const currentYear = new Date().getFullYear();
 
   return (
     <div className="flex flex-col min-h-screen w-full">
@@ -94,7 +84,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                 <h4 className="text-sm font-semibold mb-4 uppercase tracking-wider font-inter">Правова інформація</h4>
                 <ul className="space-y-2">
                   <li><button onClick={() => handleNavigation('/privacy-policy')} className="text-left w-full text-gray-400 hover:text-white transition-colors duration-200 text-sm font-roboto">Політика конфіденційності</button></li>
-                  <li><button onClick={() => handleNavigation('/terms')} className="text-left w-full text-gray-400 hover:text-white transition-colors duration-200 text-sm font-roboto">Умови надання послуг</button></li>
+                  <li><button onClick={() => handleNavigation('/terms')} className="text-left w-full text-gray-400 hover:text-white transition-colors duration-200 text-sm font-roboto">Умови використання</button></li>
                   <li><button onClick={() => handleNavigation('/cookies-policy')} className="text-left w-full text-gray-400 hover:text-white transition-colors duration-200 text-sm font-roboto">Політика використання файлів cookie</button></li>
                 </ul>
               </div>
@@ -102,7 +92,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
 
             <div className="mt-12 border-t border-gray-800 pt-8 flex flex-col md:flex-row justify-between items-center">
               <p className="text-gray-400 text-sm font-roboto">
-                © {currentYear} VineGuard. Усі права захищено.
+                © {currentYear} VineGuard. Усі права захищені.
               </p>
               <div className="flex space-x-6 mt-4 md:mt-0">
                 <a href="https://www.linkedin.com/in/slavich-timofii-78b344253/" target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-white transition-colors duration-200">
@@ -132,4 +122,4 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
   );
 };
 
-export default memo(Layout);
+export default React.memo(Layout);

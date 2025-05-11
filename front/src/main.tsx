@@ -26,8 +26,8 @@ if (!rootElement) {
     // Если localStorage недоступен, показываем сообщение об ошибке
     rootElement.innerHTML = `
       <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; padding: 2rem; text-align: center;">
-        <h1 style="font-size: 1.5rem; margin-bottom: 1rem; color: #4A4A4A;">Ошибка доступа к localStorage</h1>
-        <p style="color: #737373; max-width: 500px;">Для работы приложения требуется доступ к localStorage. Пожалуйста, убедитесь, что ваш браузер поддерживает localStorage и что он не заблокирован настройками приватности.</p>
+        <h1 style="font-size: 1.5rem; margin-bottom: 1rem; color: #4A4A4A;">Помилка доступу до localStorage</h1>
+        <p style="color: #737373; max-width: 500px;">Для роботи додатку потрібен доступ до localStorage. Будь ласка, переконайтеся, що ваш браузер підтримує localStorage і що він не заблокований налаштуваннями приватності.</p>
       </div>
     `;
   } else {
@@ -42,8 +42,8 @@ if (!rootElement) {
     } catch (error) {
       rootElement.innerHTML = `
         <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; padding: 2rem; text-align: center;">
-          <h1 style="font-size: 1.5rem; margin-bottom: 1rem; color: #4A4A4A;">Ошибка загрузки приложения</h1>
-          <p style="color: #737373; max-width: 500px;">Произошла ошибка при загрузке приложения. Пожалуйста, обновите страницу или проверьте консоль на наличие ошибок.</p>
+          <h1 style="font-size: 1.5rem; margin-bottom: 1rem; color: #4A4A4A;">Помилка завантаження додатку</h1>
+          <p style="color: #737373; max-width: 500px;">Сталася помилка при завантаженні додатку. Будь ласка, оновіть сторінку або перевірте консоль на наявність помилок.</p>
           <p style="color: #F44336; margin-top: 1rem; font-family: monospace; text-align: left; padding: 1rem; background: #f5f5f5; border-radius: 4px; max-width: 500px; overflow: auto;">
             ${String(error)}
           </p>

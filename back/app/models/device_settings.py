@@ -5,9 +5,7 @@ from tortoise.models import Model
 
 
 class DeviceType(str, Enum):
-    """
-    Types of devices in the system.
-    """
+    """Типы устройств в системе"""
 
     IRRIGATION = "irrigation"
     FERTILIZER = "fertilizer"
@@ -21,9 +19,7 @@ class DeviceType(str, Enum):
 
 
 class DeviceMode(str, Enum):
-    """
-    Operation modes for devices.
-    """
+    """Режимы работы устройств"""
 
     AUTO = "auto"
     MANUAL = "manual"
@@ -33,9 +29,7 @@ class DeviceMode(str, Enum):
 
 
 class DeviceStatus(str, Enum):
-    """
-    Status of devices.
-    """
+    """Статусы устройств"""
 
     ONLINE = "online"
     OFFLINE = "offline"
@@ -45,9 +39,7 @@ class DeviceStatus(str, Enum):
 
 
 class Device(Model):
-    """
-    Model for vineyard devices.
-    """
+    """Модель устройств виноградника"""
 
     id = fields.IntField(pk=True)
     name = fields.CharField(max_length=100)
@@ -65,19 +57,14 @@ class Device(Model):
     metadata = fields.JSONField(null=True)
 
     class Meta:
-        """Metadata for the Device model."""
-
         table = "devices"
 
     def __str__(self) -> str:
-        """String representation of the Device model."""
         return f"{self.name} ({self.device_id})"
 
 
 class DeviceSettings(Model):
-    """
-    Model for device settings.
-    """
+    """Модель настроек устройств"""
 
     id = fields.IntField(pk=True)
     device = fields.ForeignKeyField("models.Device", related_name="settings")
@@ -91,19 +78,14 @@ class DeviceSettings(Model):
     is_active = fields.BooleanField(default=True)
 
     class Meta:
-        """Metadata for the DeviceSettings model."""
-
         table = "device_settings"
 
     def __str__(self) -> str:
-        """String representation of the DeviceSettings model."""
         return f"Settings for {self.device.name} - {self.mode}"
 
 
 class DeviceActionLog(Model):
-    """
-    Model for logging device actions.
-    """
+    """Модель логов действий устройств"""
 
     id = fields.IntField(pk=True)
     device = fields.ForeignKeyField("models.Device", related_name="action_logs")
@@ -118,10 +100,7 @@ class DeviceActionLog(Model):
     source = fields.CharField(max_length=50)  # API, web, automation, schedule
 
     class Meta:
-        """Metadata for the DeviceActionLog model."""
-
         table = "device_action_logs"
 
     def __str__(self) -> str:
-        """String representation of the DeviceActionLog model."""
         return f"{self.device.name} - {self.action} at {self.timestamp}"

@@ -1,4 +1,4 @@
-import React, { useMemo, memo } from 'react';
+import React from 'react';
 
 interface CardProps {
   children: React.ReactNode;
@@ -11,7 +11,7 @@ interface CardProps {
   onClick?: () => void;
 }
 
-const Card: React.FC<CardProps> = ({
+const Card = ({
   children,
   title,
   subtitle,
@@ -20,13 +20,11 @@ const Card: React.FC<CardProps> = ({
   className = '',
   hoverable = false,
   onClick,
-}) => {
-  // Мемоизация классов стилей для повышения производительности
-  const cardClasses = useMemo(() => {
-    const baseClasses = 'bg-white rounded-component shadow-card overflow-hidden';
-    const hoverClasses = hoverable ? 'cursor-pointer transition-shadow duration-200 hover:shadow-elevated' : '';
-    return `${baseClasses} ${hoverClasses} ${className}`;
-  }, [hoverable, className]);
+}: CardProps) => {
+  // Формирование классов стилей
+  const baseClasses = 'bg-white rounded-component shadow-card overflow-hidden';
+  const hoverClasses = hoverable ? 'cursor-pointer transition-shadow duration-200 hover:shadow-elevated' : '';
+  const cardClasses = `${baseClasses} ${hoverClasses} ${className}`;
 
   // Проверяем, есть ли заголовок или подзаголовок
   const hasHeader = Boolean(title || subtitle || headerRight);
@@ -57,4 +55,4 @@ const Card: React.FC<CardProps> = ({
   );
 };
 
-export default memo(Card);
+export default React.memo(Card);

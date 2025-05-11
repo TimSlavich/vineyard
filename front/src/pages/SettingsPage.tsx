@@ -4,15 +4,22 @@ import Button from '../components/ui/Button';
 import { useDeviceSettings } from '../context/DeviceSettingsContext';
 import { Bell, Smartphone, Save, RefreshCw } from 'lucide-react';
 import ModalMessage from '../components/ui/ModalMessage';
-import { devices as initialDevices, thresholds as initialThresholds, notificationSettings as initialNotificationSettings } from '../data/mockData';
+import { thresholds as initialThresholds, notificationSettings as initialNotificationSettings } from '../data/mockData';
 import { getUserData } from '../utils/storage';
 import { useNavigate } from 'react-router-dom';
 import {
   DEVICE_TYPE_UA,
   DEVICE_NAME_UA,
   SENSOR_TYPE_UA,
-  NOTIF_LABELS_UA
 } from '../utils/translations';
+import NotificationSettings from '../components/settings/NotificationSettings';
+import {
+  loadUserSettings,
+  saveUserSettings,
+  resetUserSettings,
+  updateNotificationChannel,
+  UserSettings
+} from '../services/userSettingsService';
 
 // Компонент для отображения списка устройств
 const DevicesTab = memo(({
@@ -115,12 +122,14 @@ const ThresholdsTab = memo(({
   localThresholds,
   handleThresholdChange,
   handleSaveThresholds,
-  handleResetThresholds
+  handleResetThresholds,
+  handleTestAlert
 }: {
   localThresholds: any[],
   handleThresholdChange: (id: string, field: 'min' | 'max', value: number) => void,
   handleSaveThresholds: () => void,
-  handleResetThresholds: () => void
+  handleResetThresholds: () => void,
+  handleTestAlert: () => void
 }) => {
   return (
     <Card title="Порогові значення" className="mb-6">
@@ -140,6 +149,14 @@ const ThresholdsTab = memo(({
           onClick={handleResetThresholds}
         >
           Скинути до початкових
+        </Button>
+        <Button
+          variant="outline"
+          size="sm"
+          className="border-warning text-warning"
+          onClick={handleTestAlert}
+        >
+          Тестове оповіщення
         </Button>
       </div>
 
@@ -228,6 +245,7 @@ const SettingsPage: React.FC = () => {
   const [deletePassword, setDeletePassword] = useState('');
   const [deleteError, setDeleteError] = useState('');
   const navigate = useNavigate();
+  const [userSettings, setUserSettings] = useState<UserSettings>(loadUserSettings());
 
   useEffect(() => {
     setLocalThresholds(thresholds);
@@ -346,6 +364,54 @@ const SettingsPage: React.FC = () => {
     setNotifResetModalOpen(true);
   };
 
+  // Функция для отправки тестового оповещения
+  const handleTestAlert = () => {
+    // Вариант 1: Отправить тестовое оповещение через WebSocket
+    import('../services/websocketService').then(({ default: websocketService }) => {
+      websocketService.sendTestAlert();
+    });
+
+    // Вариант 2: Создаем локальное оповещение напрямую через notificationService
+    import('../services/notificationService').then(({ addAlert }) => {
+      addAlert({
+        title: 'Тестове оповіщення',
+        message: 'Це тестове оповіщення для перевірки роботи системи сповіщень. Поточні налаштування порогових значень працюють.',
+        type: 'info',
+        sensorId: 'test_sensor',
+        locationId: 'test_location'
+      });
+    });
+  };
+
+  // Обработчики для настроек уведомлений
+  const handleToggleNotificationChannel = (channelType: string, enabled: boolean) => {
+    const updatedSettings = updateNotificationChannel(channelType, { enabled });
+    setUserSettings(updatedSettings);
+  };
+
+  const handleToggleNotificationAlertType = (channelType: string, alertType: string, enabled: boolean) => {
+    const channel = userSettings.notifications.channels.find(ch => ch.type === channelType);
+    if (!channel) return;
+
+    const alertTypes = enabled
+      ? [...channel.alertTypes, alertType]
+      : channel.alertTypes.filter(t => t !== alertType);
+
+    const updatedSettings = updateNotificationChannel(channelType, { alertTypes });
+    setUserSettings(updatedSettings);
+  };
+
+  const handleSaveNotificationSettings = () => {
+    saveUserSettings(userSettings);
+    setNotifSaveModalOpen(true);
+  };
+
+  const handleResetNotificationSettings = () => {
+    const defaultSettings = resetUserSettings();
+    setUserSettings(defaultSettings);
+    setNotifResetModalOpen(true);
+  };
+
   return (
     <div className="px-6 py-8 md:px-8 lg:px-12 min-h-screen">
       <div className="mb-8">
@@ -411,89 +477,19 @@ const SettingsPage: React.FC = () => {
           handleThresholdChange={handleThresholdChange}
           handleSaveThresholds={handleSaveThresholds}
           handleResetThresholds={handleResetThresholds}
+          handleTestAlert={handleTestAlert}
         />
       )}
 
       {/* Вкладка "Уведомления" */}
       {activeTab === 'notifications' && (
-        <Card title="Налаштування сповіщень" className="mb-6">
-          <div className="mb-4 flex flex-wrap gap-2">
-            <Button
-              variant="primary"
-              size="sm"
-              leftIcon={<Save size={14} />}
-              onClick={handleSaveNotifications}
-            >
-              Зберегти зміни
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              className="border-gray-300"
-              onClick={handleResetNotifications}
-            >
-              Скинути до початкових
-            </Button>
-          </div>
-
-          <div className="space-y-6">
-            {notificationSettings.map((setting) => (
-              <div key={setting.type} className="border border-gray-200 rounded-lg p-4">
-                <div className="flex justify-between items-center mb-4">
-                  <div>
-                    <h3 className="text-lg font-medium text-gray-900">
-                      {setting.type === 'email' ? 'Email сповіщення' :
-                        setting.type === 'sms' ? 'SMS сповіщення' :
-                          'Push сповіщення'}
-                    </h3>
-                    <p className="text-sm text-gray-600">
-                      {setting.type === 'email' ? 'Отримувати сповіщення на електронну пошту' :
-                        setting.type === 'sms' ? 'Отримувати сповіщення на телефон' :
-                          'Отримувати сповіщення в браузері та додатку'}
-                    </p>
-                  </div>
-                  <div className="relative inline-block w-12 h-6 align-middle select-none transition duration-200 ease-in">
-                    <input
-                      type="checkbox"
-                      name={`toggle-${setting.type}`}
-                      id={`toggle-${setting.type}`}
-                      checked={setting.enabled}
-                      onChange={(e) => handleNotificationToggle(setting.type as any, e.target.checked)}
-                      className="toggle-checkbox absolute block w-6 h-6 rounded-full bg-white border-4 appearance-none cursor-pointer"
-                    />
-                    <label
-                      htmlFor={`toggle-${setting.type}`}
-                      className={`toggle-label block overflow-hidden h-6 rounded-full cursor-pointer ${setting.enabled ? 'bg-primary' : 'bg-gray-300'}`}
-                    ></label>
-                  </div>
-                </div>
-
-                {setting.enabled && (
-                  <div className="space-y-2">
-                    <p className="text-sm font-medium text-gray-700 mb-2">Типи сповіщень:</p>
-                    {(['info', 'warning', 'critical'] as const).map((alertType) => (
-                      <div key={alertType} className="flex items-center">
-                        <input
-                          type="checkbox"
-                          id={`${setting.type}-${alertType}`}
-                          checked={setting.alertTypes.includes(alertType)}
-                          onChange={(e) => handleAlertTypeToggle(setting.type as any, alertType, e.target.checked)}
-                          className="h-4 w-4 text-primary focus:ring-primary border-gray-300 rounded"
-                        />
-                        <label
-                          htmlFor={`${setting.type}-${alertType}`}
-                          className="ml-2 block text-sm text-gray-900"
-                        >
-                          {NOTIF_LABELS_UA[alertType]}
-                        </label>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-            ))}
-          </div>
-        </Card>
+        <NotificationSettings
+          settings={userSettings.notifications.channels}
+          onToggleChannel={handleToggleNotificationChannel}
+          onToggleAlertType={handleToggleNotificationAlertType}
+          onSaveSettings={handleSaveNotificationSettings}
+          onResetSettings={handleResetNotificationSettings}
+        />
       )}
 
       {/* Вкладка "Аккаунт" */}

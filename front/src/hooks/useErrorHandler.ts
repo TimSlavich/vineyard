@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState } from 'react';
 
 interface ErrorHandlerOptions {
     /** Автоматически очищать ошибку через заданное время (мс) */
@@ -18,43 +18,36 @@ export const useErrorHandler = (options: ErrorHandlerOptions = {}) => {
      * Устанавливает ошибку
      * @param err ошибка для установки
      */
-    const handleError = useCallback((err: unknown) => {
+    const handleError = (err: unknown) => {
         const errorObject = err instanceof Error ? err : new Error(String(err));
         setError(errorObject);
 
         if (autoClearTimeout) {
-            setTimeout(() => {
-                setError(null);
-            }, autoClearTimeout);
+            setTimeout(() => setError(null), autoClearTimeout);
         }
-    }, [autoClearTimeout]);
+    };
 
     /**
      * Очищает ошибку
      */
-    const clearError = useCallback(() => {
-        setError(null);
-    }, []);
+    const clearError = () => setError(null);
 
     /**
      * Обертка для асинхронных функций
      * @param asyncFunction асинхронная функция для выполнения
      * @returns функция, которая выполняет asyncFunction и обрабатывает ошибки
      */
-    const withErrorHandling = useCallback(
-        <T extends any[], R>(asyncFunction: (...args: T) => Promise<R>) => {
-            return async (...args: T): Promise<R | undefined> => {
-                try {
-                    clearError();
-                    return await asyncFunction(...args);
-                } catch (err) {
-                    handleError(err);
-                    return undefined;
-                }
-            };
-        },
-        [handleError, clearError]
-    );
+    const withErrorHandling = <T extends any[], R>(asyncFunction: (...args: T) => Promise<R>) => {
+        return async (...args: T): Promise<R | undefined> => {
+            try {
+                clearError();
+                return await asyncFunction(...args);
+            } catch (err) {
+                handleError(err);
+                return undefined;
+            }
+        };
+    };
 
     return {
         error,

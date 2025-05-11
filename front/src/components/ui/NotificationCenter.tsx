@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect, useMemo, useCallback, memo } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Bell } from 'lucide-react';
 import AlertItem from './AlertItem';
 import { useNavigate } from 'react-router-dom';
@@ -8,34 +8,30 @@ interface NotificationCenterProps {
     className?: string;
 }
 
-const NotificationCenter: React.FC<NotificationCenterProps> = ({ className = '' }) => {
+const NotificationCenter = ({ className = '' }: NotificationCenterProps) => {
     const [isOpen, setIsOpen] = useState(false);
     const [alerts, markAsRead, markAllAsRead] = useAlerts();
     const navigate = useNavigate();
     const notificationRef = useRef<HTMLDivElement>(null);
 
-    // Подсчет непрочитанных уведомлений (мемоизируем для оптимизации)
-    const unreadCount = useMemo(() => {
-        return alerts.filter(alert => !alert.read).length;
-    }, [alerts]);
+    // Подсчет непрочитанных уведомлений
+    const unreadCount = alerts.filter(alert => !alert.read).length;
 
-    // Получение только последних 4 уведомлений для отображения в выпадающем меню (мемоизируем)
-    const recentAlerts = useMemo(() => {
-        return [...alerts]
-            .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
-            .slice(0, 4);
-    }, [alerts]);
+    // Получение только последних 4 уведомлений для отображения
+    const recentAlerts = [...alerts]
+        .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
+        .slice(0, 4);
 
     // Обработчик перехода на страницу всех уведомлений
-    const handleViewAllNotifications = useCallback(() => {
+    const handleViewAllNotifications = () => {
         navigate('/notifications');
         setIsOpen(false);
-    }, [navigate]);
+    };
 
     // Обработчик переключения меню уведомлений
-    const toggleNotifications = useCallback(() => {
+    const toggleNotifications = () => {
         setIsOpen(prev => !prev);
-    }, []);
+    };
 
     // Закрытие при клике вне области
     useEffect(() => {
@@ -45,21 +41,19 @@ const NotificationCenter: React.FC<NotificationCenterProps> = ({ className = '' 
             }
         }
 
-        // Добавляем обработчик, если меню открыто
         if (isOpen) {
             document.addEventListener('mousedown', handleClickOutside);
         }
 
-        // Удаляем обработчик при размонтировании компонента или закрытии меню
         return () => {
             document.removeEventListener('mousedown', handleClickOutside);
         };
     }, [isOpen]);
 
     // Обработчик для отметки уведомления как прочитанного
-    const handleMarkAsRead = useCallback((id: string) => {
+    const handleMarkAsRead = (id: string) => {
         markAsRead(id);
-    }, [markAsRead]);
+    };
 
     return (
         <div className={`relative ${className}`} ref={notificationRef}>
@@ -87,9 +81,9 @@ const NotificationCenter: React.FC<NotificationCenterProps> = ({ className = '' 
                             <button
                                 className="text-sm text-primary hover:text-primary-dark font-medium"
                                 onClick={markAllAsRead}
-                                aria-label="Позначити всі як прочитані"
+                                aria-label="Позначити все як прочитане"
                             >
-                                Позначити всі як прочитані
+                                Позначити все як прочитане
                             </button>
                         )}
                     </div>
@@ -128,4 +122,4 @@ const NotificationCenter: React.FC<NotificationCenterProps> = ({ className = '' 
     );
 };
 
-export default memo(NotificationCenter); 
+export default React.memo(NotificationCenter); 

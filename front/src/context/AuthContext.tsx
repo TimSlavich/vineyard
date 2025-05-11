@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import React, { createContext, useContext, useState, useEffect } from 'react';
 import { User } from '../types';
 import { AuthRequest, RegisterRequest, UserProfileUpdateRequest, PasswordChangeRequest } from '../services/api/types';
 import { userApi } from '../services/api';
@@ -26,7 +26,7 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     const [user, setUser] = useState<User | null>(getItem<User>('user'));
     const [isAuthenticated, setIsAuthenticated] = useState<boolean>(!!getItem('authToken'));
     const [loading, setLoading] = useState<boolean>(false);
@@ -51,105 +51,93 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         checkAuth();
     }, []);
 
-    // Функция для авторизации
-    const login = useCallback(async (credentials: AuthRequest) => {
+    // Функция авторизации
+    const login = async (credentials: AuthRequest) => {
         try {
             setLoading(true);
             setError(null);
 
-            const response = await userApi.login(credentials);
-            const { token, user } = response.data;
+            // Выполняем вход и получаем токен
+            await userApi.login(credentials);
 
-            // Сохраняем токен и данные пользователя
-            setItem('authToken', token);
-            setItem('user', user);
+            // Получаем пользователя из localStorage после успешной авторизации
+            const userData = getItem<User>('user');
 
             setIsAuthenticated(true);
-            setUser({
-                ...user,
-                role: user.role as "admin" | "manager" | "viewer"
-            });
+            setUser(userData);
 
-            // Перенаправляем на главную страницу
             navigate('/');
         } catch (err) {
             setError(err instanceof Error ? err : new Error(String(err)));
         } finally {
             setLoading(false);
         }
-    }, [navigate]);
+    };
 
-    // Функция для регистрации
-    const register = useCallback(async (userData: RegisterRequest) => {
+    // Функция регистрации
+    const register = async (userData: RegisterRequest) => {
         try {
             setLoading(true);
             setError(null);
 
-            const response = await userApi.register(userData);
-            const { token, user } = response.data;
+            // Выполняем регистрацию
+            await userApi.register(userData);
 
-            // Сохраняем токен и данные пользователя
-            setItem('authToken', token);
-            setItem('user', user);
+            // Получаем пользователя из localStorage после успешной регистрации
+            const user = getItem<User>('user');
 
             setIsAuthenticated(true);
-            setUser({
-                ...user,
-                role: user.role as "admin" | "manager" | "viewer"
-            });
+            setUser(user);
 
-            // Перенаправляем на главную страницу
             navigate('/');
         } catch (err) {
             setError(err instanceof Error ? err : new Error(String(err)));
         } finally {
             setLoading(false);
         }
-    }, [navigate]);
+    };
 
-    // Функция для выхода из системы
-    const logout = useCallback(async () => {
+    // Функция выхода из системы
+    const logout = async () => {
         try {
             setLoading(true);
 
             await userApi.logout();
 
-            // Удаляем токен и данные пользователя
             removeItem('authToken');
             removeItem('user');
 
             setIsAuthenticated(false);
             setUser(null);
 
-            // Перенаправляем на страницу входа
             navigate('/login');
         } catch (err) {
             setError(err instanceof Error ? err : new Error(String(err)));
         } finally {
             setLoading(false);
         }
-    }, [navigate]);
+    };
 
-    // Функция для обновления профиля
-    const updateProfile = useCallback(async (data: UserProfileUpdateRequest) => {
+    // Функция обновления профиля
+    const updateProfile = async (data: UserProfileUpdateRequest) => {
         try {
             setLoading(true);
             setError(null);
 
-            const response = await userApi.updateProfile(data);
+            // Обновляем профиль и получаем обновленные данные
+            const updatedUser = await userApi.updateProfile(data);
 
-            // Обновляем данные пользователя
-            setItem('user', response.data);
-            setUser(response.data);
+            setItem('user', updatedUser);
+            setUser(updatedUser);
         } catch (err) {
             setError(err instanceof Error ? err : new Error(String(err)));
         } finally {
             setLoading(false);
         }
-    }, []);
+    };
 
-    // Функция для изменения пароля
-    const changePassword = useCallback(async (data: PasswordChangeRequest) => {
+    // Функция изменения пароля
+    const changePassword = async (data: PasswordChangeRequest) => {
         try {
             setLoading(true);
             setError(null);
@@ -161,35 +149,33 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         } finally {
             setLoading(false);
         }
-    }, []);
+    };
 
-    // Функция для удаления аккаунта
-    const deleteAccount = useCallback(async () => {
+    // Функция удаления аккаунта
+    const deleteAccount = async () => {
         try {
             setLoading(true);
 
             await userApi.deleteAccount();
 
-            // Удаляем токен и данные пользователя
             removeItem('authToken');
             removeItem('user');
 
             setIsAuthenticated(false);
             setUser(null);
 
-            // Перенаправляем на страницу входа
             navigate('/login');
         } catch (err) {
             setError(err instanceof Error ? err : new Error(String(err)));
         } finally {
             setLoading(false);
         }
-    }, [navigate]);
+    };
 
-    // Функция для очистки ошибки
-    const clearError = useCallback(() => {
+    // Функция очистки ошибки
+    const clearError = () => {
         setError(null);
-    }, []);
+    };
 
     return (
         <AuthContext.Provider
@@ -215,7 +201,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 export const useAuth = () => {
     const context = useContext(AuthContext);
     if (!context) {
-        throw new Error('useAuth must be used within an AuthProvider');
+        throw new Error('useAuth должен использоваться внутри AuthProvider');
     }
     return context;
 }; 

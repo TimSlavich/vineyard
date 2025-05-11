@@ -1,9 +1,9 @@
-from typing import Optional, TypeVar, Generic, Type, Dict, Any, List, Tuple
+from typing import Any, Dict, Generic, List, Optional, Tuple, Type, TypeVar
 
-from fastapi import Query, Depends
+from fastapi import Depends, Query
 from pydantic import BaseModel
-from tortoise.queryset import QuerySet
 from tortoise.models import Model
+from tortoise.queryset import QuerySet
 
 from app.schemas.common import PaginatedResponse
 
@@ -52,16 +52,13 @@ async def paginate(
             - Total pages
     """
     # Apply filters if provided
-    if filters:
-        filtered_qs = query_set.filter(**filters)
-    else:
-        filtered_qs = query_set
+    filtered_qs = query_set.filter(**filters) if filters else query_set
 
     # Get total count
     total = await filtered_qs.count()
 
     # Calculate total pages
-    pages = (total + pagination.size - 1) // pagination.size if total > 0 else 0
+    pages = max((total + pagination.size - 1) // pagination.size, 0)
 
     # Get paginated items
     items = await filtered_qs.offset(pagination.offset).limit(pagination.size)

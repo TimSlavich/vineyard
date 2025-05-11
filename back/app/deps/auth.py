@@ -10,82 +10,89 @@ from app.core.security import decode_token
 from app.models.user import User, UserRole
 
 
-# Security scheme for JWT token
-security = HTTPBearer()
+# Схема безопасности для JWT-токена
+security = HTTPBearer(auto_error=False)
+
+# Общие исключения для повторного использования
+CREDENTIALS_EXCEPTION = HTTPException(
+    status_code=status.HTTP_401_UNAUTHORIZED,
+    detail="Невозможно проверить учетные данные",
+    headers={"WWW-Authenticate": "Bearer"},
+)
+
+INACTIVE_USER_EXCEPTION = HTTPException(
+    status_code=status.HTTP_401_UNAUTHORIZED,
+    detail="Пользователь неактивен",
+    headers={"WWW-Authenticate": "Bearer"},
+)
+
+INSUFFICIENT_PERMISSIONS_EXCEPTION = HTTPException(
+    status_code=status.HTTP_403_FORBIDDEN,
+    detail="Недостаточно прав доступа",
+)
 
 
 async def get_current_user(
     credentials: HTTPAuthorizationCredentials = Security(security),
 ) -> User:
     """
-    Get the current authenticated user.
+    Получение текущего аутентифицированного пользователя.
 
     Args:
-        credentials: HTTP Bearer token
+        credentials: HTTP Bearer токен
 
     Returns:
-        User: The authenticated user model
+        User: Модель аутентифицированного пользователя
 
     Raises:
-        HTTPException: If authentication fails
+        HTTPException: Если аутентификация не удалась
     """
-    credentials_exception = HTTPException(
-        status_code=status.HTTP_401_UNAUTHORIZED,
-        detail="Could not validate credentials",
-        headers={"WWW-Authenticate": "Bearer"},
-    )
+    if credentials is None:
+        raise CREDENTIALS_EXCEPTION
 
     try:
-        # Decode token
+        # Декодирование токена
         payload = decode_token(credentials.credentials)
         user_id: str = payload.get("sub")
         token_type: str = payload.get("type")
 
         if user_id is None:
-            raise credentials_exception
+            raise CREDENTIALS_EXCEPTION
 
         if token_type != "access":
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Invalid token type. Use an access token.",
+                detail="Неверный тип токена. Используйте токен доступа.",
                 headers={"WWW-Authenticate": "Bearer"},
             )
 
-    except JWTError as e:
-        logger.error(f"JWT validation error: {e}")
-        raise credentials_exception
-
-    try:
-        # Get user from database
+        # Получение пользователя из базы данных
         user = await User.get(id=user_id)
 
         if not user.is_active:
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="User is inactive",
-                headers={"WWW-Authenticate": "Bearer"},
-            )
+            raise INACTIVE_USER_EXCEPTION
 
         return user
 
+    except JWTError:
+        logger.debug("Ошибка проверки JWT")
+        raise CREDENTIALS_EXCEPTION
     except DoesNotExist:
-        logger.error(f"User with ID {user_id} not found")
-        raise credentials_exception
+        logger.debug(f"Пользователь с указанным ID не найден")
+        raise CREDENTIALS_EXCEPTION
 
 
 async def get_optional_user(
-    credentials: Optional[HTTPAuthorizationCredentials] = Security(
-        security, use_cache=False
-    ),
+    credentials: Optional[HTTPAuthorizationCredentials] = Security(security),
 ) -> Optional[User]:
     """
-    Get the current user if authenticated, otherwise return None.
+    Получение текущего пользователя, если аутентифицирован, иначе возвращает None.
 
     Args:
-        credentials: Optional HTTP Bearer token
+        credentials: Опциональный HTTP Bearer токен
 
     Returns:
-        Optional[User]: The authenticated user model or None
+        Optional[User]: Модель аутентифицированного пользователя или None
     """
     if credentials is None:
         return None
@@ -100,22 +107,19 @@ async def get_admin_user(
     current_user: User = Depends(get_current_user),
 ) -> User:
     """
-    Check if the current user has admin privileges.
+    Проверка наличия у текущего пользователя прав администратора.
 
     Args:
-        current_user: The authenticated user
+        current_user: Аутентифицированный пользователь
 
     Returns:
-        User: The authenticated admin user
+        User: Аутентифицированный пользователь-администратор
 
     Raises:
-        HTTPException: If user doesn't have admin role
+        HTTPException: Если у пользователя нет роли администратора
     """
     if current_user.role != UserRole.ADMIN:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Insufficient permissions",
-        )
+        raise INSUFFICIENT_PERMISSIONS_EXCEPTION
 
     return current_user
 
@@ -124,21 +128,21 @@ async def get_manager_user(
     current_user: User = Depends(get_current_user),
 ) -> User:
     """
-    Check if the current user has manager or admin privileges.
+    Проверка наличия у текущего пользователя прав менеджера или администратора.
 
     Args:
-        current_user: The authenticated user
+        current_user: Аутентифицированный пользователь
 
     Returns:
-        User: The authenticated manager/admin user
+        User: Аутентифицированный пользователь-менеджер/администратор
 
     Raises:
-        HTTPException: If user doesn't have sufficient role
+        HTTPException: Если у пользователя недостаточно прав
     """
     if current_user.role not in [UserRole.ADMIN, UserRole.MANAGER]:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="Insufficient permissions",
+            detail="Недостаточно прав доступа",
         )
 
     return current_user
@@ -146,22 +150,22 @@ async def get_manager_user(
 
 async def validate_token(token: str) -> dict:
     """
-    Validate a token and return its payload.
+    Проверка токена и возврат его содержимого.
 
     Args:
-        token: JWT token
+        token: JWT-токен
 
     Returns:
-        dict: Token payload
+        dict: Содержимое токена
 
     Raises:
-        HTTPException: If token validation fails
+        HTTPException: Если проверка токена не удалась
     """
     try:
         return decode_token(token)
     except JWTError as e:
-        logger.error(f"Token validation error: {e}")
+        logger.error(f"Ошибка проверки токена: {e}")
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid token",
+            detail="Недействительный токен",
         )

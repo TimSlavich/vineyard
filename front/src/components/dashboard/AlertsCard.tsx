@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React from 'react';
 import Card from '../ui/Card';
 import AlertItem from '../ui/AlertItem';
 import Button from '../ui/Button';
@@ -8,12 +8,10 @@ import { useAlerts } from '../../services/notificationService';
 const AlertsCard: React.FC = () => {
   const [alerts, markAsRead] = useAlerts();
 
-  // Мемоизация сортировки оповещений для повышения производительности
-  const recentAlerts = useMemo(() => {
-    return [...alerts]
-      .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
-      .slice(0, 4);
-  }, [alerts]);
+  // Сортировка оповещений по дате (новые в начале)
+  const recentAlerts = [...alerts]
+    .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
+    .slice(0, 4);
 
   return (
     <Card

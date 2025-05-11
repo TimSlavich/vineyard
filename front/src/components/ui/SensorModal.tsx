@@ -1,7 +1,8 @@
 import React, { useRef, useEffect } from 'react';
 import { SensorData } from '../../types';
-import { X, Thermometer, Droplets, CloudRain, Sun, Wind, InfoIcon, Clock, MapPin } from 'lucide-react';
+import { X, Thermometer, Droplets, CloudRain, Sun, Wind, InfoIcon, Clock, MapPin, Leaf, Ruler, Cloudy } from 'lucide-react';
 import { thresholds } from '../../data/mockData';
+import useSensorData from '../../hooks/useSensorData';
 
 interface SensorModalProps {
     sensor: SensorData;
@@ -10,6 +11,9 @@ interface SensorModalProps {
 
 const SensorModal: React.FC<SensorModalProps> = ({ sensor, onClose }) => {
     const modalRef = useRef<HTMLDivElement>(null);
+
+    // Получаем данные с датчиков
+    const { sensorData: allSensorData } = useSensorData();
 
     // Добавляем обработчик клика вне области модального окна
     useEffect(() => {
@@ -43,10 +47,20 @@ const SensorModal: React.FC<SensorModalProps> = ({ sensor, onClose }) => {
                 return <Droplets className="text-blue-500" size={24} />;
             case 'soil_moisture':
                 return <CloudRain className="text-green-500" size={24} />;
+            case 'soil_temperature':
+                return <Thermometer className="text-orange-500" size={24} />;
             case 'light':
                 return <Sun className="text-amber-500" size={24} />;
-            case 'wind':
+            case 'ph':
+                return <Leaf className="text-emerald-500" size={24} />;
+            case 'wind_speed':
+                return <Wind className="text-sky-500" size={24} />;
+            case 'wind_direction':
                 return <Wind className="text-gray-500" size={24} />;
+            case 'rainfall':
+                return <Cloudy className="text-blue-400" size={24} />;
+            case 'co2':
+                return <Ruler className="text-purple-500" size={24} />;
             default:
                 return null;
         }
@@ -58,8 +72,13 @@ const SensorModal: React.FC<SensorModalProps> = ({ sensor, onClose }) => {
             'temperature': 'Температура',
             'humidity': 'Вологість повітря',
             'soil_moisture': 'Вологість ґрунту',
-            'light': 'Освітлення',
-            'wind': 'Вітер'
+            'soil_temperature': 'Температура ґрунту',
+            'light': 'Освітленість',
+            'ph': 'Кислотність pH',
+            'wind_speed': 'Швидкість вітру',
+            'wind_direction': 'Напрям вітру',
+            'rainfall': 'Опади',
+            'co2': 'Рівень CO₂'
         };
 
         return translations[type] || type;
@@ -105,26 +124,32 @@ const SensorModal: React.FC<SensorModalProps> = ({ sensor, onClose }) => {
         });
     };
 
-    // Имитация активности датчика - последние 10 значений
-    const generateHistoryData = () => {
-        const result = [];
-        const baseValue = sensor.value;
+    // Получаем историю показаний для этого датчика
+    const getSensorHistory = () => {
+        // Фильтруем данные для текущего датчика
+        const sensorHistory = allSensorData.filter(
+            data => data.sensor_id === sensor.id && data.type === sensor.type
+        );
 
-        for (let i = 0; i < 10; i++) {
-            const time = new Date(new Date(sensor.timestamp).getTime() - i * 30 * 60 * 1000);
-            const value = parseFloat((baseValue + (Math.random() * 4 - 2)).toFixed(1));
+        // Сортируем по времени от новых к старым
+        const sortedHistory = [...sensorHistory].sort(
+            (a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
+        );
 
-            result.push({
-                time: time.toLocaleTimeString('uk-UA', { hour: '2-digit', minute: '2-digit' }),
-                value: value,
-                unit: sensor.unit
-            });
-        }
+        // Берем последние 10 значений (или меньше, если данных меньше)
+        const limitedHistory = sortedHistory.slice(0, 10);
 
-        return result.reverse();
+        // Форматируем данные для отображения и сортируем от старых к новым
+        return limitedHistory.map(data => ({
+            time: new Date(data.timestamp).toLocaleTimeString('uk-UA', { hour: '2-digit', minute: '2-digit' }),
+            value: Number(data.value.toFixed(1)),
+            status: data.status,
+            unit: data.unit,
+            timestamp: data.timestamp
+        })).sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime());
     };
 
-    const historyData = generateHistoryData();
+    const historyData = getSensorHistory();
 
     return (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
@@ -237,16 +262,9 @@ const SensorModal: React.FC<SensorModalProps> = ({ sensor, onClose }) => {
                                     </tr>
                                 </thead>
                                 <tbody className="bg-white divide-y divide-gray-200">
-                                    {historyData.map((item, index) => {
-                                        let status = 'normal';
-                                        if (sensorThreshold) {
-                                            if (item.value < sensorThreshold.min || item.value > sensorThreshold.max) {
-                                                status = 'warning';
-                                            }
-                                            if (item.value < sensorThreshold.min * 0.8 || item.value > sensorThreshold.max * 1.2) {
-                                                status = 'critical';
-                                            }
-                                        }
+                                    {historyData.length > 0 ? historyData.map((item, index) => {
+                                        // Используем реальный статус из данных
+                                        const status = item.status || 'normal';
 
                                         const statusClass = status === 'critical' ? 'bg-red-100 text-red-700' :
                                             status === 'warning' ? 'bg-amber-100 text-amber-700' :
@@ -267,7 +285,13 @@ const SensorModal: React.FC<SensorModalProps> = ({ sensor, onClose }) => {
                                                 </td>
                                             </tr>
                                         );
-                                    })}
+                                    }) : (
+                                        <tr>
+                                            <td colSpan={3} className="px-6 py-8 text-center text-gray-500">
+                                                Історія показань не знайдена. Натисніть кнопку "Оновити дані" на панелі керування.
+                                            </td>
+                                        </tr>
+                                    )}
                                 </tbody>
                             </table>
                         </div>

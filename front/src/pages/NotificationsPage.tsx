@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import AlertItem from '../components/ui/AlertItem';
-import { Bell, Filter, CheckCircle } from 'lucide-react';
-import { useAlerts, filterAlertsByType } from '../services/notificationService';
+import { Bell, Filter } from 'lucide-react';
+import { useAlerts, filterAlertsByType, clearAllAlerts } from '../services/notificationService';
+import Button from '../components/ui/Button';
 
 type FilterType = 'all' | 'unread' | 'critical' | 'warning' | 'info';
 
@@ -59,15 +60,28 @@ const NotificationsPage: React.FC = () => {
                             </div>
 
                             <div className="flex space-x-3">
-                                {unreadCount > 0 && (
-                                    <button
-                                        className="px-4 py-2 text-sm font-medium text-primary hover:text-primary-dark transition-colors flex items-center"
-                                        onClick={markAllAsRead}
-                                    >
-                                        <CheckCircle size={16} className="mr-1" />
-                                        Позначити всі як прочитані
-                                    </button>
-                                )}
+                                <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={markAllAsRead}
+                                    disabled={unreadCount === 0}
+                                    className="mr-2"
+                                >
+                                    Позначити всі як прочитані
+                                </Button>
+
+                                <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => {
+                                        if (window.confirm('Ви впевнені, що хочете видалити всі сповіщення?')) {
+                                            clearAllAlerts();
+                                        }
+                                    }}
+                                    className="border-error text-error hover:bg-error hover:text-white"
+                                >
+                                    Очистити всі
+                                </Button>
 
                                 <div className="relative" ref={filterMenuRef}>
                                     <button

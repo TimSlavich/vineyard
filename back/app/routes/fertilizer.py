@@ -10,8 +10,6 @@ from app.models.user import User
 from app.models.fertilizer_application import (
     FertilizerApplication,
     FertilizerSchedule,
-    FertilizerType,
-    ApplicationMethod,
     ApplicationStatus,
 )
 from app.schemas.fertilizer import (
@@ -39,17 +37,13 @@ router = APIRouter()
 async def create_application(
     data: FertilizerApplicationCreate, current_user: User = Depends(get_manager_user)
 ):
-    """
-    Create a new fertilizer application record.
-    """
+    """Создание новой записи о внесении удобрений"""
     # Create application
     application = await FertilizerApplication.create(
         **data.dict(), created_by=current_user
     )
 
-    logger.info(
-        f"Fertilizer application created: {application.name} ({application.id})"
-    )
+    logger.info(f"Создано внесение удобрений: {application.name} ({application.id})")
 
     # Broadcast via WebSocket
     await broadcast_fertilizer_event(
@@ -67,9 +61,7 @@ async def get_applications(
     pagination: PaginationParams = Depends(),
     current_user: User = Depends(get_current_user),
 ):
-    """
-    Get fertilizer applications with optional filtering.
-    """
+    """Получение записей о внесении удобрений с опциональной фильтрацией"""
     # Build filter dict from query params
     filters = {}
 
@@ -105,17 +97,15 @@ async def get_applications(
     "/applications/{application_id}", response_model=FertilizerApplicationResponse
 )
 async def get_application(
-    application_id: int = Path(..., description="Application ID"),
+    application_id: int = Path(..., description="ID записи"),
     current_user: User = Depends(get_current_user),
 ):
-    """
-    Get a specific fertilizer application by ID.
-    """
+    """Получение конкретной записи о внесении удобрений по ID"""
     application = await FertilizerApplication.get_or_none(id=application_id)
     if not application:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"Application with ID {application_id} not found",
+            detail=f"Запись с ID {application_id} не найдена",
         )
 
     return application
@@ -126,17 +116,15 @@ async def get_application(
 )
 async def update_application(
     application_data: FertilizerApplicationUpdate,
-    application_id: int = Path(..., description="Application ID"),
+    application_id: int = Path(..., description="ID записи"),
     current_user: User = Depends(get_manager_user),
 ):
-    """
-    Update a fertilizer application.
-    """
+    """Обновление записи о внесении удобрений"""
     application = await FertilizerApplication.get_or_none(id=application_id)
     if not application:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"Application with ID {application_id} not found",
+            detail=f"Запись с ID {application_id} не найдена",
         )
 
     # Update fields if provided
@@ -153,7 +141,7 @@ async def update_application(
             was_completed = True
 
         await application.update_from_dict(update_data).save()
-        logger.info(f"Application updated: {application.name} ({application.id})")
+        logger.info(f"Запись обновлена: {application.name} ({application.id})")
 
         # Broadcast update via WebSocket
         event_type = (
@@ -168,17 +156,15 @@ async def update_application(
 
 @router.delete("/applications/{application_id}", response_model=StatusMessage)
 async def delete_application(
-    application_id: int = Path(..., description="Application ID"),
+    application_id: int = Path(..., description="ID записи"),
     current_user: User = Depends(get_manager_user),
 ):
-    """
-    Delete a fertilizer application.
-    """
+    """Удаление записи о внесении удобрений"""
     application = await FertilizerApplication.get_or_none(id=application_id)
     if not application:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"Application with ID {application_id} not found",
+            detail=f"Запись с ID {application_id} не найдена",
         )
 
     # Store info for WebSocket notification
@@ -190,7 +176,7 @@ async def delete_application(
 
     # Delete application
     await application.delete()
-    logger.info(f"Application deleted: {app_info['name']} ({app_info['id']})")
+    logger.info(f"Запись удалена: {app_info['name']} ({app_info['id']})")
 
     # Broadcast delete via WebSocket
     message = WebSocketMessage(
@@ -211,7 +197,7 @@ async def delete_application(
 
     return {
         "status": "success",
-        "message": f"Application {application_id} deleted successfully",
+        "message": f"Запись {application_id} успешно удалена",
     }
 
 
@@ -226,26 +212,22 @@ async def delete_application(
 async def create_schedule(
     data: FertilizerScheduleCreate, current_user: User = Depends(get_manager_user)
 ):
-    """
-    Create a new fertilizer schedule.
-    """
+    """Создание нового графика внесения удобрений"""
     # Create schedule
     schedule = await FertilizerSchedule.create(**data.dict(), created_by=current_user)
 
-    logger.info(f"Fertilizer schedule created: {schedule.name} ({schedule.id})")
+    logger.info(f"График внесения создан: {schedule.name} ({schedule.id})")
 
     return schedule
 
 
 @router.get("/schedules", response_model=List[FertilizerScheduleResponse])
 async def get_schedules(
-    location_id: Optional[str] = Query(None, description="Filter by location ID"),
-    active_only: bool = Query(True, description="Filter only active schedules"),
+    location_id: Optional[str] = Query(None, description="Фильтр по ID локации"),
+    active_only: bool = Query(True, description="Только активные графики"),
     current_user: User = Depends(get_current_user),
 ):
-    """
-    Get all fertilizer schedules.
-    """
+    """Получение всех графиков внесения удобрений"""
     query = FertilizerSchedule.all()
 
     if location_id:
@@ -260,17 +242,15 @@ async def get_schedules(
 
 @router.get("/schedules/{schedule_id}", response_model=FertilizerScheduleResponse)
 async def get_schedule(
-    schedule_id: int = Path(..., description="Schedule ID"),
+    schedule_id: int = Path(..., description="ID графика"),
     current_user: User = Depends(get_current_user),
 ):
-    """
-    Get a specific fertilizer schedule by ID.
-    """
+    """Получение конкретного графика внесения удобрений по ID"""
     schedule = await FertilizerSchedule.get_or_none(id=schedule_id)
     if not schedule:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"Schedule with ID {schedule_id} not found",
+            detail=f"График с ID {schedule_id} не найден",
         )
 
     return schedule
@@ -279,50 +259,46 @@ async def get_schedule(
 @router.patch("/schedules/{schedule_id}", response_model=FertilizerScheduleResponse)
 async def update_schedule(
     schedule_data: FertilizerScheduleUpdate,
-    schedule_id: int = Path(..., description="Schedule ID"),
+    schedule_id: int = Path(..., description="ID графика"),
     current_user: User = Depends(get_manager_user),
 ):
-    """
-    Update a fertilizer schedule.
-    """
+    """Обновление графика внесения удобрений"""
     schedule = await FertilizerSchedule.get_or_none(id=schedule_id)
     if not schedule:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"Schedule with ID {schedule_id} not found",
+            detail=f"График с ID {schedule_id} не найден",
         )
 
     # Update fields if provided
     update_data = schedule_data.dict(exclude_unset=True)
     if update_data:
         await schedule.update_from_dict(update_data).save()
-        logger.info(f"Schedule updated: {schedule.name} ({schedule.id})")
+        logger.info(f"График обновлен: {schedule.name} ({schedule.id})")
 
     return schedule
 
 
 @router.delete("/schedules/{schedule_id}", response_model=StatusMessage)
 async def delete_schedule(
-    schedule_id: int = Path(..., description="Schedule ID"),
+    schedule_id: int = Path(..., description="ID графика"),
     current_user: User = Depends(get_manager_user),
 ):
-    """
-    Delete a fertilizer schedule.
-    """
+    """Удаление графика внесения удобрений"""
     schedule = await FertilizerSchedule.get_or_none(id=schedule_id)
     if not schedule:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"Schedule with ID {schedule_id} not found",
+            detail=f"График с ID {schedule_id} не найден",
         )
 
     # Delete schedule
     await schedule.delete()
-    logger.info(f"Schedule deleted: {schedule.name} ({schedule.id})")
+    logger.info(f"График удален: {schedule.name} ({schedule.id})")
 
     return {
         "status": "success",
-        "message": f"Schedule {schedule_id} deleted successfully",
+        "message": f"График {schedule_id} успешно удален",
     }
 
 
@@ -331,12 +307,12 @@ async def broadcast_fertilizer_event(
     application: FertilizerApplication, event_type: str, user: User
 ):
     """
-    Broadcast fertilizer event via WebSocket.
+    Отправка события о внесении удобрений через WebSocket.
 
     Args:
-        application: The application that triggered the event
-        event_type: Type of event (created, updated, completed)
-        user: User who triggered the event
+        application: Запись о внесении, вызвавшая событие
+        event_type: Тип события (создание, обновление, завершение)
+        user: Пользователь, вызвавший событие
     """
     message = WebSocketMessage(
         type=event_type,

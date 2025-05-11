@@ -1,71 +1,57 @@
-import React, { useState, useEffect, useRef, useMemo, useCallback, memo } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { Menu, X, User, ChevronDown } from 'lucide-react';
-import { currentUser } from '../../data/mockData';
+import { Menu, X, ChevronDown } from 'lucide-react';
 import Button from '../ui/Button';
-import { isAuthenticated as checkAuth, logout, getUserData } from '../../utils/storage';
+import { isAuthenticated, logout, getUserData } from '../../utils/storage';
 import NotificationCenter from '../ui/NotificationCenter';
+import { userApi } from '../../services/api/userApi';
 
-// Helper function to check if the user is authenticated
-function isAuthenticated() {
-  return checkAuth();
-}
-
-const Navbar: React.FC = () => {
+const Navbar = () => {
   const location = useLocation();
-
-  // Проверка для страницы логина должна быть до использования хуков
-  const isLoginPage = location.pathname === '/login' || location.pathname === '/register';
-
-  // Don't render navbar on login/register pages
-  if (isLoginPage) return null;
-
   const navigate = useNavigate();
   const [isScrolled, setIsScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [profileMenuOpen, setProfileMenuOpen] = useState(false);
   const profileMenuRef = useRef<HTMLDivElement>(null);
 
-  // Мемоизация состояний страниц и пользовательских данных
-  const pageAndUserState = useMemo(() => {
-    const isHomePage = location.pathname === '/';
-    const isUserAuthenticated = isAuthenticated();
-    // Получаем данные пользователя только если авторизован, иначе null
-    const userData = isUserAuthenticated ? getUserData() : null;
+  // Проверка для страницы логина
+  const isLoginPage = location.pathname === '/login' || location.pathname === '/register';
 
-    return { isHomePage, isUserAuthenticated, userData };
-  }, [location.pathname]);
-
-  const { isHomePage, isUserAuthenticated, userData } = pageAndUserState;
+  // Базовые состояния
+  const isHomePage = location.pathname === '/';
+  const isUserAuthenticated = isAuthenticated();
+  const userData = isUserAuthenticated ? getUserData() : null;
 
   // Обработчик выхода из системы
-  const handleLogout = useCallback(() => {
+  const handleLogout = async () => {
     try {
-      const logoutSuccess = logout();
-      if (logoutSuccess) {
-        console.log('Вихід із системи виконано успішно');
-      } else {
-        console.error('Проблема при виході із системи');
+      // Сначала вызываем API для выхода
+      try {
+        await userApi.logout();
+      } catch (apiError) {
+        console.error('Ошибка API при выходе:', apiError);
       }
-      navigate('/login');
+
+      // Затем очищаем локальное хранилище
+      logout();
+      navigate('/');
     } catch (err) {
-      console.error('Помилка при виході із системи:', err);
-      // Все равно попробуем перенаправить на страницу входа
-      navigate('/login');
+      console.error('Ошибка при выходе из системы:', err);
+      navigate('/');
     }
-  }, [navigate]);
+  };
 
-  // Обработчик переключения профильного меню
-  const toggleProfileMenu = useCallback(() => {
-    setProfileMenuOpen(prevState => !prevState);
-  }, []);
+  // Переключение профильного меню
+  const toggleProfileMenu = () => {
+    setProfileMenuOpen(!profileMenuOpen);
+  };
 
-  // Обработчик переключения мобильного меню
-  const toggleMobileMenu = useCallback(() => {
-    setMobileMenuOpen(prevState => !prevState);
-  }, []);
+  // Переключение мобильного меню
+  const toggleMobileMenu = () => {
+    setMobileMenuOpen(!mobileMenuOpen);
+  };
 
-  // Change navbar style when scrolling
+  // Изменение стиля навбара при прокрутке
   useEffect(() => {
     const handleScroll = () => {
       setIsScrolled(window.scrollY > 10);
@@ -75,7 +61,7 @@ const Navbar: React.FC = () => {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  // Close mobile menu when changing routes
+  // Закрытие мобильного меню при смене маршрута
   useEffect(() => {
     setMobileMenuOpen(false);
   }, [location]);
@@ -88,19 +74,17 @@ const Navbar: React.FC = () => {
       }
     }
 
-    // Добавляем обработчик, если меню открыто
     if (profileMenuOpen) {
       document.addEventListener('mousedown', handleClickOutside);
     }
 
-    // Удаляем обработчик при размонтировании компонента или закрытии меню
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
     };
   }, [profileMenuOpen]);
 
-  // Мемоизация классов навигации
-  const getNavClasses = useCallback(() => {
+  // Классы навигации
+  const getNavClasses = () => {
     const baseClasses = 'fixed top-0 left-0 right-0 z-30 transition-all duration-300 ease-in-out';
 
     if (isHomePage) {
@@ -110,10 +94,10 @@ const Navbar: React.FC = () => {
     }
 
     return `${baseClasses} bg-white shadow-sm`;
-  }, [isHomePage, isScrolled]);
+  };
 
-  // Мемоизация классов ссылок
-  const getLinkClasses = useCallback((path: string) => {
+  // Классы ссылок
+  const getLinkClasses = (path: string) => {
     const isActive = location.pathname === path;
     const baseClasses = 'px-3 py-2 text-sm font-medium rounded-md transition-colors duration-150 font-inter';
 
@@ -126,7 +110,10 @@ const Navbar: React.FC = () => {
     return isActive
       ? `${baseClasses} text-primary bg-primary bg-opacity-10`
       : `${baseClasses} text-gray-700 hover:bg-gray-100`;
-  }, [isHomePage, isScrolled, location.pathname]);
+  };
+
+  // Не рендерим навбар на страницах логина/регистрации
+  if (isLoginPage) return null;
 
   return (
     <nav className={getNavClasses()}>
@@ -158,7 +145,7 @@ const Navbar: React.FC = () => {
             </div>
           </div>
 
-          {/* Right section */}
+          {/* Правая секция */}
           <div className="hidden sm:flex items-center">
             {!isUserAuthenticated ? (
               <div className="flex space-x-4">
@@ -227,7 +214,7 @@ const Navbar: React.FC = () => {
             )}
           </div>
 
-          {/* Mobile menu button */}
+          {/* Кнопка мобильного меню */}
           <div className="flex items-center sm:hidden">
             {isUserAuthenticated && <NotificationCenter className="mr-2" />}
             <button
@@ -248,7 +235,7 @@ const Navbar: React.FC = () => {
         </div>
       </div>
 
-      {/* Mobile menu */}
+      {/* Мобильное меню */}
       {mobileMenuOpen && (
         <div className="sm:hidden bg-white border-t border-gray-200" id="mobile-menu">
           <div className="px-2 pt-2 pb-3 space-y-1">
@@ -317,4 +304,4 @@ const Navbar: React.FC = () => {
   );
 };
 
-export default memo(Navbar);
+export default React.memo(Navbar);

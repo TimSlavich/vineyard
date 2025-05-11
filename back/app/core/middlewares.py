@@ -10,12 +10,12 @@ from app.core.config import settings
 
 def setup_middlewares(app: FastAPI) -> None:
     """
-    Setup middlewares for the FastAPI application.
+    Настройка промежуточного ПО для FastAPI приложения.
 
     Args:
-        app: FastAPI application instance
+        app: Экземпляр приложения FastAPI
     """
-    # Setup CORS
+    # Настройка CORS
     app.add_middleware(
         CORSMiddleware,
         allow_origins=[str(origin) for origin in settings.CORS_ORIGINS],
@@ -24,44 +24,42 @@ def setup_middlewares(app: FastAPI) -> None:
         allow_headers=["*"],
     )
 
-    # Setup logging middleware
+    # Настройка промежуточного ПО для логирования
     app.add_middleware(LoggingMiddleware)
 
-    # Add other middlewares here
+    # Добавление других промежуточных слоев здесь
 
 
 class LoggingMiddleware(BaseHTTPMiddleware):
     """
-    Middleware for logging requests and responses.
+    Промежуточное ПО для логирования запросов и ответов.
     """
 
     async def dispatch(self, request: Request, call_next: Callable) -> Response:
         """
-        Process a request and log its details.
-
-        Args:
-            request: The incoming request
-            call_next: Function to call the next middleware/route handler
-
-        Returns:
-            The response from the next middleware/route handler
+        Обработка запроса и логирование информации.
         """
-        # Log request
-        logger.info(f"Request: {request.method} {request.url.path}")
+        path = request.url.path
+        method = request.method
 
-        # Process request and get response
-        try:
-            response = await call_next(request)
+        # Пропуск логирования для эндпоинтов проверки работоспособности для уменьшения шума
+        if path == "/" or path.startswith("/docs") or path.startswith("/redoc"):
+            return await call_next(request)
 
-            # Log response
-            logger.info(
-                f"Response: {request.method} {request.url.path} - Status: {response.status_code}"
+        # Логирование запроса (только для не-служебных эндпоинтов)
+        logger.debug(f"Запрос: {method} {path}")
+
+        # Обработка запроса
+        response = await call_next(request)
+
+        # Логирование ответов с интересующими кодами статуса
+        status_code = response.status_code
+        if status_code >= 400:  # Логирование ошибок как предупреждения/ошибки
+            log_level = "error" if status_code >= 500 else "warning"
+            getattr(logger, log_level)(
+                f"Ответ: {method} {path} - Статус: {status_code}"
             )
+        else:
+            logger.debug(f"Ответ: {method} {path} - Статус: {status_code}")
 
-            return response
-        except Exception as e:
-            # Log error
-            logger.error(
-                f"Error processing request: {request.method} {request.url.path} - Error: {str(e)}"
-            )
-            raise
+        return response

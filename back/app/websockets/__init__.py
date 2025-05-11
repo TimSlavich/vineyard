@@ -1,3 +1,3 @@
 """
-WebSocket handlers and managers.
+Обработчики и менеджеры WebSocket-соединений.
 """

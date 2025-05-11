@@ -8,8 +8,8 @@ import {
     RegisterRequest,
     UserProfileUpdateRequest
 } from './types';
-import { currentUser as mockUser } from '../../data/mockData';
-import { getItem, setItem } from '../../utils/storage';
+import { getItem, setItem, removeItem, getUserData } from '../../utils/storage';
+import { clearAuthAndRedirect } from './baseApi';
 
 /**
  * Сервис для работы с пользователями
@@ -20,35 +20,32 @@ export class UserApi extends BaseApi {
      * @param credentials данные для авторизации
      * @returns токен и данные пользователя
      */
-    async login(credentials: AuthRequest): Promise<ApiResponse<AuthResponse>> {
+    async login(credentials: AuthRequest): Promise<AuthResponse> {
         try {
-            // TODO: Заменить на реальный API запрос
-            // return this.post<ApiResponse<AuthResponse>>('/auth/login', credentials, { requireAuth: false });
+            const response = await this.post<AuthResponse>('/auth/login', credentials, { requireAuth: false });
 
-            // Временное решение с использованием моковых данных
-            // В реальном приложении требуется проверка учетных данных
-            if (credentials.email !== mockUser.email) {
-                throw new Error('Неверный email или пароль');
+            if (!response || !response.access_token) {
+                throw new Error('Получен некорректный ответ при авторизации. Токен не получен.');
             }
 
-            const token = `mock-token-${Date.now()}`;
+            // Сохраняем токены в localStorage
+            if (response.access_token) {
+                setItem('accessToken', response.access_token);
+            }
 
-            // Сохраняем токен в localStorage
-            setItem('authToken', token);
-            setItem('user', mockUser);
+            if (response.refresh_token) {
+                setItem('refreshToken', response.refresh_token);
+            }
 
-            return {
-                success: true,
-                data: {
-                    token,
-                    user: {
-                        id: mockUser.id,
-                        name: mockUser.name,
-                        email: mockUser.email,
-                        role: mockUser.role
-                    }
-                }
-            };
+            // После успешного входа получаем данные пользователя и сохраняем их
+            try {
+                const userData = await this.getProfile();
+                setItem('user', userData);
+            } catch (profileError) {
+                console.warn('Failed to fetch user profile after login, but login itself was successful:', profileError);
+            }
+
+            return response;
         } catch (error) {
             console.error('Error during login:', error);
             throw error;
@@ -56,40 +53,134 @@ export class UserApi extends BaseApi {
     }
 
     /**
-     * Регистрация пользователя
-     * @param userData данные для регистрации
-     * @returns токен и данные пользователя
+     * Выход пользователя из системы
+     * @returns статус операции
      */
-    async register(userData: RegisterRequest): Promise<ApiResponse<AuthResponse>> {
+    async logout(): Promise<boolean> {
         try {
-            // TODO: Заменить на реальный API запрос
-            // return this.post<ApiResponse<AuthResponse>>('/auth/register', userData, { requireAuth: false });
+            // Получаем refresh токен
+            const refreshToken = getItem<string>('refreshToken', '');
 
-            // Временное решение с использованием моковых данных
-            // В реальном приложении требуется проверка и сохранение в базу данных
-            if (userData.password !== userData.confirmPassword) {
-                throw new Error('Пароли не совпадают');
+            if (refreshToken) {
+                // Отправляем запрос на отзыв токена
+                await this.post<ApiResponse<null>>(
+                    '/auth/logout',
+                    { refresh_token: refreshToken },
+                    { skipRedirect: true }  // Предотвращаем автоматический редирект
+                ).catch(err => {
+                    console.warn('Ошибка при запросе на отзыв токена:', err);
+                    // Игнорируем ошибку - очистим токены в любом случае
+                });
             }
 
-            const token = `mock-token-${Date.now()}`;
-            const newUser = {
-                id: `user-${Date.now()}`,
-                name: userData.name,
-                email: userData.email,
-                role: 'viewer' as const
-            };
+            // Очищаем данные авторизации с редиректом
+            clearAuthAndRedirect(true);
 
-            // Сохраняем токен в localStorage
-            setItem('authToken', token);
-            setItem('user', newUser);
+            return true;
+        } catch (error) {
+            console.error('Error during logout:', error);
 
-            return {
-                success: true,
-                data: {
-                    token,
-                    user: newUser
+            // Очищаем данные авторизации с редиректом даже при ошибке
+            clearAuthAndRedirect(true);
+
+            return false;
+        }
+    }
+
+    /**
+     * Регистрация нового пользователя
+     * @param userData данные пользователя
+     * @returns результат операции
+     */
+    async register(userData: RegisterRequest): Promise<AuthResponse> {
+        try {
+            // Отправляем запрос на регистрацию
+            const response = await this.post<AuthResponse & Record<string, any>>('/auth/register', userData, { requireAuth: false });
+
+            // Проверяем ответ более мягко, без жесткого требования access_token
+            if (!response) {
+                throw new Error('Получен пустой ответ при регистрации');
+            }
+
+            // Проверяем, содержит ли ответ данные пользователя
+            const hasUserData = response.username || response.email;
+
+            // Если регистрация прошла успешно, но токен не получен, 
+            // выполняем вход с теми же учетными данными
+            if (!response.access_token && hasUserData) {
+                try {
+                    // Выполняем вход для получения токена
+                    const loginResponse = await this.login({
+                        username: userData.username,
+                        password: userData.password
+                    });
+
+                    // Используем данные входа
+                    if (loginResponse.access_token) {
+                        return loginResponse;
+                    }
+                } catch (loginError) {
+                    console.warn('Не удалось выполнить вход после регистрации:', loginError);
+                    // В случае ошибки продолжаем использовать данные из регистрации
                 }
-            };
+            }
+
+            // Сохраняем токены в localStorage, если они есть
+            if (response.access_token) {
+                setItem('accessToken', response.access_token);
+            } else {
+                console.warn('В ответе отсутствует токен доступа');
+                // Если нет токена, но есть данные о пользователе, преобразуем их в стандартный формат
+                if (hasUserData) {
+                    const userProfile = {
+                        id: response.id || Math.floor(Math.random() * 10000) + 1, // Генерируем уникальный ID, если его нет
+                        username: response.username || userData.username,
+                        email: response.email || userData.email,
+                        first_name: response.first_name || userData.first_name || '',
+                        last_name: response.last_name || userData.last_name || '',
+                        is_active: response.is_active !== undefined ? response.is_active : true,
+                        role: response.role || 'viewer',
+                        is_admin: response.is_admin || false,
+                        created_at: response.created_at || new Date().toISOString(),
+                        updated_at: response.updated_at || new Date().toISOString()
+                    };
+                    setItem('user', userProfile);
+                }
+            }
+
+            if (response.refresh_token) {
+                setItem('refreshToken', response.refresh_token);
+            } else {
+                console.warn('В ответе отсутствует токен обновления');
+            }
+
+            // Если токены получены, пытаемся запросить профиль пользователя
+            if (response.access_token) {
+                try {
+                    const userProfile = await this.getProfile();
+                    setItem('user', userProfile);
+                } catch (profileError) {
+                    console.warn('Failed to fetch user profile after registration, but registration itself was successful:', profileError);
+
+                    // Создаем профиль на основе данных регистрации
+                    const userProfile = {
+                        id: response.id || Math.floor(Math.random() * 10000) + 1, // Генерируем уникальный ID, если его нет
+                        username: response.username || userData.username || response.email?.split('@')[0] || 'user',
+                        email: response.email || userData.email || '',
+                        first_name: response.first_name || userData.first_name || '',
+                        last_name: response.last_name || userData.last_name || '',
+                        is_active: response.is_active !== undefined ? response.is_active : true,
+                        role: response.role || 'viewer',
+                        is_admin: response.is_admin || false,
+                        created_at: response.created_at || new Date().toISOString(),
+                        updated_at: response.updated_at || new Date().toISOString()
+                    };
+
+                    setItem('user', userProfile);
+                }
+            }
+
+            return response;
         } catch (error) {
             console.error('Error during registration:', error);
             throw error;
@@ -97,50 +188,56 @@ export class UserApi extends BaseApi {
     }
 
     /**
-     * Выход из системы
-     * @returns результат операции
-     */
-    async logout(): Promise<ApiResponse<null>> {
-        try {
-            // TODO: Заменить на реальный API запрос
-            // return this.post<ApiResponse<null>>('/auth/logout');
-
-            // Удаляем токен из localStorage
-            localStorage.removeItem('authToken');
-            localStorage.removeItem('user');
-
-            return {
-                success: true,
-                data: null,
-                message: 'Выход выполнен успешно'
-            };
-        } catch (error) {
-            console.error('Error during logout:', error);
-            throw error;
-        }
-    }
-
-    /**
-     * Получает данные текущего пользователя
+     * Получает профиль пользователя
      * @returns данные пользователя
      */
-    async getCurrentUser(): Promise<ApiResponse<User>> {
+    async getProfile(): Promise<User> {
         try {
-            // TODO: Заменить на реальный API запрос
-            // return this.get<ApiResponse<User>>('/users/me');
+            // Проверяем наличие токена перед запросом
+            const token = getItem<string>('accessToken');
+            const userData = getUserData();
 
-            // Временное решение с использованием моковых данных
-            const user = getItem<User>('user');
-            if (!user) {
-                throw new Error('Пользователь не авторизован');
+            // Если есть локальный профиль, но нет токена - используем локальный профиль вместо запроса к серверу
+            if (!token && userData) {
+                return userData;
             }
 
-            return {
-                success: true,
-                data: user
+            if (!token) {
+                throw new Error('Требуется авторизация');
+            }
+
+            const apiUserData = await this.get<User>('/auth/me');
+
+            if (!apiUserData) {
+                throw new Error('Получен пустой ответ при запросе профиля пользователя');
+            }
+
+            // Проверяем, что полученные данные содержат необходимые поля
+            // Сервер может не возвращать поле name, но должен возвращать id и email
+            if (!apiUserData.id || !apiUserData.email) {
+                console.warn('Полученный профиль не содержит обязательные поля (id или email)');
+                throw new Error('Получены некорректные данные профиля');
+            }
+
+            // Создаем структурированный профиль с гарантированными полями
+            const userProfile = {
+                id: apiUserData.id,
+                username: apiUserData.username || apiUserData.email.split('@')[0],
+                email: apiUserData.email,
+                first_name: apiUserData.first_name || '',
+                last_name: apiUserData.last_name || '',
+                is_active: apiUserData.is_active !== undefined ? apiUserData.is_active : true,
+                role: apiUserData.role || 'viewer',
+                is_admin: apiUserData.is_admin || false,
+                created_at: apiUserData.created_at || new Date().toISOString(),
+                updated_at: apiUserData.updated_at || new Date().toISOString()
             };
+
+            // Сохраняем данные пользователя
+            setItem('user', userProfile);
+            return userProfile;
         } catch (error) {
-            console.error('Error getting current user:', error);
+            console.error('Error fetching user profile:', error);
             throw error;
         }
     }
@@ -150,31 +247,11 @@ export class UserApi extends BaseApi {
      * @param data данные для обновления
      * @returns обновленные данные пользователя
      */
-    async updateProfile(data: UserProfileUpdateRequest): Promise<ApiResponse<User>> {
+    async updateProfile(data: UserProfileUpdateRequest): Promise<User> {
         try {
-            // TODO: Заменить на реальный API запрос
-            // return this.put<ApiResponse<User>>('/users/me', data);
-
-            // Временное решение с использованием моковых данных
-            const user = getItem<User>('user');
-            if (!user) {
-                throw new Error('Пользователь не авторизован');
-            }
-
-            const updatedUser = {
-                ...user,
-                ...data
-            };
-
-            // Сохраняем обновленные данные в localStorage
-            setItem('user', updatedUser);
-
-            return {
-                success: true,
-                data: updatedUser
-            };
+            return await this.patch<User>('/auth/me', data);
         } catch (error) {
-            console.error('Error updating profile:', error);
+            console.error('Error updating user profile:', error);
             throw error;
         }
     }
@@ -186,20 +263,7 @@ export class UserApi extends BaseApi {
      */
     async changePassword(data: PasswordChangeRequest): Promise<ApiResponse<null>> {
         try {
-            // TODO: Заменить на реальный API запрос
-            // return this.put<ApiResponse<null>>('/users/me/password', data);
-
-            // Временное решение - просто возвращаем успешный результат
-            // В реальном приложении требуется проверка старого пароля и сохранение нового
-            if (data.newPassword !== data.confirmPassword) {
-                throw new Error('Пароли не совпадают');
-            }
-
-            return {
-                success: true,
-                data: null,
-                message: 'Пароль успешно изменен'
-            };
+            return await this.put<ApiResponse<null>>('/auth/me/password', data);
         } catch (error) {
             console.error('Error changing password:', error);
             throw error;
@@ -212,23 +276,42 @@ export class UserApi extends BaseApi {
      */
     async deleteAccount(): Promise<ApiResponse<null>> {
         try {
-            // TODO: Заменить на реальный API запрос
-            // return this.delete<ApiResponse<null>>('/users/me');
+            const result = await this.delete<ApiResponse<null>>('/auth/me');
 
-            // Временное решение - удаляем данные из localStorage
-            localStorage.clear();
+            // Очищаем данные авторизации с редиректом
+            clearAuthAndRedirect(true);
 
-            return {
-                success: true,
-                data: null,
-                message: 'Аккаунт успешно удален'
-            };
+            return result;
         } catch (error) {
             console.error('Error deleting account:', error);
+
+            // При критических ошибках очищаем данные авторизации с редиректом
+            if (error instanceof Error && (error as any).status >= 400) {
+                clearAuthAndRedirect(true);
+            }
+
+            throw error;
+        }
+    }
+
+    /**
+     * Проверяет доступность имени пользователя
+     * @param username имя пользователя для проверки
+     * @returns true, если имя доступно
+     */
+    async checkUsername(username: string): Promise<boolean> {
+        try {
+            // Здесь мы можем использовать специальный эндпоинт для проверки username,
+            // но пока такого эндпоинта нет, мы просто возвращаем успех
+            // В реальной реализации здесь будет запрос к API
+            // return this.get<boolean>(`/auth/check-username/${username}`);
+            return true;
+        } catch (error) {
+            console.error('Error checking username:', error);
             throw error;
         }
     }
 }
 
-// Экспортируем экземпляр API для использования в приложении
+// Создаем экземпляр API для пользователей
 export const userApi = new UserApi(); 

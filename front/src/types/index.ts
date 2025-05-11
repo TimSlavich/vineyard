@@ -1,26 +1,33 @@
 export interface User {
-  id: string;
-  name: string;
+  id: string | number;
+  username?: string;
+  name?: string;
   email: string;
-  role: 'admin' | 'manager' | 'viewer';
+  first_name?: string;
+  last_name?: string;
+  is_active?: boolean;
+  role?: 'admin' | 'manager' | 'viewer';
+  is_admin?: boolean;
   avatar?: string;
+  created_at?: string;
+  updated_at?: string;
 }
 
 export interface SensorData {
   id: string;
-  type: 'temperature' | 'humidity' | 'soil_moisture' | 'light' | 'wind';
+  type: 'temperature' | 'humidity' | 'soil_moisture' | 'soil_temperature' | 'light' | 'ph' | 'wind_speed' | 'wind_direction' | 'rainfall' | 'co2' | string;
   value: number;
   unit: string;
   timestamp: string;
   location: {
     id: string;
     name: string;
-    coordinates: {
+    coordinates?: {
       lat: number;
       lng: number;
     };
   };
-  status: 'normal' | 'warning' | 'critical';
+  status: 'normal' | 'warning' | 'critical' | string;
 }
 
 export interface WeatherData {

@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useRef } from 'react';
 
 /**
  * Тип состояния для API запроса
@@ -45,6 +45,22 @@ export function useApi<T, P extends any[]>(
         success: false
     });
 
+    // Сохраняем ссылку на текущую функцию API
+    const apiFunctionRef = useRef(apiFunction);
+    apiFunctionRef.current = apiFunction;
+
+    // Сохраняем ссылку на текущие опции
+    const optionsRef = useRef({
+        resetErrorOnRequest,
+        resetSuccessOnRequest,
+        resetDataOnRequest
+    });
+    optionsRef.current = {
+        resetErrorOnRequest,
+        resetSuccessOnRequest,
+        resetDataOnRequest
+    };
+
     /**
      * Выполняет API запрос
      * @param args аргументы для API функции
@@ -52,6 +68,12 @@ export function useApi<T, P extends any[]>(
      */
     const execute = useCallback(
         async (...args: P) => {
+            const {
+                resetErrorOnRequest,
+                resetSuccessOnRequest,
+                resetDataOnRequest
+            } = optionsRef.current;
+
             try {
                 // Устанавливаем состояние загрузки
                 setState(prev => ({
@@ -63,7 +85,7 @@ export function useApi<T, P extends any[]>(
                 }));
 
                 // Выполняем API запрос
-                const result = await apiFunction(...args);
+                const result = await apiFunctionRef.current(...args);
 
                 // Устанавливаем успешный результат
                 setState({
@@ -86,7 +108,7 @@ export function useApi<T, P extends any[]>(
                 throw error;
             }
         },
-        [apiFunction, resetErrorOnRequest, resetSuccessOnRequest, resetDataOnRequest]
+        []
     );
 
     /**

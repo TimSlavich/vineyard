@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import React, { createContext, useContext, useState, useEffect } from 'react';
 import { devices as initialDevices, thresholds as initialThresholds, notificationSettings as initialNotificationSettings } from '../data/mockData';
 import { Device, Threshold, NotificationSetting, RobotStatus } from '../types';
 import { deviceApi, thresholdApi, robotApi } from '../services/api';
@@ -39,12 +39,12 @@ interface DeviceSettingsContextType {
 
 const DeviceSettingsContext = createContext<DeviceSettingsContextType | undefined>(undefined);
 
-export const DeviceSettingsProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+export const DeviceSettingsProvider = ({ children }: { children: React.ReactNode }) => {
     const [devices, setDevices] = useState<Device[]>(initialDevices);
     const [thresholds, setThresholds] = useState<Threshold[]>(initialThresholds);
     const [notificationSettings, setNotificationSettings] = useState<NotificationSetting[]>(initialNotificationSettings);
 
-    // Состояния для загрузки
+    // Состояния загрузки
     const [loading, setLoading] = useState({
         devices: false,
         thresholds: false,
@@ -52,7 +52,7 @@ export const DeviceSettingsProvider: React.FC<{ children: React.ReactNode }> = (
         robots: false
     });
 
-    // Состояния для ошибок
+    // Состояния ошибок
     const [errors, setErrors] = useState({
         devices: null as Error | null,
         thresholds: null as Error | null,
@@ -60,7 +60,7 @@ export const DeviceSettingsProvider: React.FC<{ children: React.ReactNode }> = (
         robots: null as Error | null
     });
 
-    // Инициализация роботов с lastSyncTime
+    // Генерация случайной даты
     const randomDate = () => {
         const now = new Date();
         const daysAgo = Math.floor(Math.random() * 7);
@@ -70,28 +70,30 @@ export const DeviceSettingsProvider: React.FC<{ children: React.ReactNode }> = (
         now.setSeconds(Math.floor(Math.random() * 60));
         return now.toISOString();
     };
+
+    // Инициализация роботов
     const [robots, setRobots] = useState<RobotStatus[]>([
         {
             id: 'drone-1',
-            name: 'Дрон-розвідник 1',
+            name: 'Дрон-разведчик 1',
             type: 'drone',
             category: 'air',
             status: 'active',
             battery: 75,
             location: 'Блок A',
-            currentTask: 'Моніторинг посівів',
-            capabilities: ['Моніторинг', 'Фотографування', 'Обприскування'],
+            currentTask: 'Мониторинг посевов',
+            capabilities: ['Мониторинг', 'Фотографирование', 'Опрыскивание'],
             lastSyncTime: randomDate()
         },
         {
             id: 'drone-2',
-            name: 'Дрон-обприскувач 1',
+            name: 'Дрон-опрыскиватель 1',
             type: 'drone',
             category: 'air',
             status: 'maintenance',
             battery: 90,
-            location: 'Станція зарядки',
-            capabilities: ['Обприскування', 'Висівання', 'Моніторинг'],
+            location: 'Станция зарядки',
+            capabilities: ['Опрыскивание', 'Посев', 'Мониторинг'],
             lastSyncTime: randomDate()
         },
         {
@@ -101,42 +103,41 @@ export const DeviceSettingsProvider: React.FC<{ children: React.ReactNode }> = (
             category: 'ground',
             status: 'idle',
             battery: 90,
-            location: 'Станція зарядки',
-            capabilities: ['Почати збір', 'Обрізка', 'Режим транспорту', 'Вибірковий збір'],
+            location: 'Станция зарядки',
+            capabilities: ['Начать сбор', 'Обрезка', 'Режим транспортировки', 'Выборочный сбор'],
             lastSyncTime: randomDate()
         },
         {
             id: 'robot-2',
-            name: 'Робот-сіяч 1',
+            name: 'Робот-сеялка 1',
             type: 'seeder',
             category: 'ground',
             status: 'idle',
             battery: 45,
-            location: 'Технічний відсік',
-            capabilities: ['Висівання', 'Аналіз ґрунту', "Видалення бур'янів"],
+            location: 'Технический отсек',
+            capabilities: ['Посев', 'Анализ почвы', 'Удаление сорняков'],
             lastSyncTime: randomDate()
         },
         {
             id: 'robot-3',
-            name: 'Робот-технік 1',
+            name: 'Робот-техник 1',
             type: 'maintenance',
             category: 'ground',
             status: 'active',
             battery: 68,
             location: 'Блок C',
-            currentTask: 'Формування виноградних лоз',
-            capabilities: ['Обрізка', 'Формування лози', 'Режим ремонту'],
+            currentTask: 'Формирование виноградных лоз',
+            capabilities: ['Обрезка', 'Формирование лозы', 'Режим ремонта'],
             lastSyncTime: randomDate()
         }
     ]);
 
-    // Функции для работы с API
-    const fetchDevices = useCallback(async () => {
+    // Получение устройств
+    const fetchDevices = async () => {
         try {
             setLoading(prev => ({ ...prev, devices: true }));
             setErrors(prev => ({ ...prev, devices: null }));
 
-            // TODO: Заменить на реальный API запрос при интеграции с бэкендом
             const response = await deviceApi.getDevices();
             setDevices(response.data);
         } catch (error) {
@@ -147,14 +148,14 @@ export const DeviceSettingsProvider: React.FC<{ children: React.ReactNode }> = (
         } finally {
             setLoading(prev => ({ ...prev, devices: false }));
         }
-    }, []);
+    };
 
-    const fetchThresholds = useCallback(async () => {
+    // Получение порогов
+    const fetchThresholds = async () => {
         try {
             setLoading(prev => ({ ...prev, thresholds: true }));
             setErrors(prev => ({ ...prev, thresholds: null }));
 
-            // TODO: Заменить на реальный API запрос при интеграции с бэкендом
             const response = await thresholdApi.getThresholds();
             setThresholds(response.data);
         } catch (error) {
@@ -165,14 +166,14 @@ export const DeviceSettingsProvider: React.FC<{ children: React.ReactNode }> = (
         } finally {
             setLoading(prev => ({ ...prev, thresholds: false }));
         }
-    }, []);
+    };
 
-    const fetchNotificationSettings = useCallback(async () => {
+    // Получение настроек уведомлений
+    const fetchNotificationSettings = async () => {
         try {
             setLoading(prev => ({ ...prev, notificationSettings: true }));
             setErrors(prev => ({ ...prev, notificationSettings: null }));
 
-            // TODO: Заменить на реальный API запрос при интеграции с бэкендом
             const response = await thresholdApi.getNotificationSettings();
             setNotificationSettings(response.data);
         } catch (error) {
@@ -183,14 +184,14 @@ export const DeviceSettingsProvider: React.FC<{ children: React.ReactNode }> = (
         } finally {
             setLoading(prev => ({ ...prev, notificationSettings: false }));
         }
-    }, []);
+    };
 
-    const fetchRobots = useCallback(async () => {
+    // Получение роботов
+    const fetchRobots = async () => {
         try {
             setLoading(prev => ({ ...prev, robots: true }));
             setErrors(prev => ({ ...prev, robots: null }));
 
-            // TODO: Заменить на реальный API запрос при интеграции с бэкендом
             const response = await robotApi.getRobots();
             if (response.data.length > 0) {
                 setRobots(response.data);
@@ -203,14 +204,13 @@ export const DeviceSettingsProvider: React.FC<{ children: React.ReactNode }> = (
         } finally {
             setLoading(prev => ({ ...prev, robots: false }));
         }
-    }, []);
+    };
 
-    const updateDevice = useCallback(async (deviceId: string, data: Partial<Device>) => {
+    // Обновление устройства
+    const updateDevice = async (deviceId: string, data: Partial<Device>) => {
         try {
-            // TODO: Заменить на реальный API запрос при интеграции с бэкендом
             const response = await deviceApi.updateDevice(deviceId, data);
 
-            // Обновляем устройство в локальном состоянии
             setDevices(prev =>
                 prev.map(device =>
                     device.id === deviceId ? { ...device, ...response.data } : device
@@ -219,11 +219,11 @@ export const DeviceSettingsProvider: React.FC<{ children: React.ReactNode }> = (
         } catch (error) {
             throw error;
         }
-    }, []);
+    };
 
-    const updateThreshold = useCallback(async (thresholdId: string, data: Partial<Threshold>) => {
+    // Обновление порога
+    const updateThreshold = async (thresholdId: string, data: Partial<Threshold>) => {
         try {
-            // TODO: Заменить на реальный API запрос при интеграции с бэкендом
             const apiData = {
                 id: thresholdId,
                 min: data.min,
@@ -231,7 +231,6 @@ export const DeviceSettingsProvider: React.FC<{ children: React.ReactNode }> = (
             };
             const response = await thresholdApi.updateThreshold(thresholdId, apiData);
 
-            // Обновляем порог в локальном состоянии
             setThresholds(prev =>
                 prev.map(threshold =>
                     threshold.id === thresholdId ? { ...threshold, ...response.data } : threshold
@@ -240,23 +239,21 @@ export const DeviceSettingsProvider: React.FC<{ children: React.ReactNode }> = (
         } catch (error) {
             throw error;
         }
-    }, []);
+    };
 
-    const updateAllThresholds = useCallback(async (newThresholds: Threshold[]) => {
+    // Обновление всех порогов
+    const updateAllThresholds = async (newThresholds: Threshold[]) => {
         try {
-            // TODO: Заменить на реальный API запрос при интеграции с бэкендом
             const response = await thresholdApi.updateAllThresholds(newThresholds);
-
-            // Обновляем пороги в локальном состоянии
             setThresholds(response.data);
         } catch (error) {
             throw error;
         }
-    }, []);
+    };
 
-    const updateNotificationSetting = useCallback(async (type: string, data: Partial<NotificationSetting>) => {
+    // Обновление настройки уведомлений
+    const updateNotificationSetting = async (type: string, data: Partial<NotificationSetting>) => {
         try {
-            // TODO: Заменить на реальный API запрос при интеграции с бэкендом
             const apiData = {
                 type: type as 'email' | 'sms' | 'push',
                 enabled: data.enabled,
@@ -264,7 +261,6 @@ export const DeviceSettingsProvider: React.FC<{ children: React.ReactNode }> = (
             };
             const response = await thresholdApi.updateNotificationSetting(type, apiData);
 
-            // Обновляем настройку в локальном состоянии
             setNotificationSettings(prev =>
                 prev.map(setting =>
                     setting.type === type ? { ...setting, ...response.data } : setting
@@ -273,52 +269,42 @@ export const DeviceSettingsProvider: React.FC<{ children: React.ReactNode }> = (
         } catch (error) {
             throw error;
         }
-    }, []);
+    };
 
-    const updateAllNotificationSettings = useCallback(async (newSettings: NotificationSetting[]) => {
+    // Обновление всех настроек уведомлений
+    const updateAllNotificationSettings = async (newSettings: NotificationSetting[]) => {
         try {
-            // TODO: Заменить на реальный API запрос при интеграции с бэкендом
             const response = await thresholdApi.updateAllNotificationSettings(newSettings);
-
-            // Обновляем настройки в локальном состоянии
             setNotificationSettings(response.data);
         } catch (error) {
             throw error;
         }
-    }, []);
+    };
 
-    const resetThresholds = useCallback(async () => {
+    // Сброс порогов
+    const resetThresholds = async () => {
         try {
-            // TODO: Заменить на реальный API запрос при интеграции с бэкендом
             const response = await thresholdApi.resetThresholds();
-
-            // Обновляем пороги в локальном состоянии
             setThresholds(response.data);
         } catch (error) {
             throw error;
         }
-    }, []);
+    };
 
-    const resetNotificationSettings = useCallback(async () => {
+    // Сброс настроек уведомлений
+    const resetNotificationSettings = async () => {
         try {
-            // TODO: Заменить на реальный API запрос при интеграции с бэкендом
             const response = await thresholdApi.resetNotificationSettings();
-
-            // Обновляем настройки в локальном состоянии
             setNotificationSettings(response.data);
         } catch (error) {
             throw error;
         }
-    }, []);
+    };
 
-    // Загружаем данные при первом рендере
+    // Загрузка данных при первом рендере
     useEffect(() => {
-        // Пока используем моковые данные, поэтому не делаем реальных запросов
-        // fetchDevices();
-        // fetchThresholds();
-        // fetchNotificationSettings();
-        // fetchRobots();
-    }, [/* fetchDevices, fetchThresholds, fetchNotificationSettings, fetchRobots */]);
+        // Пока используем моковые данные
+    }, []);
 
     return (
         <DeviceSettingsContext.Provider
@@ -353,6 +339,6 @@ export const DeviceSettingsProvider: React.FC<{ children: React.ReactNode }> = (
 
 export const useDeviceSettings = () => {
     const ctx = useContext(DeviceSettingsContext);
-    if (!ctx) throw new Error('useDeviceSettings must be used within DeviceSettingsProvider');
+    if (!ctx) throw new Error('useDeviceSettings должен использоваться внутри DeviceSettingsProvider');
     return ctx;
 }; 

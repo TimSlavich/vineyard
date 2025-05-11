@@ -1,13 +1,12 @@
 from typing import List, Optional
 from datetime import datetime
 
-from fastapi import APIRouter, Depends, Query, Path, HTTPException, status
-from loguru import logger
+from fastapi import APIRouter, Depends, Query, Path, status
 
 from app.deps.auth import get_current_user, get_manager_user
-from app.deps.pagination import PaginationParams, paginate, create_paginated_response
+from app.deps.pagination import PaginationParams, paginate
 from app.models.user import User
-from app.models.sensor_data import SensorData, SensorAlertThreshold, SensorType
+from app.models.sensor_data import SensorData, SensorType
 from app.schemas.sensor import (
     SensorDataResponse,
     SensorDataCreate,
@@ -17,7 +16,7 @@ from app.schemas.sensor import (
     SensorThresholdResponse,
     SensorDataQueryParams,
 )
-from app.schemas.common import PaginatedResponse, StatusMessage
+from app.schemas.common import PaginatedResponse
 from app.services.sensor import (
     create_sensor_data,
     create_sensor_data_batch,
@@ -35,9 +34,7 @@ router = APIRouter()
 async def add_sensor_data(
     data: SensorDataCreate, current_user: User = Depends(get_current_user)
 ):
-    """
-    Create a new sensor data record.
-    """
+    """Создание новой записи данных датчика"""
     sensor_data = await create_sensor_data(data)
     return sensor_data
 
@@ -50,9 +47,7 @@ async def add_sensor_data(
 async def add_sensor_data_batch(
     data: SensorDataBatchCreate, current_user: User = Depends(get_current_user)
 ):
-    """
-    Create multiple sensor data records in a batch.
-    """
+    """Создание нескольких записей данных датчика за один запрос"""
     sensor_data_list = await create_sensor_data_batch(data)
     return sensor_data_list
 
@@ -63,36 +58,28 @@ async def get_sensor_data(
     pagination: PaginationParams = Depends(),
     current_user: User = Depends(get_current_user),
 ):
-    """
-    Get sensor data with optional filtering parameters.
-    """
-    # Build filter dict from query params
+    """Получение данных датчиков с опциональной фильтрацией"""
+    # Построение фильтра из параметров запроса
     filters = {}
 
     if query_params.sensor_id:
         filters["sensor_id"] = query_params.sensor_id
-
     if query_params.type:
         filters["type"] = query_params.type
-
     if query_params.location_id:
         filters["location_id"] = query_params.location_id
-
     if query_params.device_id:
         filters["device_id"] = query_params.device_id
-
     if query_params.start_date:
         filters["timestamp__gte"] = query_params.start_date
-
     if query_params.end_date:
         filters["timestamp__lte"] = query_params.end_date
 
-    # Get paginated data
+    # Получение данных с пагинацией
     items, total, page, size, pages = await paginate(
         SensorData.all().order_by("-timestamp"), pagination, filters
     )
 
-    # Return paginated response
     return PaginatedResponse[SensorDataResponse](
         items=items, total=total, page=page, size=size, pages=pages
     )
@@ -101,40 +88,35 @@ async def get_sensor_data(
 @router.get("/latest", response_model=List[SensorDataResponse])
 async def get_latest_sensor_readings(
     sensor_type: Optional[SensorType] = Query(
-        None, description="Filter by sensor type"
+        None, description="Фильтр по типу датчика"
     ),
-    location_id: Optional[str] = Query(None, description="Filter by location ID"),
-    sensor_id: Optional[str] = Query(None, description="Filter by sensor ID"),
+    location_id: Optional[str] = Query(None, description="Фильтр по ID локации"),
+    sensor_id: Optional[str] = Query(None, description="Фильтр по ID датчика"),
     current_user: User = Depends(get_current_user),
 ):
-    """
-    Get the latest sensor readings.
-    """
+    """Получение последних показаний датчиков"""
     latest_data = await get_latest_sensor_data(sensor_type, location_id, sensor_id)
     return latest_data
 
 
 @router.get("/{sensor_id}", response_model=List[SensorDataResponse])
 async def get_sensor_data_by_id(
-    sensor_id: str = Path(..., description="Sensor ID"),
-    start_date: Optional[datetime] = Query(None, description="Start date filter"),
-    end_date: Optional[datetime] = Query(None, description="End date filter"),
-    limit: int = Query(100, ge=1, le=1000, description="Number of records to return"),
+    sensor_id: str = Path(..., description="ID датчика"),
+    start_date: Optional[datetime] = Query(None, description="Начало периода"),
+    end_date: Optional[datetime] = Query(None, description="Конец периода"),
+    limit: int = Query(100, ge=1, le=1000, description="Количество записей"),
     current_user: User = Depends(get_current_user),
 ):
-    """
-    Get sensor data for a specific sensor.
-    """
-    # Build query
+    """Получение данных для конкретного датчика"""
+    # Построение запроса
     query = SensorData.filter(sensor_id=sensor_id).order_by("-timestamp")
 
     if start_date:
         query = query.filter(timestamp__gte=start_date)
-
     if end_date:
         query = query.filter(timestamp__lte=end_date)
 
-    # Execute query
+    # Выполнение запроса
     data = await query.limit(limit)
     return data
 
@@ -150,9 +132,7 @@ async def get_sensor_data_by_id(
 async def add_sensor_threshold(
     data: SensorThresholdCreate, current_user: User = Depends(get_manager_user)
 ):
-    """
-    Create a new sensor alert threshold.
-    """
+    """Создание нового порога срабатывания для датчика"""
     threshold = await create_sensor_threshold(data, current_user.id)
     return threshold
 
@@ -160,27 +140,23 @@ async def add_sensor_threshold(
 @router.get("/thresholds", response_model=List[SensorThresholdResponse])
 async def list_sensor_thresholds(
     sensor_type: Optional[SensorType] = Query(
-        None, description="Filter by sensor type"
+        None, description="Фильтр по типу датчика"
     ),
-    active_only: bool = Query(True, description="Return only active thresholds"),
+    active_only: bool = Query(True, description="Только активные пороги"),
     current_user: User = Depends(get_current_user),
 ):
-    """
-    Get all sensor alert thresholds.
-    """
+    """Получение всех порогов срабатывания датчиков"""
     thresholds = await get_sensor_thresholds(sensor_type, active_only)
     return thresholds
 
 
 @router.patch("/thresholds/{threshold_id}", response_model=SensorThresholdResponse)
 async def update_threshold(
-    threshold_id: int = Path(..., description="Threshold ID"),
+    threshold_id: int = Path(..., description="ID порога"),
     threshold_data: SensorThresholdUpdate = Depends(),
     current_user: User = Depends(get_manager_user),
 ):
-    """
-    Update a sensor alert threshold.
-    """
+    """Обновление порога срабатывания датчика"""
     threshold = await update_sensor_threshold(
         threshold_id=threshold_id,
         min_value=threshold_data.min_value,

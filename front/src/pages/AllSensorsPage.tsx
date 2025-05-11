@@ -1,17 +1,28 @@
 import React, { useEffect, useState } from 'react';
-import { getLatestReadings } from '../data/mockData';
 import SensorCard from '../components/ui/SensorCard';
 import { Filter, ArrowLeft, Search, Star, StarOff, Plus } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import useSensorData, { SensorData as BackendSensorData } from '../hooks/useSensorData';
+import { SensorData } from '../types';
+import { getUserData } from '../utils/storage';
+import ModalMessage from '../components/ui/ModalMessage';
 
 const AllSensorsPage: React.FC = () => {
-    const [sensors, setSensors] = useState(getLatestReadings());
+    // Используем хук для получения данных с датчиков через WebSocket
+    const { latestSensorData, sensorData: allSensorData, isConnected } = useSensorData();
+    const [sensors, setSensors] = useState<SensorData[]>([]);
     const [searchTerm, setSearchTerm] = useState('');
     const [filterType, setFilterType] = useState<string>('all');
     const [filterStatus, setFilterStatus] = useState<string>('all');
     const [favoriteSensors, setFavoriteSensors] = useState<string[]>(() => {
         try {
-            const saved = localStorage.getItem('favoriteSensors');
+            // Получаем информацию о пользователе
+            const userData = getUserData();
+            const userId = userData?.id || 'guest';
+
+            // Используем user-специфичный ключ для хранения избранных датчиков
+            const favoritesKey = `favoriteSensors_${userId}`;
+            const saved = localStorage.getItem(favoritesKey);
             return saved ? JSON.parse(saved) : [];
         } catch (error) {
             console.error('Error loading favorites:', error);
@@ -19,17 +30,40 @@ const AllSensorsPage: React.FC = () => {
         }
     });
     const [showOnlyFavorites, setShowOnlyFavorites] = useState<boolean>(false);
+    const [showConfirmDialog, setShowConfirmDialog] = useState(false);
+
+    // Преобразуем данные датчиков в удобный формат для отображения
+    const transformSensorData = (sensor: any) => {
+        return {
+            id: sensor.sensor_id,
+            type: sensor.type as string,
+            value: Number(sensor.value.toFixed(2)),
+            unit: sensor.unit,
+            timestamp: sensor.timestamp,
+            status: sensor.status,
+            location: {
+                id: sensor.location_id,
+                name: `Локація ${sensor.location_id.split('_').pop()}`
+            }
+        };
+    };
 
     useEffect(() => {
         window.scrollTo(0, 0);
     }, []);
 
     useEffect(() => {
-        localStorage.setItem('favoriteSensors', JSON.stringify(favoriteSensors));
+        // Получаем информацию о пользователе для ключа
+        const userData = getUserData();
+        const userId = userData?.id || 'guest';
+        const favoritesKey = `favoriteSensors_${userId}`;
+
+        localStorage.setItem(favoritesKey, JSON.stringify(favoriteSensors));
     }, [favoriteSensors]);
 
     useEffect(() => {
-        const allSensors = getLatestReadings();
+        // Преобразуем полученные данные в формат для отображения
+        const allSensors = Object.values(latestSensorData).map(transformSensorData);
         let filteredSensors = [...allSensors];
 
         // Фильтрация только избранных
@@ -61,15 +95,20 @@ const AllSensorsPage: React.FC = () => {
         }
 
         setSensors(filteredSensors);
-    }, [searchTerm, filterType, filterStatus, favoriteSensors, showOnlyFavorites]);
+    }, [latestSensorData, searchTerm, filterType, filterStatus, favoriteSensors, showOnlyFavorites]);
 
     const getSensorTypeName = (type: string) => {
         const types: Record<string, string> = {
             'temperature': 'Температура',
             'humidity': 'Вологість повітря',
             'soil_moisture': 'Вологість ґрунту',
-            'light': 'Освітлення',
-            'wind': 'Вітер'
+            'soil_temperature': 'Температура ґрунту',
+            'light': 'Освітленість',
+            'ph': 'Кислотність pH',
+            'wind_speed': 'Швидкість вітру',
+            'wind_direction': 'Напрям вітру',
+            'rainfall': 'Опади',
+            'co2': 'Рівень CO₂'
         };
         return types[type] || type;
     };
@@ -101,8 +140,32 @@ const AllSensorsPage: React.FC = () => {
         return favoriteSensors.includes(fullId);
     };
 
+    const clearFavorites = () => {
+        setShowConfirmDialog(true);
+    };
+
+    const handleConfirmClear = () => {
+        setFavoriteSensors([]);
+        // Получаем информацию о пользователе для ключа
+        const userData = getUserData();
+        const userId = userData?.id || 'guest';
+        const favoritesKey = `favoriteSensors_${userId}`;
+        localStorage.setItem(favoritesKey, JSON.stringify([]));
+        setShowConfirmDialog(false);
+    };
+
     return (
         <div className="px-6 py-8 md:px-8 lg:px-12 min-h-screen">
+            {/* Диалог подтверждения */}
+            <ModalMessage
+                open={showConfirmDialog}
+                type="confirm"
+                title="Підтвердіть дію"
+                message="Ви впевнені, що хочете видалити всі вибрані датчики?"
+                onClose={() => setShowConfirmDialog(false)}
+                onConfirm={handleConfirmClear}
+            />
+
             <div className="mb-8">
                 <div className="flex items-center mb-4">
                     <Link to="/dashboard" className="mr-4 text-gray-600 hover:text-gray-900">
@@ -114,6 +177,10 @@ const AllSensorsPage: React.FC = () => {
                 </div>
                 <p className="text-gray-600 font-roboto">
                     Моніторинг всіх датчиків системи виноградника. Виберіть до 10 основних датчиків для швидкого доступу.
+                    {isConnected ?
+                        <span className="ml-2 text-success-600 text-sm">(підключено)</span> :
+                        <span className="ml-2 text-error text-sm">(не підключено)</span>
+                    }
                 </p>
             </div>
 
@@ -148,8 +215,13 @@ const AllSensorsPage: React.FC = () => {
                             <option value="temperature">Температура</option>
                             <option value="humidity">Вологість повітря</option>
                             <option value="soil_moisture">Вологість ґрунту</option>
-                            <option value="light">Освітлення</option>
-                            <option value="wind">Вітер</option>
+                            <option value="soil_temperature">Температура ґрунту</option>
+                            <option value="light">Освітленість</option>
+                            <option value="ph">Кислотність pH</option>
+                            <option value="wind_speed">Швидкість вітру</option>
+                            <option value="wind_direction">Напрям вітру</option>
+                            <option value="rainfall">Опади</option>
+                            <option value="co2">Рівень CO₂</option>
                         </select>
                     </div>
 
@@ -205,10 +277,7 @@ const AllSensorsPage: React.FC = () => {
                     {favoriteSensors.length > 0 && (
                         <button
                             className="text-gray-600 hover:text-red-500"
-                            onClick={() => {
-                                setFavoriteSensors([]);
-                                localStorage.setItem('favoriteSensors', JSON.stringify([]));
-                            }}
+                            onClick={clearFavorites}
                         >
                             Очистити всі обрані
                         </button>
@@ -231,24 +300,43 @@ const AllSensorsPage: React.FC = () => {
             {/* Сетка датчиков */}
             {sensors.length > 0 ? (
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                    {sensors.map((sensor, index) => (
-                        <div key={`all-sensor-${sensor.id}-${index}`} className="relative">
-                            <SensorCard data={sensor} />
-                            <button
-                                className="absolute top-3 right-3 p-1.5 rounded-full bg-white shadow-md hover:bg-gray-100"
-                                onClick={() => toggleFavorite(sensor)}
-                                title={isFavorite(sensor) ? "Видалити з основних" : "Додати до основних"}
-                            >
-                                {isFavorite(sensor) ? (
-                                    <Star size={18} className="text-yellow-500" />
-                                ) : favoriteSensors.length < 10 ? (
-                                    <Plus size={18} className="text-gray-500" />
-                                ) : (
-                                    <Plus size={18} className="text-gray-300" />
-                                )}
-                            </button>
-                        </div>
-                    ))}
+                    {sensors.map((sensor, index) => {
+                        // Получаем историю показаний для этого датчика
+                        const sensorHistory = allSensorData.filter(
+                            data => data.sensor_id === sensor.id && data.type === sensor.type
+                        );
+
+                        // Преобразуем историю показаний в формат, совместимый с SensorCard
+                        const formattedHistory = sensorHistory.map((data: BackendSensorData) => ({
+                            ...data,
+                            id: data.sensor_id,
+                            location: sensor.location
+                        }));
+
+                        return (
+                            <div key={`all-sensor-${sensor.id}-${index}`} className="relative">
+                                <SensorCard data={sensor} previousData={formattedHistory} />
+                                <button
+                                    className="absolute top-3 right-3 p-1.5 rounded-full bg-white shadow-md hover:bg-gray-100"
+                                    onClick={() => toggleFavorite(sensor)}
+                                    title={isFavorite(sensor) ? "Видалити з основних" : "Додати до основних"}
+                                >
+                                    {isFavorite(sensor) ? (
+                                        <Star size={18} className="text-yellow-500" />
+                                    ) : favoriteSensors.length < 10 ? (
+                                        <Plus size={18} className="text-gray-500" />
+                                    ) : (
+                                        <Plus size={18} className="text-gray-300" />
+                                    )}
+                                </button>
+                            </div>
+                        );
+                    })}
+                </div>
+            ) : !isConnected ? (
+                <div className="text-center py-12 bg-gray-50 rounded-lg">
+                    <p className="text-gray-600 font-medium">Немає з'єднання з сервером</p>
+                    <p className="text-gray-500 mt-2">Перевірте підключення до сервера або спробуйте пізніше</p>
                 </div>
             ) : (
                 <div className="text-center py-12 bg-gray-50 rounded-lg">

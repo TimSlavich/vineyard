@@ -1,12 +1,11 @@
 from enum import Enum
-from typing import Optional
 
 from tortoise import fields
 from tortoise.models import Model
 
 
 class UserRole(str, Enum):
-    """User role enumeration."""
+    """Роли пользователей"""
 
     ADMIN = "admin"
     MANAGER = "manager"
@@ -14,9 +13,7 @@ class UserRole(str, Enum):
 
 
 class User(Model):
-    """
-    User model for authentication and access control.
-    """
+    """Модель пользователя для аутентификации и контроля доступа"""
 
     id = fields.IntField(pk=True)
     email = fields.CharField(max_length=255, unique=True, index=True)
@@ -31,17 +28,14 @@ class User(Model):
     updated_at = fields.DatetimeField(auto_now=True)
 
     class Meta:
-        """Metadata for the User model."""
-
         table = "users"
 
     def __str__(self) -> str:
-        """String representation of the User model."""
         return f"{self.username} ({self.email})"
 
     @property
     def full_name(self) -> str:
-        """Get the user's full name."""
+        """Получить полное имя пользователя"""
         if self.first_name and self.last_name:
             return f"{self.first_name} {self.last_name}"
         if self.first_name:
@@ -50,9 +44,7 @@ class User(Model):
 
 
 class RefreshToken(Model):
-    """
-    Store refresh tokens for users.
-    """
+    """Модель для хранения токенов обновления"""
 
     id = fields.IntField(pk=True)
     user = fields.ForeignKeyField("models.User", related_name="refresh_tokens")
@@ -62,10 +54,7 @@ class RefreshToken(Model):
     is_revoked = fields.BooleanField(default=False)
 
     class Meta:
-        """Metadata for the RefreshToken model."""
-
         table = "refresh_tokens"
 
     def __str__(self) -> str:
-        """String representation of the RefreshToken model."""
         return f"Token for {self.user.username}, expires at {self.expires_at}"

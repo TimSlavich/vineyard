@@ -13,7 +13,11 @@ export const translateWeatherCondition = (condition: string): string => {
         'Thunderstorm': 'Гроза',
         'Snow': 'Сніг',
         'Fog': 'Туман',
-        'Clear': 'Ясно'
+        'Clear': 'Ясно',
+        'Hot': 'Спека',
+        'Mild': 'Помірно',
+        'Cool': 'Прохолодно',
+        'Cold': 'Холодно'
     };
     return translations[condition] || condition;
 };
@@ -106,14 +110,37 @@ export const SENSOR_TYPE_UA: Record<string, string> = {
     'temperature': 'Температура',
     'humidity': 'Вологість',
     'soil_moisture': 'Вологість ґрунту',
+    'soil_temperature': 'Температура ґрунту',
     'light': 'Освітленість',
-    'wind': 'Вітер',
+    'ph': 'Кислотність pH',
+    'wind_speed': 'Швидкість вітру',
+    'wind_direction': 'Напрям вітру',
+    'rainfall': 'Опади',
+    'co2': 'Рівень CO₂'
 };
 
 export const NOTIF_LABELS_UA: Record<string, string> = {
     'info': 'Інформаційні сповіщення',
     'warning': 'Попереджувальні сповіщення',
     'critical': 'Критичні сповіщення',
+};
+
+export const ALERT_TYPE_UA: Record<string, string> = {
+    'high': 'Високе значення',
+    'low': 'Низьке значення',
+    'normal': 'Нормальне значення',
+    'offline': 'Пристрій не в мережі',
+    'system': 'Системне повідомлення',
+    'update': 'Оновлення системи'
+};
+
+export const NOTIFICATION_CHANNEL_UA: Record<string, string> = {
+    'browser': 'Браузерні сповіщення',
+    'email': 'Електронна пошта',
+    'sms': 'SMS-повідомлення',
+    'push': 'Push-сповіщення',
+    'telegram': 'Telegram-повідомлення',
+    'mobile': 'Мобільний додаток'
 };
 
 // Словарь для статусов устройств

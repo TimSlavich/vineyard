@@ -56,28 +56,26 @@ export interface QueryParams extends PaginationParams, SortParams, FilterParams 
  * Интерфейс авторизации
  */
 export interface AuthRequest {
-    email: string;
+    username: string;
     password: string;
 }
 
 export interface AuthResponse {
-    token: string;
-    user: {
-        id: string;
-        name: string;
-        email: string;
-        role: string;
-    };
+    access_token: string;
+    refresh_token: string;
+    token_type: string;
 }
 
 /**
  * Интерфейс регистрации
  */
 export interface RegisterRequest {
-    name: string;
     email: string;
+    username: string;
     password: string;
-    confirmPassword: string;
+    password_confirm: string;
+    first_name?: string;
+    last_name?: string;
 }
 
 /**

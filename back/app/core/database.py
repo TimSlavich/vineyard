@@ -1,4 +1,5 @@
-from typing import Dict, List
+import os
+from typing import List
 
 from loguru import logger
 from tortoise import Tortoise
@@ -8,7 +9,7 @@ from app.core.config import settings
 # Формируем URL для подключения к SQLite
 DB_URL = f"sqlite://{settings.DB_PATH}"
 
-# Models list for Tortoise ORM
+# Список моделей для Tortoise ORM
 MODELS_LIST = [
     "app.models.user",
     "app.models.sensor_data",
@@ -18,7 +19,7 @@ MODELS_LIST = [
     "aerich.models",
 ]
 
-# Tortoise ORM config for Aerich migrations
+# Конфигурация Tortoise ORM для миграций Aerich
 TORTOISE_ORM = {
     "connections": {"default": DB_URL},
     "apps": {
@@ -32,28 +33,29 @@ TORTOISE_ORM = {
 
 async def init_db() -> None:
     """
-    Initialize the database connection.
+    Инициализация подключения к базе данных.
     """
-    logger.info("Initializing database connection...")
-    logger.info(f"Using SQLite database: {settings.DB_PATH}")
+    logger.info(f"Инициализация базы данных: {settings.DB_PATH}")
 
     await Tortoise.init(
         db_url=DB_URL,
         modules={"models": MODELS_LIST},
     )
 
-    # Generate schemas if app is in debug mode
-    if settings.DEBUG:
-        logger.info("Generating database schema...")
-        await Tortoise.generate_schemas()
+    # Генерация схем только если БД не существует или в режиме отладки при первом запуске
+    db_exists = (
+        os.path.exists(settings.DB_PATH) and os.path.getsize(settings.DB_PATH) > 0
+    )
 
-    logger.info("Database connection initialized successfully!")
+    if not db_exists and settings.DEBUG:
+        logger.info("Генерация схемы базы данных...")
+        await Tortoise.generate_schemas()
+        logger.info("Схема успешно сгенерирована")
 
 
 async def close_db() -> None:
     """
-    Close the database connection.
+    Закрытие подключения к базе данных.
     """
-    logger.info("Closing database connection...")
+    logger.info("Закрытие подключения к базе данных")
     await Tortoise.close_connections()
-    logger.info("Database connection closed successfully!")

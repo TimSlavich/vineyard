@@ -7,7 +7,7 @@ from passlib.context import CryptContext
 
 from app.core.config import settings
 
-# Password hashing context
+# Контекст хеширования паролей
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 
@@ -15,99 +15,126 @@ def create_access_token(
     subject: Union[str, Any], expires_delta: Optional[timedelta] = None
 ) -> str:
     """
-    Create a JWT access token.
+    Создание JWT-токена доступа.
 
     Args:
-        subject: The subject of the token (typically user ID)
-        expires_delta: Optional custom expiration time
+        subject: Субъект токена (обычно ID пользователя)
+        expires_delta: Опциональное время истечения срока действия
 
     Returns:
-        JWT token string
+        Строка JWT-токена
     """
-    if expires_delta:
-        expire = datetime.utcnow() + expires_delta
-    else:
-        expire = datetime.utcnow() + timedelta(
-            minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES
-        )
+    expire = datetime.utcnow() + (
+        expires_delta
+        if expires_delta
+        else timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
+    )
 
     to_encode = {"exp": expire, "sub": str(subject), "type": "access"}
-    encoded_jwt = jwt.encode(
+    return jwt.encode(
         to_encode, settings.JWT_SECRET_KEY, algorithm=settings.JWT_ALGORITHM
     )
-    return encoded_jwt
 
 
 def create_refresh_token(
     subject: Union[str, Any], expires_delta: Optional[timedelta] = None
 ) -> str:
     """
-    Create a JWT refresh token.
+    Создание JWT-токена обновления.
 
     Args:
-        subject: The subject of the token (typically user ID)
-        expires_delta: Optional custom expiration time
+        subject: Субъект токена (обычно ID пользователя)
+        expires_delta: Опциональное время истечения срока действия
 
     Returns:
-        JWT token string
+        Строка JWT-токена
     """
-    if expires_delta:
-        expire = datetime.utcnow() + expires_delta
-    else:
-        expire = datetime.utcnow() + timedelta(days=settings.REFRESH_TOKEN_EXPIRE_DAYS)
+    expire = datetime.utcnow() + (
+        expires_delta
+        if expires_delta
+        else timedelta(days=settings.REFRESH_TOKEN_EXPIRE_DAYS)
+    )
 
     to_encode = {"exp": expire, "sub": str(subject), "type": "refresh"}
-    encoded_jwt = jwt.encode(
+    return jwt.encode(
         to_encode, settings.JWT_SECRET_KEY, algorithm=settings.JWT_ALGORITHM
     )
-    return encoded_jwt
 
 
 def decode_token(token: str) -> Dict[str, Any]:
     """
-    Decode a JWT token.
+    Декодирование JWT-токена.
 
     Args:
-        token: JWT token
+        token: JWT-токен
 
     Returns:
-        Decoded token payload
+        Декодированная полезная нагрузка токена
 
     Raises:
-        JWTError: If token is invalid
+        JWTError: Если токен недействителен
+    """
+    try:
+        return jwt.decode(
+            token, settings.JWT_SECRET_KEY, algorithms=[settings.JWT_ALGORITHM]
+        )
+    except JWTError as e:
+        logger.error(f"Ошибка декодирования JWT: {str(e)}")
+        raise
+
+
+def verify_token(token: str, expected_type: str = None) -> Optional[Dict[str, Any]]:
+    """
+    Проверка JWT-токена и опционально его типа.
+
+    Args:
+        token: JWT-токен для проверки
+        expected_type: Опциональный ожидаемый тип токена ('access' или 'refresh')
+
+    Returns:
+        Декодированная полезная нагрузка токена, если действителен, иначе None
     """
     try:
         payload = jwt.decode(
             token, settings.JWT_SECRET_KEY, algorithms=[settings.JWT_ALGORITHM]
         )
+
+        # Проверка типа токена, если указан expected_type
+        if expected_type and payload.get("type") != expected_type:
+            logger.debug(
+                f"Несоответствие типа токена: ожидался={expected_type}, получен={payload.get('type')}"
+            )
+            return None
+
         return payload
-    except JWTError as e:
-        logger.error(f"Failed to decode JWT token: {e}")
-        raise
+    except JWTError:
+        # Уменьшаем уровень лога, т.к. это нормальное поведение для многих запросов
+        logger.debug(f"Недействительный токен")
+        return None
 
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
     """
-    Verify a password against a hash.
+    Проверка пароля по хешу.
 
     Args:
-        plain_password: The plain-text password
-        hashed_password: The hashed password
+        plain_password: Открытый пароль
+        hashed_password: Хешированный пароль
 
     Returns:
-        True if password matches hash, False otherwise
+        True, если пароль совпадает, иначе False
     """
     return pwd_context.verify(plain_password, hashed_password)
 
 
-def get_password_hash(password: str) -> str:
+def hash_password(password: str) -> str:
     """
-    Hash a password.
+    Хеширование пароля.
 
     Args:
-        password: The password to hash
+        password: Открытый пароль
 
     Returns:
-        Hashed password
+        Хешированный пароль
     """
     return pwd_context.hash(password)

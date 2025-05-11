@@ -1,6 +1,6 @@
-from typing import Dict, Any, List, Optional
+from typing import Dict, Any, List
 
-from fastapi import APIRouter, Depends, Query, Path, HTTPException, status, Body
+from fastapi import APIRouter, Depends, Body
 from loguru import logger
 
 from app.deps.auth import get_current_user, get_admin_user
@@ -15,13 +15,7 @@ router = APIRouter()
 async def get_system_settings(
     current_user: User = Depends(get_admin_user),
 ):
-    """
-    Get system settings.
-
-    Only accessible by administrators.
-    """
-    # In a real application, these would be stored in a database or config file
-    # For now, we return hardcoded values
+    """Получение системных настроек. Доступно только администраторам."""
     return {
         "app_name": "VineGuard",
         "app_version": "0.1.0",
@@ -49,19 +43,13 @@ async def get_system_settings(
 async def update_system_settings(
     settings: Dict[str, Any] = Body(...), current_user: User = Depends(get_admin_user)
 ):
-    """
-    Update system settings.
-
-    Only accessible by administrators.
-    """
-    # In a real application, these would be stored in a database or config file
-    # For now, we just log the update
-    logger.info(f"System settings updated by user {current_user.username}")
-    logger.debug(f"New settings: {settings}")
+    """Обновление системных настроек. Доступно только администраторам."""
+    logger.info(f"Системные настройки обновлены пользователем {current_user.username}")
+    logger.debug(f"Новые настройки: {settings}")
 
     return {
         "status": "success",
-        "message": "System settings updated successfully",
+        "message": "Системные настройки успешно обновлены",
         "data": settings,
     }
 
@@ -70,11 +58,7 @@ async def update_system_settings(
 async def get_user_preferences(
     current_user: User = Depends(get_current_user),
 ):
-    """
-    Get user preferences for the current user.
-    """
-    # In a real application, these would be stored in a database
-    # For now, we return hardcoded values
+    """Получение пользовательских настроек для текущего пользователя."""
     return {
         "theme": "light",
         "dashboard_layout": "default",
@@ -93,17 +77,13 @@ async def update_user_preferences(
     preferences: Dict[str, Any] = Body(...),
     current_user: User = Depends(get_current_user),
 ):
-    """
-    Update preferences for the current user.
-    """
-    # In a real application, these would be stored in a database
-    # For now, we just log the update
-    logger.info(f"User preferences updated for user {current_user.username}")
-    logger.debug(f"New preferences: {preferences}")
+    """Обновление пользовательских настроек для текущего пользователя."""
+    logger.info(f"Настройки пользователя обновлены для {current_user.username}")
+    logger.debug(f"Новые настройки: {preferences}")
 
     return {
         "status": "success",
-        "message": "User preferences updated successfully",
+        "message": "Пользовательские настройки успешно обновлены",
         "data": preferences,
     }
 
@@ -112,10 +92,7 @@ async def update_user_preferences(
 async def get_unit_settings(
     current_user: User = Depends(get_current_user),
 ):
-    """
-    Get available unit settings for different measurement types.
-    """
-    # Define available units for each measurement type
+    """Получение доступных единиц измерения для разных типов измерений."""
     return {
         "temperature": ["°C", "°F", "K"],
         "length": ["m", "cm", "mm", "in", "ft"],
@@ -137,11 +114,7 @@ async def get_unit_settings(
 async def get_notification_settings(
     current_user: User = Depends(get_current_user),
 ):
-    """
-    Get notification settings for the current user.
-    """
-    # In a real application, these would be stored in a database
-    # For now, we return hardcoded values
+    """Получение настроек уведомлений для текущего пользователя."""
     return {
         "email": {
             "enabled": True,
@@ -166,16 +139,14 @@ async def get_notification_settings(
 async def update_notification_settings(
     settings: Dict[str, Any] = Body(...), current_user: User = Depends(get_current_user)
 ):
-    """
-    Update notification settings for the current user.
-    """
-    # In a real application, these would be stored in a database
-    # For now, we just log the update
-    logger.info(f"Notification settings updated for user {current_user.username}")
-    logger.debug(f"New notification settings: {settings}")
+    """Обновление настроек уведомлений для текущего пользователя."""
+    logger.info(
+        f"Настройки уведомлений обновлены для пользователя {current_user.username}"
+    )
+    logger.debug(f"Новые настройки уведомлений: {settings}")
 
     return {
         "status": "success",
-        "message": "Notification settings updated successfully",
+        "message": "Настройки уведомлений успешно обновлены",
         "data": settings,
     }

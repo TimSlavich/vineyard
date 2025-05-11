@@ -1,14 +1,11 @@
 from enum import Enum
-from typing import Optional
 
 from tortoise import fields
 from tortoise.models import Model
 
 
 class SensorType(str, Enum):
-    """
-    Types of sensors available in the system.
-    """
+    """Типы датчиков в системе"""
 
     TEMPERATURE = "temperature"
     HUMIDITY = "humidity"
@@ -23,54 +20,46 @@ class SensorType(str, Enum):
 
 
 class SensorData(Model):
-    """
-    Model to store sensor readings.
-    """
+    """Модель данных с датчиков"""
 
     id = fields.IntField(pk=True)
-    sensor_id = fields.CharField(max_length=50, index=True)
-    type = fields.CharEnumField(SensorType)
+    sensor_id = fields.CharField(max_length=255, index=True)
+    type = fields.CharEnumField(SensorType, index=True)
     value = fields.FloatField()
-    unit = fields.CharField(max_length=20)
+    unit = fields.CharField(max_length=50)
+    location_id = fields.CharField(max_length=255, index=True)
+    device_id = fields.CharField(max_length=255, null=True)
+    status = fields.CharField(max_length=50, default="normal")
     timestamp = fields.DatetimeField(auto_now_add=True, index=True)
-    location_id = fields.CharField(max_length=50, index=True)
-    status = fields.CharField(max_length=20, default="normal")
-    device_id = fields.CharField(max_length=50, index=True, null=True)
-    metadata = fields.JSONField(null=True)
+    metadata = fields.JSONField(default={})
+    user_id = fields.IntField(index=True, null=True)
 
     class Meta:
-        """Metadata for the SensorData model."""
-
         table = "sensor_data"
+        ordering = ["-timestamp"]
 
     def __str__(self) -> str:
-        """String representation of the SensorData model."""
-        return f"{self.type} reading: {self.value} {self.unit} at {self.timestamp}"
+        return f"{self.sensor_id} ({self.type}): {self.value} {self.unit} at {self.timestamp}"
 
 
 class SensorAlertThreshold(Model):
-    """
-    Model to store threshold values for sensor alerts.
-    """
+    """Модель пороговых значений для оповещений"""
 
     id = fields.IntField(pk=True)
     sensor_type = fields.CharEnumField(SensorType, index=True)
     min_value = fields.FloatField()
     max_value = fields.FloatField()
-    unit = fields.CharField(max_length=20)
-    created_by = fields.ForeignKeyField(
-        "models.User", related_name="thresholds", null=True
-    )
+    unit = fields.CharField(max_length=50)
+    is_active = fields.BooleanField(default=True)
     created_at = fields.DatetimeField(auto_now_add=True)
     updated_at = fields.DatetimeField(auto_now=True)
-    is_active = fields.BooleanField(default=True)
+    created_by = fields.ForeignKeyField(
+        "models.User", on_delete=fields.SET_NULL, null=True
+    )
 
     class Meta:
-        """Metadata for the SensorAlertThreshold model."""
-
         table = "sensor_alert_thresholds"
-        unique_together = (("sensor_type", "unit"),)
+        ordering = ["-created_at"]
 
     def __str__(self) -> str:
-        """String representation of the SensorAlertThreshold model."""
-        return f"{self.sensor_type} threshold: {self.min_value} - {self.max_value} {self.unit}"
+        return f"{self.sensor_type}: {self.min_value} - {self.max_value} {self.unit}"

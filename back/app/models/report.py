@@ -5,9 +5,7 @@ from tortoise.models import Model
 
 
 class ReportType(str, Enum):
-    """
-    Types of reports.
-    """
+    """Типы отчетов"""
 
     SENSOR_DATA = "sensor_data"
     FERTILIZER_APPLICATIONS = "fertilizer_applications"
@@ -17,9 +15,7 @@ class ReportType(str, Enum):
 
 
 class ReportFormat(str, Enum):
-    """
-    Format of reports.
-    """
+    """Форматы отчетов"""
 
     JSON = "json"
     CSV = "csv"
@@ -28,9 +24,7 @@ class ReportFormat(str, Enum):
 
 
 class ReportStatus(str, Enum):
-    """
-    Status of reports.
-    """
+    """Статусы отчетов"""
 
     PENDING = "pending"
     PROCESSING = "processing"
@@ -39,9 +33,7 @@ class ReportStatus(str, Enum):
 
 
 class Report(Model):
-    """
-    Model for storing reports.
-    """
+    """Модель отчетов"""
 
     id = fields.IntField(pk=True)
     name = fields.CharField(max_length=255)
@@ -60,19 +52,14 @@ class Report(Model):
     schedule = fields.JSONField(null=True)
 
     class Meta:
-        """Metadata for the Report model."""
-
         table = "reports"
 
     def __str__(self) -> str:
-        """String representation of the Report model."""
         return f"{self.name} ({self.report_type}) - {self.status}"
 
 
 class ReportSchedule(Model):
-    """
-    Model for scheduling reports.
-    """
+    """Модель расписания отчетов"""
 
     id = fields.IntField(pk=True)
     name = fields.CharField(max_length=255)
@@ -89,10 +76,7 @@ class ReportSchedule(Model):
     next_run = fields.DatetimeField(null=True)
 
     class Meta:
-        """Metadata for the ReportSchedule model."""
-
         table = "report_schedules"
 
     def __str__(self) -> str:
-        """String representation of the ReportSchedule model."""
         return f"{self.name} ({self.report_type}) - {self.frequency}"

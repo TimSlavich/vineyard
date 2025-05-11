@@ -1,24 +1,21 @@
 import React, { useState } from 'react';
 import { SensorData } from '../../types';
 import Card from './Card';
-import { ArrowUp, ArrowDown, Thermometer, Droplets, CloudRain, Sun, Wind } from 'lucide-react';
+import { ArrowUp, ArrowDown, Thermometer, Droplets, CloudRain, Sun, Wind, Leaf, Wind as WindIcon, Ruler, Cloudy } from 'lucide-react';
 import SensorModal from './SensorModal';
 
 interface SensorCardProps {
   data: SensorData;
+  previousData?: SensorData[];
 }
 
-const SensorCard: React.FC<SensorCardProps> = ({ data }) => {
+const SensorCard = ({ data, previousData = [] }: SensorCardProps) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  const openModal = () => {
-    setIsModalOpen(true);
-  };
+  const openModal = () => setIsModalOpen(true);
+  const closeModal = () => setIsModalOpen(false);
 
-  const closeModal = () => {
-    setIsModalOpen(false);
-  };
-
+  // Получение иконки в зависимости от типа датчика
   const getIcon = () => {
     switch (data.type) {
       case 'temperature':
@@ -27,15 +24,26 @@ const SensorCard: React.FC<SensorCardProps> = ({ data }) => {
         return <Droplets className="text-blue-500" />;
       case 'soil_moisture':
         return <CloudRain className="text-green-500" />;
+      case 'soil_temperature':
+        return <Thermometer className="text-orange-500" />;
       case 'light':
         return <Sun className="text-amber-500" />;
-      case 'wind':
+      case 'ph':
+        return <Leaf className="text-emerald-500" />;
+      case 'wind_speed':
+        return <WindIcon className="text-sky-500" />;
+      case 'wind_direction':
         return <Wind className="text-gray-500" />;
+      case 'rainfall':
+        return <Cloudy className="text-blue-400" />;
+      case 'co2':
+        return <Ruler className="text-purple-500" />;
       default:
         return null;
     }
   };
 
+  // Получение цвета для статуса датчика
   const getStatusColor = () => {
     switch (data.status) {
       case 'critical':
@@ -49,14 +57,20 @@ const SensorCard: React.FC<SensorCardProps> = ({ data }) => {
     }
   };
 
+  // Форматирование заголовка
   const formatTitle = (type: string) => {
-    // Переводим названия типов датчиков на украинский
+    // Переводим типы датчиков на русский
     const translations: Record<string, string> = {
       'temperature': 'Температура',
       'humidity': 'Вологість повітря',
       'soil_moisture': 'Вологість ґрунту',
-      'light': 'Освітлення',
-      'wind': 'Вітер'
+      'soil_temperature': 'Темп. ґрунту',
+      'light': 'Освітленість',
+      'ph': 'Кислотність pH',
+      'wind_speed': 'Швидкість вітру',
+      'wind_direction': 'Напрямок вітру',
+      'rainfall': 'Опади',
+      'co2': 'Рівень CO₂'
     };
 
     return translations[type] || type
@@ -65,13 +79,13 @@ const SensorCard: React.FC<SensorCardProps> = ({ data }) => {
       .join(' ');
   };
 
-  // Переводим статусы на украинский
+  // Перевод статусов на русский
   const translateStatus = (status: string) => {
     switch (status) {
       case 'critical':
         return 'Критичний';
       case 'warning':
-        return 'Попередження';
+        return 'Застереження';
       case 'normal':
         return 'Нормальний';
       default:
@@ -79,9 +93,68 @@ const SensorCard: React.FC<SensorCardProps> = ({ data }) => {
     }
   };
 
-  // Имитируем тренд, проверяя, является ли последняя цифра значения четной или нечетной
-  const trend = Math.floor(data.value) % 2 === 0 ? 'up' : 'down';
-  const trendValue = (Math.random() * 5).toFixed(1);
+  // Максимальные проценты изменения для разных типов датчиков
+  const getMaxChangePercent = (type: string): number => {
+    const limits: Record<string, number> = {
+      'temperature': 15,
+      'humidity': 50,
+      'soil_moisture': 30,
+      'soil_temperature': 10,
+      'light': 100,
+      'ph': 5,
+      'wind_speed': 80,
+      'wind_direction': 50,
+      'rainfall': 100,
+      'co2': 20
+    };
+    return limits[type] || 30;
+  };
+
+  // Расчет тренда изменения
+  const calculateTrend = () => {
+    // Если нет предыдущих данных
+    if (!previousData || previousData.length === 0) {
+      return { trend: 'up', trendValue: '0.0' };
+    }
+
+    // Сортируем данные по времени (от новых к старым)
+    const sortedData = [...previousData].sort(
+      (a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
+    );
+
+    // Текущее значение
+    const currentValue = data.value;
+
+    // Берем самое старое значение для сравнения
+    const oldestReading = sortedData[sortedData.length - 1];
+
+    // Если не нашли предыдущее значение или оно равно текущему
+    if (!oldestReading || oldestReading.value === currentValue) {
+      return { trend: 'up', trendValue: '0.0' };
+    }
+
+    // Рассчитываем изменение в процентах
+    const previousValue = oldestReading.value;
+
+    let percentChange;
+    if (previousValue === 0) {
+      // Если предыдущее значение было 0
+      percentChange = currentValue > 0 ? getMaxChangePercent(data.type) : -getMaxChangePercent(data.type);
+    } else {
+      percentChange = ((currentValue - previousValue) / Math.abs(previousValue)) * 100;
+    }
+
+    // Определяем направление изменения и форматируем значение
+    const trendDirection = percentChange >= 0 ? 'up' : 'down';
+    const formattedValue = Math.abs(percentChange).toFixed(1);
+
+    return {
+      trend: trendDirection,
+      trendValue: formattedValue
+    };
+  };
+
+  const { trend, trendValue } = calculateTrend();
 
   return (
     <>
@@ -107,7 +180,7 @@ const SensorCard: React.FC<SensorCardProps> = ({ data }) => {
         <div className="flex flex-col mb-4">
           <div className="flex items-baseline">
             <span className="text-3xl font-semibold font-inter text-gray-800">
-              {data.value}
+              {Number(data.value.toFixed(2))}
             </span>
             <span className="ml-1 text-gray-500 font-roboto">
               {data.unit}
@@ -149,4 +222,4 @@ const SensorCard: React.FC<SensorCardProps> = ({ data }) => {
   );
 };
 
-export default SensorCard;
+export default React.memo(SensorCard);

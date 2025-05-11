@@ -297,8 +297,6 @@ export const useFertilizerControl = () => {
     const updateSettings = useCallback(async (data: Partial<FertilizerApiData>) => {
         try {
             setIsLoading(true);
-            console.log('Відправка даних на сервер:', data);
-
             // Здесь будет реальный запрос к API
             // Применяем изменения локально
             if (data.isActive !== undefined) setIsActive(data.isActive);

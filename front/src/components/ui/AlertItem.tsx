@@ -1,4 +1,4 @@
-import React, { memo } from 'react';
+import React from 'react';
 import { Alert } from '../../types';
 import { AlertCircle, AlertTriangle, Info } from 'lucide-react';
 import { formatRelativeTime } from '../../utils/dateUtils';
@@ -8,7 +8,7 @@ interface AlertItemProps {
   onClick?: () => void;
 }
 
-const AlertItem: React.FC<AlertItemProps> = ({ alert, onClick }) => {
+const AlertItem = ({ alert, onClick }: AlertItemProps) => {
   const getIcon = () => {
     switch (alert.type) {
       case 'critical':
@@ -63,4 +63,4 @@ const AlertItem: React.FC<AlertItemProps> = ({ alert, onClick }) => {
   );
 };
 
-export default memo(AlertItem);
+export default React.memo(AlertItem);

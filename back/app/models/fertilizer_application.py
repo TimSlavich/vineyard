@@ -5,9 +5,7 @@ from tortoise.models import Model
 
 
 class FertilizerType(str, Enum):
-    """
-    Types of fertilizers.
-    """
+    """Типы удобрений"""
 
     NITROGEN = "nitrogen"
     PHOSPHORUS = "phosphorus"
@@ -20,9 +18,7 @@ class FertilizerType(str, Enum):
 
 
 class ApplicationMethod(str, Enum):
-    """
-    Methods of fertilizer application.
-    """
+    """Методы внесения удобрений"""
 
     BROADCAST = "broadcast"
     DRIP = "drip"
@@ -34,9 +30,7 @@ class ApplicationMethod(str, Enum):
 
 
 class ApplicationStatus(str, Enum):
-    """
-    Status of fertilizer application.
-    """
+    """Статусы внесения удобрений"""
 
     PLANNED = "planned"
     IN_PROGRESS = "in_progress"
@@ -46,9 +40,7 @@ class ApplicationStatus(str, Enum):
 
 
 class FertilizerApplication(Model):
-    """
-    Model for tracking fertilizer applications.
-    """
+    """Модель учета внесения удобрений"""
 
     id = fields.IntField(pk=True)
     fertilizer_type = fields.CharEnumField(FertilizerType)
@@ -72,19 +64,14 @@ class FertilizerApplication(Model):
     weather_conditions = fields.JSONField(null=True)
 
     class Meta:
-        """Metadata for the FertilizerApplication model."""
-
         table = "fertilizer_applications"
 
     def __str__(self) -> str:
-        """String representation of the FertilizerApplication model."""
         return f"{self.name} ({self.fertilizer_type}) on {self.application_date.strftime('%Y-%m-%d')}"
 
 
 class FertilizerSchedule(Model):
-    """
-    Model for scheduling fertilizer applications.
-    """
+    """Модель расписания внесения удобрений"""
 
     id = fields.IntField(pk=True)
     name = fields.CharField(max_length=100)
@@ -107,10 +94,7 @@ class FertilizerSchedule(Model):
     description = fields.TextField(null=True)
 
     class Meta:
-        """Metadata for the FertilizerSchedule model."""
-
         table = "fertilizer_schedules"
 
     def __str__(self) -> str:
-        """String representation of the FertilizerSchedule model."""
         return f"{self.name}: {self.frequency} ({self.start_date} to {self.end_date or 'ongoing'})"
