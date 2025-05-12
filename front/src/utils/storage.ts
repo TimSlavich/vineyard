@@ -182,4 +182,33 @@ export const logout = (): boolean => {
         console.error('Ошибка при выходе из системы:', e);
         return false;
     }
+};
+
+/**
+ * Полностью очищает localStorage
+ * @returns успешность операции
+ */
+export const clearStorage = (): boolean => {
+    try {
+        if (!isLocalStorageAvailable()) return false;
+
+        // Очищаем все данные аутентификации и профиля
+        removeItem('accessToken');
+        removeItem('refreshToken');
+        removeItem('user');
+        removeItem('isAuthenticated');
+
+        // Очищаем кэшированные данные датчиков
+        const sensorRelatedKeys = Object.keys(localStorage).filter(key =>
+            key.startsWith('vineguard_') ||
+            key.includes('sensor') ||
+            key.includes('favorites'));
+
+        // Удаляем все найденные ключи, связанные с датчиками
+        sensorRelatedKeys.forEach(key => localStorage.removeItem(key));
+        return true;
+    } catch (error) {
+        console.error('Ошибка при очистке localStorage:', error);
+        return false;
+    }
 }; 

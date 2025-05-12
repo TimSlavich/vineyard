@@ -6,10 +6,17 @@ from datetime import datetime
 
 from loguru import logger
 
-from app.models.sensor_data import SensorType, SensorData
 from app.models.user import User
-from app.services.sensor import create_sensor_data
+from app.services.sensor import (
+    create_sensor_data,
+    get_thresholds_for_user,
+)
+from app.models.sensor_data import (
+    SensorData,
+    SensorType,
+)
 from app.schemas.sensor import SensorDataCreate
+from app.models.user import UserRole
 
 # Глобальное хранилище для последних значений датчиков
 # Структура: {user_id: {sensor_id: {type: last_value}}}
@@ -62,20 +69,28 @@ HOUR_PATTERNS = {
 
 
 async def get_or_create_user_sensors(
-    user_id: int, count_per_type: int = 2, total_sensors: int = 20
+    user_id: int, count_per_type: int = 2
 ) -> Dict[str, Dict[str, Any]]:
     """
-    Получает или создает датчики для пользователя.
+    Получает или создает датчики для пользователя на основе его роли и sensor_count.
 
     Args:
         user_id: ID пользователя
-        count_per_type: Количество датчиков каждого типа
-        total_sensors: Общее ограничение на количество датчиков
+        count_per_type: Количество датчиков каждого типа (будет ограничено общим количеством)
 
     Returns:
         Dict с информацией о датчиках пользователя
     """
     global last_sensor_values
+
+    # Получение пользователя и его параметров
+    user = await User.get(id=user_id)
+
+    total_sensors = user.sensor_count
+
+    logger.debug(
+        f"Генерация датчиков для пользователя {user_id}, роль: {user.role}, всего датчиков: {total_sensors}"
+    )
 
     # Проверка наличия датчиков для пользователя
     if user_id in last_sensor_values:
@@ -111,12 +126,10 @@ async def get_or_create_user_sensors(
         # Пересоздание датчиков при несоответствии количества
         if len(user_sensors) != total_sensors:
             logger.info(
-                f"Пересоздание датчиков для пользователя {user_id} (требуется: {total_sensors})"
+                f"Пересоздание датчиков для пользователя {user_id} (требуется: {total_sensors}, текущее: {len(user_sensors)})"
             )
             last_sensor_values[user_id] = {}
-            return await get_or_create_user_sensors(
-                user_id, count_per_type, total_sensors
-            )
+            return await get_or_create_user_sensors(user_id, count_per_type)
 
         return user_sensors
 
@@ -124,14 +137,26 @@ async def get_or_create_user_sensors(
     user_sensors = {}
     last_sensor_values[user_id] = {}
 
+    # Определение количества датчиков каждого типа на основе общего количества
+    sensors_per_type = max(1, min(count_per_type, total_sensors // len(SensorType)))
+    remainder = total_sensors - sensors_per_type * len(SensorType)
+
     sensors_created = 0
+
     for sensor_type in SensorType:
         if sensors_created >= total_sensors:
             break
 
-        sensors_of_this_type = min(count_per_type, total_sensors - sensors_created)
+        # Распределение оставшихся датчиков поровну между типами
+        current_type_count = sensors_per_type
+        if remainder > 0:
+            current_type_count += 1
+            remainder -= 1
 
-        for i in range(1, sensors_of_this_type + 1):
+        # Убедимся, что не превышаем общее ограничение
+        current_type_count = min(current_type_count, total_sensors - sensors_created)
+
+        for i in range(1, current_type_count + 1):
             sensor_id = f"{user_id}_{sensor_type.value}_{i}"
             location_id = f"location_{user_id}_{i % 3 + 1}"
 
@@ -174,58 +199,40 @@ async def generate_sensor_value(
     """
     global last_sensor_values
 
-    # Проверка типа датчика
-    if sensor_type not in SENSOR_RANGES:
-        logger.error(f"Неподдерживаемый тип датчика: {sensor_type}")
-        return 0.0
+    # Если нет текущего времени, используем текущее UTC время
+    if current_time is None:
+        current_time = datetime.utcnow()
 
+    # Получаем текущий час (0-23)
+    current_hour = current_time.hour
+
+    # Получаем диапазоны для этого типа датчика
     ranges = SENSOR_RANGES[sensor_type]
-    min_value = ranges["min"]
-    max_value = ranges["max"]
-    max_change = ranges["max_change"]
 
-    # Получение предыдущего значения
-    if (
-        user_id not in last_sensor_values
-        or sensor_id not in last_sensor_values[user_id]
-        or sensor_type.value not in last_sensor_values[user_id][sensor_id]
-    ):
-        last_value = random.uniform(min_value, max_value)
-        if user_id not in last_sensor_values:
-            last_sensor_values[user_id] = {}
-        if sensor_id not in last_sensor_values[user_id]:
-            last_sensor_values[user_id][sensor_id] = {}
-        last_sensor_values[user_id][sensor_id][sensor_type.value] = last_value
-    else:
-        last_value = last_sensor_values[user_id][sensor_id][sensor_type.value]
+    # Получаем предыдущее значение или используем среднее, если нет предыдущего
+    try:
+        prev_value = last_sensor_values[user_id][sensor_id][sensor_type.value]
+    except (KeyError, TypeError):
+        # Если нет предыдущего значения, используем значение в середине диапазона
+        prev_value = (ranges["min"] + ranges["max"]) / 2
 
-    # Применение суточного паттерна
-    hour_adjustment = 0
-    if current_time and sensor_type in HOUR_PATTERNS:
-        hour = current_time.hour + current_time.minute / 60
-        hour_adjustment = HOUR_PATTERNS[sensor_type](hour)
+    # Максимальное изменение от предыдущего значения
+    max_change = ranges.get("max_change", (ranges["max"] - ranges["min"]) * 0.05)
 
-    # Генерация случайного изменения
-    random_change = random.uniform(-max_change, max_change)
+    # Случайное изменение в пределах максимально допустимого
+    change = random.uniform(-max_change, max_change)
 
-    # Расчет нового значения
-    new_value = last_value + random_change + hour_adjustment * 0.1
+    # Применяем суточный паттерн, если есть
+    if sensor_type in HOUR_PATTERNS:
+        pattern_change = HOUR_PATTERNS[sensor_type](current_hour)
+        # Применяем только часть изменения от паттерна для плавного изменения
+        change += pattern_change * 0.05
 
-    # Специальная логика для датчика освещенности
-    if sensor_type == SensorType.LIGHT and current_time:
-        hour = current_time.hour + current_time.minute / 60
-        if hour < 6 or hour > 18:
-            # Ночная освещенность
-            new_value = random.uniform(50, 250)
-        else:
-            # Дневная освещенность
-            hour_factor = 1.0 - abs(hour - 12) / 6
-            base_value = 1000 + hour_factor * 49000
-            new_value = base_value + random.uniform(-base_value * 0.2, base_value * 0.2)
-            new_value = max(100, new_value)
+    # Вычисляем новое значение
+    new_value = prev_value + change
 
-    # Ограничение значения в пределах диапазона
-    new_value = max(min_value, min(max_value, new_value))
+    # Ограничиваем значение допустимым диапазоном
+    new_value = max(ranges["min"], min(ranges["max"], new_value))
 
     # Обновление хранилища
     last_sensor_values[user_id][sensor_id][sensor_type.value] = new_value
@@ -233,62 +240,122 @@ async def generate_sensor_value(
     return new_value
 
 
-async def generate_and_save_sensor_data(user_id: int) -> List[SensorData]:
+async def generate_and_save_sensor_data(
+    user_id: int, check_thresholds: bool = True
+) -> List[Dict[str, Any]]:
     """
-    Генерирует и сохраняет новые данные датчиков для пользователя.
+    Генерирует и сохраняет новые данные для датчиков пользователя.
+    Логика оповещений удалена, добавлено только логирование превышения пороговых значений.
 
     Args:
         user_id: ID пользователя
+        check_thresholds: Проверять ли пороговые значения
 
     Returns:
-        Список созданных записей данных датчиков
+        Список сгенерированных данных датчиков
     """
+    global last_sensor_values
+
+    # Получение датчиков пользователя
     user_sensors = await get_or_create_user_sensors(user_id)
+    if not user_sensors:
+        logger.warning(f"Не найдены датчики для пользователя {user_id}")
+        return []
+
+    # Получаем пороговые значения для всех типов датчиков пользователя
+    thresholds = await get_thresholds_for_user(user_id) if check_thresholds else {}
+
+    # Генерация и сохранение данных
     created_data = []
-    current_time = datetime.now()
+    timestamp = datetime.utcnow()
 
     for sensor_id, sensor_info in user_sensors.items():
-        sensor_type_str = sensor_info["type"]
-        sensor_type = None
-
-        for st in SensorType:
-            if st.value == sensor_type_str:
-                sensor_type = st
-                break
-
-        if not sensor_type:
-            logger.error(f"Неизвестный тип датчика: {sensor_type_str}")
+        if not isinstance(sensor_info, dict):
+            logger.error(f"Неверный формат данных датчика: {sensor_id}, {sensor_info}")
             continue
 
-        # Генерация нового значения
-        new_value = await generate_sensor_value(
-            user_id, sensor_id, sensor_type, current_time
-        )
+        sensor_type_str = sensor_info.get("type")
+        if not sensor_type_str:
+            logger.error(f"Отсутствует тип датчика для: {sensor_id}")
+            continue
 
-        logger.debug(
-            f"Генерация данных датчика: sensor_id={sensor_id}, user_id={user_id}, value={new_value}"
-        )
+        try:
+            # Получаем объект SensorType из строки
+            sensor_type = None
+            for st in SensorType:
+                if st.value == sensor_type_str:
+                    sensor_type = st
+                    break
 
-        # Создание объекта данных
-        sensor_data = SensorDataCreate(
-            sensor_id=sensor_id,
-            type=sensor_type,
-            value=new_value,
-            unit=SENSOR_RANGES[sensor_type]["unit"],
-            location_id=sensor_info["location_id"],
-            device_id=f"device_{user_id}_{sensor_id.split('_')[-1]}",
-            metadata={"simulated": True},
-            user_id=user_id,
-        )
+            if not sensor_type:
+                logger.error(f"Неизвестный тип датчика: {sensor_type_str}")
+                continue
 
-        # Сохранение данных
-        created = await create_sensor_data(sensor_data)
-        created_data.append(created)
+            # Получаем параметры датчика
+            ranges = SENSOR_RANGES[sensor_type]
+            unit = sensor_info.get("unit", ranges["unit"])
+            location_id = sensor_info.get("location_id", f"location_{user_id}_1")
 
+            # Генерируем значение с учетом предыдущих значений и паттернов
+            value = await generate_sensor_value(
+                user_id, sensor_id, sensor_type, timestamp
+            )
+
+            # Определяем статус на основе пороговых значений
+            status = "normal"
+            sensor_thresholds = (
+                thresholds.get(sensor_type.value, None) if check_thresholds else None
+            )
+
+            if sensor_thresholds:
+                if value > sensor_thresholds.max_value:
+                    status = "high"
+                elif value < sensor_thresholds.min_value:
+                    status = "low"
+
+            # Создание объекта данных
+            data_obj = SensorDataCreate(
+                sensor_id=sensor_id,
+                type=sensor_type,
+                value=value,
+                unit=unit,
+                location_id=location_id,
+                device_id=f"device_{sensor_id}",
+                user_id=user_id,
+                status=status,
+                metadata={"user_id": user_id},
+            )
+
+            # Сохранение в базу данных
+            sensor_data = await create_sensor_data(data_obj)
+
+            # Добавление в список созданных данных
+            created_data.append(
+                {
+                    "id": sensor_data.id,
+                    "sensor_id": sensor_id,
+                    "type": sensor_type_str,
+                    "value": value,
+                    "unit": unit,
+                    "timestamp": sensor_data.timestamp.isoformat(),
+                    "status": status,
+                    "location_id": location_id,
+                }
+            )
+
+
+        except Exception as e:
+            logger.error(
+                f"Ошибка при генерации данных для датчика {sensor_id}: {str(e)}"
+            )
+            import traceback
+
+            logger.error(f"Трассировка: {traceback.format_exc()}")
+
+    # Логирование
     logger.info(
         f"Сгенерировано и сохранено {len(created_data)} показаний датчиков для пользователя {user_id}"
     )
-
     return created_data
 
 
@@ -302,7 +369,10 @@ async def run_sensor_simulator():
 
             for user in users:
                 try:
-                    created_data = await generate_and_save_sensor_data(user.id)
+                    # Для автоматического обновления всегда включаем проверку порогов
+                    created_data = await generate_and_save_sensor_data(
+                        user.id, check_thresholds=True
+                    )
                     logger.debug(
                         f"Сгенерировано {len(created_data)} показаний датчиков для пользователя {user.id}"
                     )
@@ -338,7 +408,8 @@ async def start_sensor_simulator():
         users = await User.all()
         for user in users:
             await get_or_create_user_sensors(user.id)
-            await generate_and_save_sensor_data(user.id)
+            # При инициализации тоже включаем проверку порогов
+            await generate_and_save_sensor_data(user.id, check_thresholds=True)
             logger.info(
                 f"Сгенерированы начальные данные датчиков для пользователя {user.id}"
             )

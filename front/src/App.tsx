@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate, useLocation, useNavigate } from 'react-router-dom';
 
 import Layout from './components/layout/Layout';
@@ -22,11 +22,32 @@ import ReportsPage from './pages/ReportsPage';
 import { isAuthenticated, isLocalStorageAvailable, setItem } from './utils/storage';
 import { DeviceSettingsProvider } from './context/DeviceSettingsContext';
 import { setRedirectCallback } from './services/api/baseApi';
+import { loginAsDemoAndRedirect } from './utils/demoHelper';
+import { initializeWebSocketConnection } from './services/websocketService';
 
 // Защищенный маршрут, который проверяет аутентификацию
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
-  // Всегда возвращаем контент, независимо от аутентификации
-  // Отключаем проверку для разработки
+  const navigate = useNavigate();
+  const [loading, setLoading] = useState(false);
+
+  // Проверяем, авторизован ли пользователь
+  if (!isAuthenticated()) {
+    // Если пользователь не авторизован, автоматически логиним его в демо-режиме
+    if (!loading) {
+      // Устанавливаем флаг загрузки, чтобы избежать повторных вызовов
+      setLoading(true);
+
+      // Запускаем автоматический вход в демо-режим и перенаправление на dashboard
+      loginAsDemoAndRedirect(navigate, setLoading);
+    }
+
+    // Пока идет процесс авторизации, можно показать загрузчик
+    return <div className="flex items-center justify-center h-screen">
+      <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
+    </div>;
+  }
+
+  // Если пользователь уже авторизован, показываем защищенный контент
   return <>{children}</>;
 };
 
@@ -46,6 +67,15 @@ const AppContent = () => {
       navigate('/login', { replace: true });
     });
   }, [navigate]);
+
+  // Инициализируем WebSocket соединение при загрузке приложения
+  useEffect(() => {
+    if (isAuthenticated()) {
+      // Инициализируем соединение для получения данных с датчиков
+      // Обратите внимание: логика оповещений удалена, осталась только визуализация
+      initializeWebSocketConnection();
+    }
+  }, []);
 
   return (
     <>

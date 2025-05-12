@@ -7,9 +7,9 @@ from tortoise.exceptions import DoesNotExist
 
 from app.models.sensor_data import SensorData, SensorAlertThreshold, SensorType
 from app.schemas.sensor import (
-    SensorDataCreate,
     SensorThresholdCreate,
     SensorDataBatchCreate,
+    SensorDataCreate,
 )
 from app.schemas.common import WebSocketMessage
 from app.websockets.connection_manager import manager
@@ -52,10 +52,15 @@ async def create_sensor_data(data: SensorDataCreate) -> SensorData:
     # Сохранение в базу данных
     await sensor_data.save()
 
-    logger.debug(f"Данные датчика созданы с ID: {sensor_data.id}, отправка оповещения")
+    logger.debug(f"Данные датчика созданы с ID: {sensor_data.id}")
 
-    # Отправка оповещения через WebSocket
+    # Проверка на соответствие пороговым значениям
+    await check_sensor_thresholds(sensor_data)
+    logger.debug(f"Проверка пороговых значений для датчика {sensor_data.id} выполнена")
+
+    # Отправка данных через WebSocket
     await broadcast_sensor_data(sensor_data)
+    logger.debug(f"Данные датчика {sensor_data.id} отправлены через WebSocket")
 
     return sensor_data
 
@@ -195,6 +200,31 @@ async def get_sensor_thresholds(
     return await query.order_by("sensor_type")
 
 
+async def get_thresholds_for_user(user_id: int) -> Dict[str, SensorAlertThreshold]:
+    """
+    Получает все активные пороговые значения для пользователя,
+    в виде словаря с ключами по типу датчика.
+
+    Args:
+        user_id: ID пользователя
+
+    Returns:
+        Словарь с типами датчиков в качестве ключей и пороговыми значениями в качестве значений
+    """
+    # Получаем все активные пороги
+    thresholds = await get_sensor_thresholds(active_only=True)
+
+    # Создаем словарь с ключами по типу датчика
+    result = {}
+    for threshold in thresholds:
+        result[threshold.sensor_type.value] = threshold
+
+    logger.debug(
+        f"Получены пороговые значения для пользователя {user_id}: {len(result)} типов датчиков"
+    )
+    return result
+
+
 async def update_sensor_threshold(
     threshold_id: int,
     min_value: Optional[float] = None,
@@ -244,6 +274,7 @@ async def update_sensor_threshold(
 async def check_sensor_thresholds(sensor_data: SensorData) -> None:
     """
     Проверка данных датчика на соответствие пороговым значениям и обновление статуса.
+    Логика отправки оповещений удалена, оставлена только установка статуса.
 
     Args:
         sensor_data: Данные датчика для проверки
@@ -263,27 +294,9 @@ async def check_sensor_thresholds(sensor_data: SensorData) -> None:
     if sensor_data.value < threshold.min_value:
         sensor_data.status = "low"
         await sensor_data.save()
-
-        # Отправка оповещения при значении ниже порогового
-        await broadcast_sensor_alert(
-            sensor_data=sensor_data,
-            threshold=threshold,
-            alert_type="low",
-            message=f"Значение датчика {sensor_data.sensor_id} ({sensor_data.value} {sensor_data.unit}) ниже минимального порогового значения ({threshold.min_value} {threshold.unit})",
-        )
-
     elif sensor_data.value > threshold.max_value:
         sensor_data.status = "high"
         await sensor_data.save()
-
-        # Отправка оповещения при значении выше порогового
-        await broadcast_sensor_alert(
-            sensor_data=sensor_data,
-            threshold=threshold,
-            alert_type="high",
-            message=f"Значение датчика {sensor_data.sensor_id} ({sensor_data.value} {sensor_data.unit}) выше максимального порогового значения ({threshold.max_value} {threshold.unit})",
-        )
-
     else:
         sensor_data.status = "normal"
         await sensor_data.save()
@@ -362,53 +375,3 @@ async def broadcast_sensor_data(sensor_data: SensorData) -> None:
     logger.debug(
         f"Всего активных WebSocket соединений: {len(manager.active_connections)}"
     )
-
-
-async def broadcast_sensor_alert(
-    sensor_data: SensorData,
-    threshold: SensorAlertThreshold,
-    alert_type: str,
-    message: str,
-) -> None:
-    """
-    Отправка оповещения датчика клиентам через WebSocket.
-
-    Args:
-        sensor_data: Данные датчика, вызвавшие оповещение
-        threshold: Пороговое значение, которое было нарушено
-        alert_type: Тип оповещения (high/low)
-        message: Сообщение оповещения
-    """
-    # Подготовка данных оповещения
-    alert_data = {
-        "id": sensor_data.id,
-        "sensor_id": sensor_data.sensor_id,
-        "type": sensor_data.type.value,
-        "value": sensor_data.value,
-        "unit": sensor_data.unit,
-        "timestamp": sensor_data.timestamp.isoformat(),
-        "location_id": sensor_data.location_id,
-        "status": sensor_data.status,
-        "device_id": sensor_data.device_id,
-        "alert_type": alert_type,
-        "message": message,
-        "threshold": {
-            "id": threshold.id,
-            "min_value": threshold.min_value,
-            "max_value": threshold.max_value,
-            "unit": threshold.unit,
-        },
-    }
-
-    # Создание WebSocket сообщения
-    message_obj = WebSocketMessage(
-        type="sensor_alert",
-        data=alert_data,
-    )
-
-    # Отправка оповещения в различные группы
-    await manager.broadcast_to_group(message_obj, "sensor:alerts")
-    await manager.broadcast_to_group(message_obj, f"sensor:{sensor_data.type.value}")
-    await manager.broadcast_to_group(message_obj, f"location:{sensor_data.location_id}")
-
-    logger.warning(f"Оповещение датчика: {message}")

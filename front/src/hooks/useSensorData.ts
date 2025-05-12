@@ -1,9 +1,14 @@
 import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import websocketService, { initializeWebSocketConnection } from '../services/websocketService';
 import { isAuthenticated, getUserData } from '../utils/storage';
+import { addAlert } from '../services/notificationService';
+import { Alert } from '../types';
 
-const STORAGE_KEY_SENSOR_DATA = 'vineguard_latest_sensor_data';
-const STORAGE_KEY_SENSOR_HISTORY = 'vineguard_sensor_history';
+// Добавляем префикс с ID пользователя для ключей localStorage
+const getSensorDataStorageKey = (userId: number | null) =>
+    `vineguard_latest_sensor_data_${userId || 'guest'}`;
+const getSensorHistoryStorageKey = (userId: number | null) =>
+    `vineguard_sensor_history_${userId || 'guest'}`;
 
 export interface SensorData {
     id: number;
@@ -30,7 +35,9 @@ export interface SensorDataByLocation {
 // Функция для загрузки сохраненных данных из localStorage
 const loadSavedSensorData = (): Record<string, SensorData> => {
     try {
-        const savedData = localStorage.getItem(STORAGE_KEY_SENSOR_DATA);
+        const userId = getCurrentUserId();
+        const storageKey = getSensorDataStorageKey(userId);
+        const savedData = localStorage.getItem(storageKey);
         return savedData ? JSON.parse(savedData) : {};
     } catch {
         return {};
@@ -40,7 +47,9 @@ const loadSavedSensorData = (): Record<string, SensorData> => {
 // Функция для загрузки истории данных из localStorage
 const loadSavedSensorHistory = (): SensorData[] => {
     try {
-        const savedHistory = localStorage.getItem(STORAGE_KEY_SENSOR_HISTORY);
+        const userId = getCurrentUserId();
+        const storageKey = getSensorHistoryStorageKey(userId);
+        const savedHistory = localStorage.getItem(storageKey);
         return savedHistory ? JSON.parse(savedHistory) : [];
     } catch {
         return [];
@@ -174,6 +183,16 @@ const useSensorData = () => {
         };
     }, [latestSensorData]);
 
+    // Инициализируем WebSocket соединение
+    useEffect(() => {
+        if (isAuthenticated()) {
+            // Инициализация WebSocket соединения
+            initializeWebSocketConnection().catch(error => {
+                console.error('❌ Не удалось инициализировать WebSocket соединение:', error);
+            });
+        }
+    }, []);
+
     // Извлекаем функции из useMemo
     const {
         getSensorDataByType,
@@ -237,9 +256,10 @@ const useSensorData = () => {
             // Ограничиваем количество записей
             const limitedData = newData.slice(-500);
 
-            // Сохраняем в localStorage
+            // Сохраняем в localStorage с учетом ID пользователя
             try {
-                localStorage.setItem(STORAGE_KEY_SENSOR_HISTORY, JSON.stringify(limitedData));
+                const storageKey = getSensorHistoryStorageKey(currentUserIdRef.current);
+                localStorage.setItem(storageKey, JSON.stringify(limitedData));
             } catch (error) {
                 console.error('Error saving sensor history:', error);
             }
@@ -253,7 +273,8 @@ const useSensorData = () => {
             updated[data.sensor_id] = data;
 
             try {
-                localStorage.setItem(STORAGE_KEY_SENSOR_DATA, JSON.stringify(updated));
+                const storageKey = getSensorDataStorageKey(currentUserIdRef.current);
+                localStorage.setItem(storageKey, JSON.stringify(updated));
             } catch (error) {
                 console.error('Error saving latest sensor data:', error);
             }
@@ -296,59 +317,83 @@ const useSensorData = () => {
         return () => clearInterval(connectionCheckInterval);
     }, [checkConnection]);
 
-    // Подключаемся к WebSocket при монтировании компонента
+    // Обработчик для тестовых оповещений
+    const handleTestAlert = useCallback((data: any) => {
+        // Создаем объект оповещения
+        addAlert({
+            title: 'Тестове оповіщення',
+            message: 'Система оповіщень працює нормально',
+            type: 'info',
+            sensorId: 'test-system-notification',
+        });
+    }, []);
+
+    // Обработчик для завершенных запросов
+    const handleRequestCompleted = useCallback((receivedData: any) => {
+        // Проверяем, является ли это ответом на тестовое оповещение
+        if (receivedData &&
+            receivedData.message &&
+            receivedData.message.includes('Тестовое оповещение')) {
+            handleTestAlert(receivedData);
+            return;
+        }
+
+        // При успешном выполнении запроса сбрасываем ошибку соединения
+        if ((receivedData && receivedData.status === 'success') ||
+            (receivedData && receivedData.data && receivedData.data.status === 'success')) {
+            setConnectionError(null);
+        }
+    }, [handleTestAlert]);
+
+    // Запрос данных с сервера
     useEffect(() => {
         if (isAuthenticated()) {
+            // Устанавливаем обработчики различных типов сообщений
             const unsubscribeSensorData = websocketService.subscribe<SensorData>(
                 'sensor_data',
                 handleSensorData
             );
 
+            // Подписываемся на завершение выполнения запросов
+            // (включая тестовые оповещения)
             const unsubscribeRequestCompleted = websocketService.subscribe(
                 'request_completed',
-                (data: any) => {
-                    if (data.status === 'success' && data.message?.includes('sensor')) {
-                        console.log('Sensor data request completed successfully');
-                    }
-                }
+                handleRequestCompleted
             );
 
-            const unsubscribeSystemMessages = websocketService.subscribe(
-                'system',
-                (data: any) => {
-                    if (data === 'error' && data.message) {
-                        setConnectionError(data.message);
-                    }
+            // Запрашиваем пороговые значения при подключении
+            const loadThresholds = () => {
+                if (websocketService.isConnected()) {
+                    websocketService.requestThresholds();
                 }
-            );
+            };
 
-            // Добавляем подписку на оповещения о порогах датчиков
-            const unsubscribeSensorAlerts = websocketService.subscribe(
-                'sensor_alert',
-                (data: any) => {
-                    console.log('Получено оповещение от сенсора:', data);
-                    // В websocketService уже реализован обработчик, который добавляет уведомление
-                    // Здесь можно добавить дополнительную логику при необходимости
-                }
-            );
-
-            // Используем функцию с автоматическим обновлением токена
-            initializeWebSocketConnection().catch(error => {
-                console.error('Помилка при ініціалізації WebSocket:', error);
-                setConnectionError('Проблема з\'єднання з сервером. Перевірте інтернет-з\'єднання або спробуйте пізніше.');
-            });
+            // Инициализируем соединение только если оно еще не установлено
+            if (!websocketService.isConnected()) {
+                initializeWebSocketConnection()
+                    .then(() => {
+                        // После подключения запрашиваем пороговые значения
+                        loadThresholds();
+                    })
+                    .catch(error => {
+                        console.error('Помилка при ініціалізації WebSocket:', error);
+                        setConnectionError('Проблема з\'єднання з сервером. Перевірте інтернет-з\'єднання або спробуйте пізніше.');
+                    });
+            } else {
+                // Если соединение уже установлено, запрашиваем пороговые значения
+                loadThresholds();
+            }
 
             setIsConnected(websocketService.isConnected());
 
+            // Отписываемся при размонтировании
             return () => {
                 unsubscribeSensorData();
                 unsubscribeRequestCompleted();
-                unsubscribeSystemMessages();
-                unsubscribeSensorAlerts();
             };
         }
         return undefined;
-    }, [handleSensorData]);
+    }, [isAuthenticated, handleSensorData, handleRequestCompleted]);
 
     // Обработчик ошибок подключения
     useEffect(() => {
@@ -365,6 +410,48 @@ const useSensorData = () => {
         }
     }, [connectionError]);
 
+    // Следим за изменением ID пользователя
+    useEffect(() => {
+        const newUserId = getCurrentUserId();
+
+        // Если ID пользователя изменился, обновляем ref и сбрасываем данные
+        if (newUserId !== currentUserIdRef.current) {
+            currentUserIdRef.current = newUserId;
+
+            // Загружаем данные для нового пользователя
+            const newSensorData = loadSavedSensorHistory();
+            const newLatestData = loadSavedSensorData();
+
+            // Обновляем состояние
+            setSensorData(newSensorData);
+            setLatestSensorData(newLatestData);
+
+            // Переподключаем WebSocket
+            websocketService.disconnect();
+            setTimeout(() => {
+                if (isAuthenticated()) {
+                    initializeWebSocketConnection().catch(error => {
+                        console.error('Помилка при переініціалізації WebSocket після зміни користувача:', error);
+                    });
+                }
+            }, 500);
+        }
+    }, []);
+
+    // Добавляем дополнительную функцию для принудительного обновления данных
+    const refreshSensorData = useCallback(() => {
+        // Сначала проверяем, есть ли соединение
+        if (!websocketService.isConnected() && isAuthenticated()) {
+            // Инициализируем соединение и автоматически запрашиваем данные после соединения
+            initializeWebSocketConnection().catch(error => {
+                console.error('Помилка при спробі оновлення даних датчиків:', error);
+            });
+        } else if (websocketService.isConnected()) {
+            // Используем встроенное ограничение частоты запросов в requestSensorData
+            websocketService.requestSensorData();
+        }
+    }, []);
+
     // Возвращаем все нужные данные и функции
     return {
         sensorData,
@@ -372,6 +459,7 @@ const useSensorData = () => {
         isConnected,
         connectionError,
         toggleConnection,
+        refreshSensorData,
         getSensorDataByType,
         getSensorDataByLocation,
         getDataByType,

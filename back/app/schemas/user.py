@@ -13,7 +13,9 @@ class UserBase(BaseModel):
     is_active: Optional[bool] = True
     first_name: Optional[str] = None
     last_name: Optional[str] = None
-    role: Optional[str] = "viewer"
+    role: Optional[str] = "new_user"
+    sensor_count: Optional[int] = None
+    is_admin: Optional[bool] = False
 
 
 # Schema for creating a user
@@ -46,15 +48,24 @@ class UserAuthenticate(BaseModel):
 
 
 # Schema for user response
-class UserResponse(UserBase):
-    """Schema for user response data."""
+class UserResponse(BaseModel):
+    """Schema for user responses."""
 
     id: int
+    email: EmailStr
+    username: str
+    first_name: Optional[str]
+    last_name: Optional[str]
+    role: str
+    is_active: bool
+    is_verified: bool
+    sensor_count: int
+    is_admin: bool
     created_at: datetime
     updated_at: datetime
 
     class Config:
-        """Pydantic model configuration."""
+        """Configure Pydantic to parse objects (ORM models)."""
 
         from_attributes = True
 

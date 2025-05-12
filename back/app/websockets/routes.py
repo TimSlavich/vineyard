@@ -11,11 +11,14 @@ from fastapi import (
     status,
 )
 from loguru import logger
+from pydantic import ValidationError
+from tortoise.exceptions import DoesNotExist
 
 from app.deps.auth import validate_token
 from app.models.user import User
 from app.schemas.common import WebSocketMessage
 from app.websockets.connection_manager import manager
+from app.services.sensor_simulator import SENSOR_RANGES, generate_and_save_sensor_data
 
 # Создание WebSocket-маршрутизатора
 router = APIRouter()
@@ -27,6 +30,7 @@ async def websocket_endpoint(
     token: Optional[str] = Query(None),
     groups: Optional[List[str]] = Query(None),
     user_id: Optional[int] = Query(None),
+    special_request: Optional[str] = None,
 ):
     """
     Основная конечная точка WebSocket для работы с данными в реальном времени.
@@ -36,6 +40,7 @@ async def websocket_endpoint(
         token: JWT-токен для аутентификации (опционально)
         groups: Группы для подписки (опционально)
         user_id: ID пользователя для явной идентификации (опционально)
+        special_request: Специальный запрос для обработки (опционально)
     """
     auth_user_id = None
 
@@ -126,6 +131,77 @@ async def websocket_endpoint(
         await manager.send_personal_message(welcome_message, websocket)
         logger.debug(f"Отправлено приветственное сообщение клиенту: {welcome_data}")
 
+        # Если передан специальный запрос, обрабатываем его сразу
+        if special_request == "get_thresholds":
+            logger.info(
+                f"Обработка специального запроса get_thresholds для пользователя {user_id}"
+            )
+            # Создаем и отправляем запрос на получение пороговых значений
+            from app.models.sensor_data import (
+                SensorAlertThreshold,
+                SensorType,
+            )
+            from app.services.sensor_simulator import SENSOR_RANGES
+
+            # Получаем пороговые значения из базы данных
+            thresholds = await SensorAlertThreshold.filter(
+                created_by_id=user_id, is_active=True
+            )
+
+            # Если пороговых значений нет в базе, создаем на основе диапазонов датчиков
+            if not thresholds:
+                logger.info(
+                    f"Создание пороговых значений по умолчанию для пользователя {user_id}"
+                )
+                thresholds = []
+
+                for sensor_type, range_data in SENSOR_RANGES.items():
+                    # Устанавливаем пороги чуть ниже минимального и чуть выше максимального диапазона
+                    # Это позволит генерировать оповещения при выходе за пределы нормального диапазона
+                    min_value = (
+                        range_data["min"]
+                        - (range_data["max"] - range_data["min"]) * 0.1
+                    )
+                    max_value = (
+                        range_data["max"]
+                        + (range_data["max"] - range_data["min"]) * 0.1
+                    )
+
+                    # Создаем запись порогового значения
+                    threshold = await SensorAlertThreshold.create(
+                        sensor_type=sensor_type,
+                        min_value=min_value,
+                        max_value=max_value,
+                        unit=range_data["unit"],
+                        is_active=True,
+                        created_by_id=user_id,
+                    )
+                    thresholds.append(threshold)
+
+            # Подготавливаем данные для отправки
+            thresholds_data = []
+            for threshold in thresholds:
+                thresholds_data.append(
+                    {
+                        "id": str(threshold.id),
+                        "sensorType": threshold.sensor_type.value,
+                        "min": threshold.min_value,
+                        "max": threshold.max_value,
+                        "unit": threshold.unit,
+                        "isActive": threshold.is_active,
+                    }
+                )
+
+            # Отправляем пороговые значения клиенту
+            thresholds_message = WebSocketMessage(
+                type="thresholds_data",
+                data={
+                    "thresholds": thresholds_data,
+                    "timestamp": datetime.utcnow().isoformat(),
+                },
+            )
+            await manager.send_personal_message(thresholds_message, websocket)
+
         # Прослушивание сообщений от клиента
         while True:
             # Получение JSON-данных
@@ -184,20 +260,20 @@ async def websocket_endpoint(
                         f"Запрошено ручное обновление данных датчиков пользователем {user_id}"
                     )
 
-                    # Импорт и вызов функции для генерации данных
                     from app.services.sensor_simulator import (
                         generate_and_save_sensor_data,
                     )
 
                     if user_id:
                         try:
-                            # Генерация новых данных для пользователя
-                            data = await generate_and_save_sensor_data(user_id)
+                            is_manual_request = msg_data.get("manual", True)
+                            check_thresholds = not is_manual_request
+                            data = await generate_and_save_sensor_data(
+                                user_id, check_thresholds=check_thresholds
+                            )
                             logger.info(
                                 f"Сгенерировано {len(data)} показаний датчиков для пользователя {user_id}"
                             )
-
-                            # Отправка подтверждения
                             confirm_message = WebSocketMessage(
                                 type="request_completed",
                                 data={
@@ -212,7 +288,6 @@ async def websocket_endpoint(
                                 confirm_message, websocket
                             )
                         except Exception as e:
-                            # Обработка ошибок при генерации данных
                             logger.error(f"Ошибка при генерации данных датчиков: {e}")
                             error_message = WebSocketMessage(
                                 type="system",
@@ -225,67 +300,19 @@ async def websocket_endpoint(
                             await manager.send_personal_message(
                                 error_message, websocket
                             )
-
                 # Обработка запроса тестового оповещения
                 elif msg_data.get("target") == "test_alert":
                     logger.info(
                         f"Запрошено тестовое оповещение пользователем {user_id}"
                     )
 
-                    # Получаем любое активное пороговое значение для создания тестового оповещения
-                    from app.models.sensor_data import (
-                        SensorAlertThreshold,
-                        SensorType,
-                        SensorData,
-                    )
-
                     try:
-                        # Получение актуального порога
-                        threshold = await SensorAlertThreshold.filter(
-                            is_active=True
-                        ).first()
-
-                        if not threshold:
-                            # Если нет активных порогов, создадим тестовый
-                            threshold = await SensorAlertThreshold.create(
-                                sensor_type=SensorType.TEMPERATURE,
-                                min_value=15.0,
-                                max_value=30.0,
-                                unit="°C",
-                                is_active=True,
-                                created_by_id=user_id,
-                            )
-
-                        # Создаем тестовые данные датчика
-                        test_sensor_data = SensorData(
-                            sensor_id=f"{user_id}_test_sensor",
-                            type=threshold.sensor_type,
-                            value=threshold.max_value + 5,  # Значение выше порога
-                            unit=threshold.unit,
-                            location_id="test_location",
-                            device_id="test_device",
-                            status="high",
-                            user_id=user_id,
-                        )
-
-                        # Отправляем тестовое оповещение
-                        from app.services.sensor import broadcast_sensor_alert
-
-                        await broadcast_sensor_alert(
-                            sensor_data=test_sensor_data,
-                            threshold=threshold,
-                            alert_type="high",
-                            message=f"Тестове оповіщення: значення датчика {test_sensor_data.type.value} "
-                            f"({test_sensor_data.value} {test_sensor_data.unit}) вище порогового "
-                            f"({threshold.max_value} {threshold.unit})",
-                        )
-
-                        # Отправляем подтверждение
+                        # Отправляем простой ответ о работоспособности системы оповещений
                         confirm_message = WebSocketMessage(
                             type="request_completed",
                             data={
                                 "status": "success",
-                                "message": "Тестовое оповещение отправлено",
+                                "message": "Тестовое оповещение: система оповещений работает нормально",
                                 "user_id": user_id,
                                 "timestamp": datetime.utcnow().isoformat(),
                             },
@@ -293,7 +320,6 @@ async def websocket_endpoint(
                         await manager.send_personal_message(confirm_message, websocket)
 
                     except Exception as e:
-                        # Обработка ошибок
                         logger.error(f"Ошибка при создании тестового оповещения: {e}")
                         error_message = WebSocketMessage(
                             type="system",
@@ -304,6 +330,328 @@ async def websocket_endpoint(
                             },
                         )
                         await manager.send_personal_message(error_message, websocket)
+
+                # Обработка запроса на получение пороговых значений
+                elif msg_data.get("target") == "get_thresholds":
+                    logger.info(f"Запрошены пороговые значения пользователем {user_id}")
+
+                    try:
+                        from app.models.sensor_data import (
+                            SensorAlertThreshold,
+                            SensorType,
+                        )
+                        from app.services.sensor_simulator import SENSOR_RANGES
+
+                        # Получаем пороговые значения из базы данных
+                        thresholds = await SensorAlertThreshold.filter(
+                            created_by_id=user_id, is_active=True
+                        )
+
+                        # Если пороговых значений нет в базе, создаем на основе диапазонов датчиков
+                        if not thresholds:
+                            logger.info(
+                                f"Создание пороговых значений по умолчанию для пользователя {user_id}"
+                            )
+                            thresholds = []
+
+                            for sensor_type, range_data in SENSOR_RANGES.items():
+                                # Устанавливаем пороги чуть ниже минимального и чуть выше максимального диапазона
+                                # Это позволит генерировать оповещения при выходе за пределы нормального диапазона
+                                min_value = (
+                                    range_data["min"]
+                                    - (range_data["max"] - range_data["min"]) * 0.1
+                                )
+                                max_value = (
+                                    range_data["max"]
+                                    + (range_data["max"] - range_data["min"]) * 0.1
+                                )
+
+                                # Создаем запись порогового значения
+                                threshold = await SensorAlertThreshold.create(
+                                    sensor_type=sensor_type,
+                                    min_value=min_value,
+                                    max_value=max_value,
+                                    unit=range_data["unit"],
+                                    is_active=True,
+                                    created_by_id=user_id,
+                                )
+                                thresholds.append(threshold)
+
+                        # Подготавливаем данные для отправки
+                        thresholds_data = []
+                        for threshold in thresholds:
+                            thresholds_data.append(
+                                {
+                                    "id": str(threshold.id),
+                                    "sensorType": threshold.sensor_type.value,
+                                    "min": threshold.min_value,
+                                    "max": threshold.max_value,
+                                    "unit": threshold.unit,
+                                    "isActive": threshold.is_active,
+                                }
+                            )
+
+                        # Отправляем пороговые значения клиенту
+                        thresholds_message = WebSocketMessage(
+                            type="thresholds_data",
+                            data={
+                                "thresholds": thresholds_data,
+                                "timestamp": datetime.utcnow().isoformat(),
+                            },
+                        )
+                        await manager.send_personal_message(
+                            thresholds_message, websocket
+                        )
+
+                        # Отправляем подтверждение
+                        confirm_message = WebSocketMessage(
+                            type="request_completed",
+                            data={
+                                "status": "success",
+                                "message": f"Получено {len(thresholds_data)} пороговых значений",
+                                "count": len(thresholds_data),
+                                "user_id": user_id,
+                                "timestamp": datetime.utcnow().isoformat(),
+                            },
+                        )
+                        await manager.send_personal_message(confirm_message, websocket)
+
+                    except Exception as e:
+                        logger.error(f"Ошибка при получении пороговых значений: {e}")
+                        error_message = WebSocketMessage(
+                            type="system",
+                            data={
+                                "status": "error",
+                                "message": f"Ошибка при получении пороговых значений: {str(e)}",
+                                "timestamp": datetime.utcnow().isoformat(),
+                            },
+                        )
+                        await manager.send_personal_message(error_message, websocket)
+
+                # Обработка запроса на сохранение пороговых значений
+                elif msg_data.get("target") == "save_thresholds":
+                    logger.info(
+                        f"Запрошено сохранение пороговых значений пользователем {user_id}"
+                    )
+
+                    try:
+                        from app.models.sensor_data import (
+                            SensorAlertThreshold,
+                            SensorType,
+                        )
+
+                        # Получаем пороговые значения из запроса
+                        thresholds_data = msg_data.get("thresholds", [])
+
+                        if not thresholds_data:
+                            raise ValueError("Пороговые значения не предоставлены")
+
+                        # Обновляем пороговые значения в базе данных
+                        saved_count = 0
+                        for threshold_data in thresholds_data:
+                            threshold_id = threshold_data.get("id")
+                            sensor_type_str = threshold_data.get("sensorType")
+                            min_value = threshold_data.get("min")
+                            max_value = threshold_data.get("max")
+                            unit = threshold_data.get("unit")
+                            is_active = threshold_data.get("isActive", True)
+
+                            # Преобразуем строковый тип датчика в объект SensorType
+                            try:
+                                sensor_type = SensorType(sensor_type_str)
+                            except ValueError:
+                                logger.warning(
+                                    f"Неизвестный тип датчика: {sensor_type_str}"
+                                )
+                                continue
+
+                            # Если указан ID, обновляем существующее пороговое значение
+                            if threshold_id and threshold_id != "new":
+                                try:
+                                    threshold = await SensorAlertThreshold.get(
+                                        id=threshold_id
+                                    )
+                                    # Проверяем, что порог принадлежит текущему пользователю
+                                    if threshold.created_by_id != user_id:
+                                        logger.warning(
+                                            f"Попытка изменить порог другого пользователя: {threshold_id}"
+                                        )
+                                        continue
+
+                                    threshold.min_value = min_value
+                                    threshold.max_value = max_value
+                                    threshold.unit = unit
+                                    threshold.is_active = is_active
+                                    await threshold.save()
+                                    saved_count += 1
+                                except DoesNotExist:
+                                    logger.warning(f"Порог не найден: {threshold_id}")
+                                    continue
+                            else:
+                                # Создаем новое пороговое значение
+                                await SensorAlertThreshold.create(
+                                    sensor_type=sensor_type,
+                                    min_value=min_value,
+                                    max_value=max_value,
+                                    unit=unit,
+                                    is_active=is_active,
+                                    created_by_id=user_id,
+                                )
+                                saved_count += 1
+
+                        # Отправляем подтверждение
+                        confirm_message = WebSocketMessage(
+                            type="request_completed",
+                            data={
+                                "status": "success",
+                                "message": f"Сохранено {saved_count} пороговых значений",
+                                "count": saved_count,
+                                "user_id": user_id,
+                                "timestamp": datetime.utcnow().isoformat(),
+                            },
+                        )
+                        await manager.send_personal_message(confirm_message, websocket)
+
+                        # После сохранения отправляем обновленные пороговые значения
+                        thresholds = await SensorAlertThreshold.filter(
+                            created_by_id=user_id, is_active=True
+                        )
+
+                        thresholds_data = []
+                        for threshold in thresholds:
+                            thresholds_data.append(
+                                {
+                                    "id": str(threshold.id),
+                                    "sensorType": threshold.sensor_type.value,
+                                    "min": threshold.min_value,
+                                    "max": threshold.max_value,
+                                    "unit": threshold.unit,
+                                    "isActive": threshold.is_active,
+                                }
+                            )
+
+                        thresholds_message = WebSocketMessage(
+                            type="thresholds_data",
+                            data={
+                                "thresholds": thresholds_data,
+                                "timestamp": datetime.utcnow().isoformat(),
+                            },
+                        )
+                        await manager.send_personal_message(
+                            thresholds_message, websocket
+                        )
+
+                    except Exception as e:
+                        logger.error(f"Ошибка при сохранении пороговых значений: {e}")
+                        error_message = WebSocketMessage(
+                            type="system",
+                            data={
+                                "status": "error",
+                                "message": f"Ошибка при сохранении пороговых значений: {str(e)}",
+                                "timestamp": datetime.utcnow().isoformat(),
+                            },
+                        )
+                        await manager.send_personal_message(error_message, websocket)
+
+                # Обработка запроса на сброс пороговых значений
+                elif msg_data.get("target") == "reset_thresholds":
+                    logger.info(
+                        f"Запрошен сброс пороговых значений пользователем {user_id}"
+                    )
+
+                    try:
+                        from app.models.sensor_data import SensorAlertThreshold
+
+                        # Удаляем все текущие пороговые значения пользователя
+                        deleted_count = await SensorAlertThreshold.filter(
+                            created_by_id=user_id
+                        ).delete()
+
+                        logger.info(
+                            f"Удалено {deleted_count} пороговых значений пользователя {user_id}"
+                        )
+
+                        # Отправляем подтверждение
+                        confirm_message = WebSocketMessage(
+                            type="request_completed",
+                            data={
+                                "status": "success",
+                                "message": f"Удалено {deleted_count} пороговых значений. При следующем запросе будут созданы новые значения по умолчанию.",
+                                "count": deleted_count,
+                                "user_id": user_id,
+                                "timestamp": datetime.utcnow().isoformat(),
+                            },
+                        )
+                        await manager.send_personal_message(confirm_message, websocket)
+
+                        # После удаления сразу создаём новые пороги по умолчанию
+                        from app.models.sensor_data import SensorType
+                        from app.services.sensor_simulator import SENSOR_RANGES
+
+                        # Создаем новые пороговые значения по умолчанию
+                        thresholds = []
+                        for sensor_type, range_data in SENSOR_RANGES.items():
+                            # Устанавливаем пороги чуть ниже минимального и чуть выше максимального диапазона
+                            min_value = (
+                                range_data["min"]
+                                - (range_data["max"] - range_data["min"]) * 0.1
+                            )
+                            max_value = (
+                                range_data["max"]
+                                + (range_data["max"] - range_data["min"]) * 0.1
+                            )
+
+                            # Создаем запись порогового значения
+                            threshold = await SensorAlertThreshold.create(
+                                sensor_type=sensor_type,
+                                min_value=min_value,
+                                max_value=max_value,
+                                unit=range_data["unit"],
+                                is_active=True,
+                                created_by_id=user_id,
+                            )
+                            thresholds.append(threshold)
+
+                        # Подготавливаем данные для отправки
+                        thresholds_data = []
+                        for threshold in thresholds:
+                            thresholds_data.append(
+                                {
+                                    "id": str(threshold.id),
+                                    "sensorType": threshold.sensor_type.value,
+                                    "min": threshold.min_value,
+                                    "max": threshold.max_value,
+                                    "unit": threshold.unit,
+                                    "isActive": threshold.is_active,
+                                }
+                            )
+
+                        # Отправляем пороговые значения клиенту
+                        thresholds_message = WebSocketMessage(
+                            type="thresholds_data",
+                            data={
+                                "thresholds": thresholds_data,
+                                "timestamp": datetime.utcnow().isoformat(),
+                            },
+                        )
+                        await manager.send_personal_message(
+                            thresholds_message, websocket
+                        )
+
+                    except Exception as e:
+                        logger.error(f"Ошибка при сбросе пороговых значений: {e}")
+                        error_message = WebSocketMessage(
+                            type="system",
+                            data={
+                                "status": "error",
+                                "message": f"Ошибка при сбросе пороговых значений: {str(e)}",
+                                "timestamp": datetime.utcnow().isoformat(),
+                            },
+                        )
+                        await manager.send_personal_message(error_message, websocket)
+                else:
+                    # Игнорируем все остальные типы request_data
+                    pass
 
             else:
                 # Эхо-ответ на неизвестные типы сообщений

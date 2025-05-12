@@ -89,6 +89,22 @@ async def create_user(user_data: UserCreate) -> User:
         )
 
     try:
+        # Определение роли и количества датчиков
+        role = user_data.role or UserRole.NEW_USER
+        is_admin = role == UserRole.ADMIN
+
+        # Определение количества датчиков в зависимости от роли
+        sensor_count = (
+            user_data.sensor_count if hasattr(user_data, "sensor_count") else None
+        )
+        if sensor_count is None:
+            if role == UserRole.ADMIN:
+                sensor_count = 20  # Админам даем максимальное количество датчиков
+            elif role == UserRole.DEMO:
+                sensor_count = 10  # Демо-пользователям даем среднее количество
+            else:
+                sensor_count = 0  # Новым пользователям даем базовое количество
+
         # Создание пользователя с хешированным паролем
         user = await User.create(
             email=user_data.email,
@@ -96,32 +112,45 @@ async def create_user(user_data: UserCreate) -> User:
             hashed_password=hash_password(user_data.password),
             first_name=user_data.first_name,
             last_name=user_data.last_name,
-            role=user_data.role or UserRole.VIEWER,
+            role=role,
             is_active=user_data.is_active,
+            sensor_count=sensor_count,
+            is_admin=is_admin,
         )
 
-        logger.info(f"Создан новый пользователь: {user.username} ({user.email})")
+        logger.info(
+            f"Создан новый пользователь: {user.username} ({user.email}), роль: {role}, датчиков: {sensor_count}"
+        )
         return user
 
     except IntegrityError as e:
-        # Обработка нарушения ограничения уникальности
-        logger.error(f"Не удалось создать пользователя: {e}")
+        # Обработка ошибок уникальности (email или username)
+        error_message = str(e).lower()
+        if "unique" in error_message:
+            if "email" in error_message:
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail="Пользователь с таким email уже существует",
+                )
+            elif "username" in error_message:
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail="Пользователь с таким именем уже существует",
+                )
 
-        if "username" in str(e).lower():
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Имя пользователя уже существует",
-            )
-        elif "email" in str(e).lower():
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Email уже существует",
-            )
-        else:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Не удалось создать пользователя",
-            )
+        # Другие ошибки целостности данных
+        logger.error(f"Ошибка создания пользователя (целостность данных): {e}")
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Ошибка создания пользователя из-за проблем с данными",
+        )
+    except Exception as e:
+        # Общая обработка ошибок
+        logger.error(f"Неизвестная ошибка создания пользователя: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Ошибка создания пользователя",
+        )
 
 
 async def create_user_tokens(user: User) -> Tuple[str, str, datetime]:

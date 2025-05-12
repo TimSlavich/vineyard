@@ -8,8 +8,8 @@ class UserRole(str, Enum):
     """Роли пользователей"""
 
     ADMIN = "admin"
-    MANAGER = "manager"
-    VIEWER = "viewer"
+    NEW_USER = "new_user"
+    DEMO = "demo"
 
 
 class User(Model):
@@ -21,9 +21,15 @@ class User(Model):
     hashed_password = fields.CharField(max_length=255)
     first_name = fields.CharField(max_length=50, null=True)
     last_name = fields.CharField(max_length=50, null=True)
-    role = fields.CharEnumField(UserRole, default=UserRole.VIEWER)
+    role = fields.CharEnumField(UserRole, default=UserRole.NEW_USER)
     is_active = fields.BooleanField(default=True)
     is_verified = fields.BooleanField(default=False)
+    sensor_count = fields.IntField(
+        default=5
+    )  # Количество датчиков, доступных пользователю
+    is_admin = fields.BooleanField(
+        default=False
+    )  # Флаг для быстрой проверки админских прав
     created_at = fields.DatetimeField(auto_now_add=True)
     updated_at = fields.DatetimeField(auto_now=True)
 

@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { Bell } from 'lucide-react';
 import AlertItem from './AlertItem';
 import { useNavigate } from 'react-router-dom';
-import { useAlerts } from '../../services/notificationService';
+import { useAlerts, getAlerts } from '../../services/notificationService';
 
 interface NotificationCenterProps {
     className?: string;
@@ -55,6 +55,11 @@ const NotificationCenter = ({ className = '' }: NotificationCenterProps) => {
         markAsRead(id);
     };
 
+    // Обработчик для отметки всех оповещений как прочитанных
+    const handleMarkAllAsRead = () => {
+        markAllAsRead();
+    };
+
     return (
         <div className={`relative ${className}`} ref={notificationRef}>
             {/* Кнопка уведомлений */}
@@ -80,7 +85,7 @@ const NotificationCenter = ({ className = '' }: NotificationCenterProps) => {
                         {unreadCount > 0 && (
                             <button
                                 className="text-sm text-primary hover:text-primary-dark font-medium"
-                                onClick={markAllAsRead}
+                                onClick={handleMarkAllAsRead}
                                 aria-label="Позначити все як прочитане"
                             >
                                 Позначити все як прочитане

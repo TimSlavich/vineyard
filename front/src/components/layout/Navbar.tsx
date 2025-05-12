@@ -168,7 +168,9 @@ const Navbar = () => {
               </div>
             ) : (
               <>
-                <NotificationCenter className="mr-2" />
+                <div className="notification-wrapper">
+                  <NotificationCenter className="mr-2" />
+                </div>
 
                 <div className="relative ml-3" ref={profileMenuRef}>
                   <div>

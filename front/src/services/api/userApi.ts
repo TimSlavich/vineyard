@@ -10,6 +10,7 @@ import {
 } from './types';
 import { getItem, setItem, removeItem, getUserData } from '../../utils/storage';
 import { clearAuthAndRedirect } from './baseApi';
+import websocketService, { initializeWebSocketConnection } from '../websocketService';
 
 /**
  * Сервис для работы с пользователями
@@ -22,6 +23,10 @@ export class UserApi extends BaseApi {
      */
     async login(credentials: AuthRequest): Promise<AuthResponse> {
         try {
+            // Сначала отключаем существующее WebSocket соединение, если есть
+            websocketService.disconnect();
+
+            // Выполняем запрос на API
             const response = await this.post<AuthResponse>('/auth/login', credentials, { requireAuth: false });
 
             if (!response || !response.access_token) {
@@ -37,16 +42,32 @@ export class UserApi extends BaseApi {
                 setItem('refreshToken', response.refresh_token);
             }
 
-            // После успешного входа получаем данные пользователя и сохраняем их
+            // Получаем и сохраняем данные профиля
             try {
-                const userData = await this.getProfile();
-                setItem('user', userData);
+                const userProfile = await this.getProfile();
+
+                // После успешного входа инициализируем WebSocket соединение
+                setTimeout(async () => {
+                    try {
+                        await initializeWebSocketConnection();
+
+                        // Запрашиваем новые данные датчиков
+                        setTimeout(() => {
+                            if (websocketService.isConnected()) {
+                                websocketService.requestSensorData();
+                            }
+                        }, 1000);
+                    } catch (wsError) {
+                        console.error('Ошибка при инициализации WebSocket после входа в систему:', wsError);
+                    }
+                }, 500);
+
             } catch (profileError) {
-                console.warn('Failed to fetch user profile after login, but login itself was successful:', profileError);
+                console.error('Не удалось получить профиль пользователя:', profileError);
             }
 
             return response;
-        } catch (error) {
+        } catch (error: any) {
             console.error('Error during login:', error);
             throw error;
         }
@@ -73,7 +94,17 @@ export class UserApi extends BaseApi {
                 });
             }
 
-            // Очищаем данные авторизации с редиректом
+            // Очищаем все данные, связанные с пользователем
+            removeItem('accessToken');
+            removeItem('refreshToken');
+            removeItem('user');
+            removeItem('isAuthenticated');
+
+            // Очищаем данные о датчиках, чтобы избежать конфликтов при следующем входе
+            removeItem('vineguard_latest_sensor_data');
+            removeItem('vineguard_sensor_history');
+
+            // Перенаправляем на страницу входа
             clearAuthAndRedirect(true);
 
             return true;
@@ -139,8 +170,9 @@ export class UserApi extends BaseApi {
                         first_name: response.first_name || userData.first_name || '',
                         last_name: response.last_name || userData.last_name || '',
                         is_active: response.is_active !== undefined ? response.is_active : true,
-                        role: response.role || 'viewer',
+                        role: response.role || 'new_user',
                         is_admin: response.is_admin || false,
+                        sensor_count: response.sensor_count || 5,
                         created_at: response.created_at || new Date().toISOString(),
                         updated_at: response.updated_at || new Date().toISOString()
                     };
@@ -170,8 +202,9 @@ export class UserApi extends BaseApi {
                         first_name: response.first_name || userData.first_name || '',
                         last_name: response.last_name || userData.last_name || '',
                         is_active: response.is_active !== undefined ? response.is_active : true,
-                        role: response.role || 'viewer',
+                        role: response.role || 'new_user',
                         is_admin: response.is_admin || false,
+                        sensor_count: response.sensor_count || 5,
                         created_at: response.created_at || new Date().toISOString(),
                         updated_at: response.updated_at || new Date().toISOString()
                     };
@@ -227,8 +260,9 @@ export class UserApi extends BaseApi {
                 first_name: apiUserData.first_name || '',
                 last_name: apiUserData.last_name || '',
                 is_active: apiUserData.is_active !== undefined ? apiUserData.is_active : true,
-                role: apiUserData.role || 'viewer',
+                role: apiUserData.role || 'new_user',
                 is_admin: apiUserData.is_admin || false,
+                sensor_count: apiUserData.sensor_count || 5,
                 created_at: apiUserData.created_at || new Date().toISOString(),
                 updated_at: apiUserData.updated_at || new Date().toISOString()
             };
@@ -308,6 +342,46 @@ export class UserApi extends BaseApi {
             return true;
         } catch (error) {
             console.error('Error checking username:', error);
+            throw error;
+        }
+    }
+
+    /**
+     * Автоматический вход под демо-пользователем
+     * @returns токен и данные пользователя демо-аккаунта
+     */
+    async loginAsDemo(): Promise<AuthResponse> {
+        try {
+            // Вход с фиксированными учетными данными демо-пользователя
+            const response = await this.post<AuthResponse>('/auth/login', {
+                username: 'demo_user',
+                password: 'demo'
+            }, { requireAuth: false });
+
+            if (!response || !response.access_token) {
+                throw new Error('Получен некорректный ответ при авторизации. Токен не получен.');
+            }
+
+            // Сохраняем токены в localStorage
+            if (response.access_token) {
+                setItem('accessToken', response.access_token);
+            }
+
+            if (response.refresh_token) {
+                setItem('refreshToken', response.refresh_token);
+            }
+
+            // После успешного входа получаем данные пользователя и сохраняем их
+            try {
+                const userData = await this.getProfile();
+                setItem('user', userData);
+            } catch (profileError) {
+                console.warn('Failed to fetch user profile after demo login, but login itself was successful:', profileError);
+            }
+
+            return response;
+        } catch (error) {
+            console.error('Error during demo login:', error);
             throw error;
         }
     }

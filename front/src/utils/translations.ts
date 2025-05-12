@@ -114,6 +114,7 @@ export const SENSOR_TYPE_UA: Record<string, string> = {
     'light': 'Освітленість',
     'ph': 'Кислотність pH',
     'wind_speed': 'Швидкість вітру',
+    'wind': 'Швидкість вітру',
     'wind_direction': 'Напрям вітру',
     'rainfall': 'Опади',
     'co2': 'Рівень CO₂'

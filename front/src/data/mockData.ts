@@ -1,13 +1,4 @@
-import { SensorData, Alert, Device, WeatherData, User, Threshold, NotificationSetting } from '../types';
-
-// Current user
-export const currentUser: User = {
-  id: '1',
-  name: 'Emma Thompson',
-  email: 'emma@vineguard.com',
-  role: 'admin',
-  avatar: 'https://i.pravatar.cc/150?img=1',
-};
+import { SensorData, Alert, Device, WeatherData, Threshold, NotificationSetting } from '../types';
 
 // Generate sensor readings for the past 24 hours
 const generateSensorReadings = (type: string, minValue: number, maxValue: number, unit: string, locationId: string, locationName: string): SensorData[] => {

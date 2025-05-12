@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { devices as initialDevices, thresholds as initialThresholds, notificationSettings as initialNotificationSettings } from '../data/mockData';
+import { devices as initialDevices, notificationSettings as initialNotificationSettings } from '../data/mockData';
 import { Device, Threshold, NotificationSetting, RobotStatus } from '../types';
 import { deviceApi, thresholdApi, robotApi } from '../services/api';
 
@@ -41,7 +41,7 @@ const DeviceSettingsContext = createContext<DeviceSettingsContextType | undefine
 
 export const DeviceSettingsProvider = ({ children }: { children: React.ReactNode }) => {
     const [devices, setDevices] = useState<Device[]>(initialDevices);
-    const [thresholds, setThresholds] = useState<Threshold[]>(initialThresholds);
+    const [thresholds, setThresholds] = useState<Threshold[]>([]);
     const [notificationSettings, setNotificationSettings] = useState<NotificationSetting[]>(initialNotificationSettings);
 
     // Состояния загрузки
@@ -156,14 +156,46 @@ export const DeviceSettingsProvider = ({ children }: { children: React.ReactNode
             setLoading(prev => ({ ...prev, thresholds: true }));
             setErrors(prev => ({ ...prev, thresholds: null }));
 
-            const response = await thresholdApi.getThresholds();
-            setThresholds(response.data);
+            // Запрашиваем пороговые значения через WebSocket
+            await import('../services/websocketService').then(({ default: websocketService }) => {
+                if (websocketService.isConnected()) {
+                    websocketService.requestThresholds();
+
+                    // Добавляем подписку на получение пороговых значений
+                    const unsubscribe = websocketService.subscribe('thresholds_data', (data: any) => {
+
+                        // Проверяем наличие поля thresholds в объекте data
+                        if (data && data.thresholds && Array.isArray(data.thresholds)) {
+                            setThresholds(data.thresholds);
+                        } else if (Array.isArray(data)) {
+                            // Обратная совместимость со старым форматом
+                            setThresholds(data);
+                        } else {
+                            console.error("Unexpected thresholds data format:", data);
+                        }
+                        unsubscribe(); // Отписываемся после получения данных
+                    });
+
+                    // Таймаут для предотвращения бесконечного ожидания
+                    setTimeout(() => {
+                        unsubscribe();
+                        setLoading(prev => ({ ...prev, thresholds: false }));
+                    }, 10000);
+                } else {
+                    // Если нет соединения, используем старые данные или заглушки
+                    setErrors(prev => ({
+                        ...prev,
+                        thresholds: new Error('WebSocket не подключен. Используем кэшированные данные.')
+                    }));
+                    setLoading(prev => ({ ...prev, thresholds: false }));
+                }
+            });
         } catch (error) {
+            console.error("Error in fetchThresholds:", error);
             setErrors(prev => ({
                 ...prev,
                 thresholds: error instanceof Error ? error : new Error(String(error))
             }));
-        } finally {
             setLoading(prev => ({ ...prev, thresholds: false }));
         }
     };
@@ -244,12 +276,59 @@ export const DeviceSettingsProvider = ({ children }: { children: React.ReactNode
     // Обновление всех порогов
     const updateAllThresholds = async (newThresholds: Threshold[]) => {
         try {
-            const response = await thresholdApi.updateAllThresholds(newThresholds);
-            setThresholds(response.data);
+            // Отправляем пороговые значения через WebSocket
+            await import('../services/websocketService').then(({ default: websocketService }) => {
+                if (websocketService.isConnected()) {
+                    // Отправляем данные на сервер
+                    websocketService.saveThresholds(newThresholds);
+                    // Устанавливаем локально новые пороговые значения
+                    setThresholds(newThresholds);
+
+                    // Подписываемся на обновление порогов после сохранения
+                    const unsubscribe = websocketService.subscribe('thresholds_data', (data: any) => {
+                        // Проверяем наличие поля thresholds в объекте data
+                        if (data && data.thresholds && Array.isArray(data.thresholds)) {
+                            setThresholds(data.thresholds);
+                        } else if (Array.isArray(data)) {
+                            // Обратная совместимость со старым форматом
+                            console.log("Using updated thresholds from array data:", data);
+                            setThresholds(data);
+                        } else {
+                            console.error("Unexpected updated thresholds data format:", data);
+                        }
+                        unsubscribe(); // Отписываемся после получения данных
+                    });
+
+                    // Таймаут для предотвращения бесконечного ожидания
+                    setTimeout(unsubscribe, 10000);
+                } else {
+                    throw new Error('WebSocket не подключен. Невозможно сохранить пороговые значения.');
+                }
+            });
         } catch (error) {
+            console.error("Error in updateAllThresholds:", error);
             throw error;
         }
     };
+
+    // Проверяем, нужно ли создать пороговые значения по умолчанию
+    useEffect(() => {
+        const createDefaultThresholdsIfNeeded = async () => {
+            // Если пороговые значения отсутствуют после определенного времени, создаем их
+            if (thresholds.length === 0) {
+                try {
+                    await resetThresholds();
+                } catch (error) {
+                    console.error("Помилка при створенні стандартних порогових значень:", error);
+                }
+            }
+        };
+
+        // Проверяем через 3 секунды после монтирования компонента
+        const timer = setTimeout(createDefaultThresholdsIfNeeded, 3000);
+
+        return () => clearTimeout(timer);
+    }, [thresholds]);
 
     // Обновление настройки уведомлений
     const updateNotificationSetting = async (type: string, data: Partial<NotificationSetting>) => {
@@ -284,9 +363,41 @@ export const DeviceSettingsProvider = ({ children }: { children: React.ReactNode
     // Сброс порогов
     const resetThresholds = async () => {
         try {
-            const response = await thresholdApi.resetThresholds();
-            setThresholds(response.data);
+            setLoading(prev => ({ ...prev, thresholds: true }));
+            setErrors(prev => ({ ...prev, thresholds: null }));
+
+            // Запрашиваем сброс пороговых значений через WebSocket
+            await import('../services/websocketService').then(({ default: websocketService }) => {
+                if (websocketService.isConnected()) {
+                    websocketService.resetThresholds();
+
+                    // Добавляем подписку на получение обновленных пороговых значений
+                    const unsubscribe = websocketService.subscribe('thresholds_data', (data: any) => {
+                        // Проверяем наличие поля thresholds в объекте data
+                        if (data && data.thresholds && Array.isArray(data.thresholds)) {
+                            setThresholds(data.thresholds);
+                        } else if (Array.isArray(data)) {
+                            // Обратная совместимость со старым форматом
+                            setThresholds(data);
+                        }
+                        unsubscribe(); // Отписываемся после получения данных
+                    });
+
+                    // Таймаут для предотвращения бесконечного ожидания
+                    setTimeout(() => {
+                        unsubscribe();
+                        setLoading(prev => ({ ...prev, thresholds: false }));
+                    }, 10000);
+                } else {
+                    throw new Error('WebSocket не подключен. Невозможно сбросить пороговые значения.');
+                }
+            });
         } catch (error) {
+            setErrors(prev => ({
+                ...prev,
+                thresholds: error instanceof Error ? error : new Error(String(error))
+            }));
+            setLoading(prev => ({ ...prev, thresholds: false }));
             throw error;
         }
     };
@@ -301,9 +412,32 @@ export const DeviceSettingsProvider = ({ children }: { children: React.ReactNode
         }
     };
 
-    // Загрузка данных при первом рендере
+    // Автоматическая загрузка пороговых значений при инициализации
     useEffect(() => {
-        // Пока используем моковые данные
+        fetchThresholds();
+    }, []);
+
+    // Автоматическая подписка на обновление порогов от сервера
+    useEffect(() => {
+        if (typeof window !== 'undefined') {
+            import('../services/websocketService').then(({ default: websocketService }) => {
+                // Подписываемся на обновления пороговых значений с сервера
+                const unsubscribe = websocketService.subscribe('thresholds_data', (data: any) => {
+                    // Проверяем наличие поля thresholds в объекте data
+                    if (data && data.thresholds && Array.isArray(data.thresholds)) {
+                        setThresholds(data.thresholds);
+                    } else if (Array.isArray(data)) {
+                        // Обратная совместимость со старым форматом
+                        setThresholds(data);
+                    }
+                });
+
+                // Отписываемся при размонтировании компонента
+                return () => {
+                    unsubscribe();
+                };
+            });
+        }
     }, []);
 
     return (

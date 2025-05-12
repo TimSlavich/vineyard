@@ -116,9 +116,12 @@ async def get_admin_user(
         User: Аутентифицированный пользователь-администратор
 
     Raises:
-        HTTPException: Если у пользователя нет роли администратора
+        HTTPException: Если у пользователя недостаточно прав
     """
-    if current_user.role != UserRole.ADMIN:
+    if current_user.role != UserRole.ADMIN and not current_user.is_admin:
+        logger.warning(
+            f"Попытка доступа к административному ресурсу пользователем {current_user.username} с ролью {current_user.role}"
+        )
         raise INSUFFICIENT_PERMISSIONS_EXCEPTION
 
     return current_user
@@ -130,6 +133,9 @@ async def get_manager_user(
     """
     Проверка наличия у текущего пользователя прав менеджера или администратора.
 
+    Примечание: эта функция оставлена для обратной совместимости,
+    теперь рекомендуется использовать get_admin_user.
+
     Args:
         current_user: Аутентифицированный пользователь
 
@@ -139,10 +145,34 @@ async def get_manager_user(
     Raises:
         HTTPException: Если у пользователя недостаточно прав
     """
-    if current_user.role not in [UserRole.ADMIN, UserRole.MANAGER]:
+    if current_user.role != UserRole.ADMIN and not current_user.is_admin:
+        logger.warning(
+            f"Попытка доступа к менеджерскому ресурсу пользователем {current_user.username} с ролью {current_user.role}"
+        )
+        raise INSUFFICIENT_PERMISSIONS_EXCEPTION
+
+    return current_user
+
+
+async def get_non_demo_user(
+    current_user: User = Depends(get_current_user),
+) -> User:
+    """
+    Проверка, что текущий пользователь не является демо-пользователем.
+
+    Args:
+        current_user: Аутентифицированный пользователь
+
+    Returns:
+        User: Аутентифицированный не-демо пользователь
+
+    Raises:
+        HTTPException: Если пользователь имеет роль DEMO
+    """
+    if current_user.role == UserRole.DEMO:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="Недостаточно прав доступа",
+            detail="Эта функция недоступна в демо-режиме",
         )
 
     return current_user

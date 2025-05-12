@@ -1,16 +1,15 @@
 export interface User {
-  id: string | number;
-  username?: string;
-  name?: string;
+  id: number;
+  username: string;
   email: string;
   first_name?: string;
   last_name?: string;
-  is_active?: boolean;
-  role?: 'admin' | 'manager' | 'viewer';
+  is_active: boolean;
+  role?: 'admin' | 'new_user' | 'demo';
   is_admin?: boolean;
-  avatar?: string;
-  created_at?: string;
-  updated_at?: string;
+  sensor_count?: number;
+  created_at: string;
+  updated_at: string;
 }
 
 export interface SensorData {

@@ -2,7 +2,6 @@ import { useState, useEffect } from 'react';
 import { Alert } from '../types';
 import { alerts as mockAlerts } from '../data/mockData';
 import { getUserData } from '../utils/storage';
-import { isNotificationEnabled } from './userSettingsService';
 
 // Ключи для localStorage
 const ALERTS_STORAGE_KEY = 'vineguard_alerts';
@@ -127,9 +126,6 @@ export const addAlert = (alert: Omit<Alert, 'id' | 'timestamp' | 'read'>): void 
     // Добавляем уведомление в начало массива и ограничиваем его размер
     globalAlerts = [newAlert, ...globalAlerts].slice(0, MAX_ALERTS);
 
-    // Показываем браузерное уведомление, если поддерживается и разрешено
-    showBrowserNotification(newAlert);
-
     // Оповещаем подписчиков
     notifySubscribers();
 };
@@ -144,41 +140,4 @@ export const removeAlert = (id: string): void => {
 export const clearAllAlerts = (): void => {
     globalAlerts = [];
     notifySubscribers();
-};
-
-// Функция для показа браузерных уведомлений
-const showBrowserNotification = (alert: Alert): void => {
-    // Проверяем поддержку браузерных уведомлений
-    if (!('Notification' in window)) {
-        return;
-    }
-
-    // Проверяем, разрешены ли уведомления этого типа в настройках пользователя
-    if (!isNotificationEnabled('browser', alert.type)) {
-        return;
-    }
-
-    // Проверяем, разрешены ли уведомления в браузере
-    if (Notification.permission === 'granted') {
-        // Создаем и показываем уведомление
-        const iconPath = '/icons/notification-icon.png';
-        const notification = new Notification(alert.title, {
-            body: alert.message,
-            icon: iconPath
-        });
-
-        // Обработка клика по уведомлению
-        notification.onclick = () => {
-            // Отмечаем уведомление как прочитанное
-            markAlertAsRead(alert.id);
-            // Фокусируем окно браузера
-            window.focus();
-            // Закрываем уведомление
-            notification.close();
-        };
-    }
-    // Запрашиваем разрешение на уведомления, если еще не запрашивали
-    else if (Notification.permission !== 'denied') {
-        Notification.requestPermission();
-    }
 }; 

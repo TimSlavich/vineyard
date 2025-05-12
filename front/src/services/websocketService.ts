@@ -1,9 +1,7 @@
 import { isAuthenticated, getItem, getUserData, setItem } from '../utils/storage';
 import { BaseApi } from './api/baseApi';
-import { addAlert } from './notificationService';
-import { SENSOR_TYPE_UA } from '../utils/translations';
 
-type WebSocketMessageType = 'sensor_data' | 'alert' | 'notification' | 'system' | 'request_data' | 'request_completed' | 'welcome' | 'echo' | 'pong' | 'subscribed' | 'unsubscribed' | 'sensor_alert';
+type WebSocketMessageType = 'sensor_data' | 'notification' | 'system' | 'request_data' | 'request_completed' | 'welcome' | 'echo' | 'pong' | 'subscribed' | 'unsubscribed' | 'test_alert' | 'thresholds_data';
 
 interface WebSocketMessage {
     type: WebSocketMessageType;
@@ -30,6 +28,21 @@ class WebSocketService {
     private maxReconnectAttempts: number = 10;
     private reconnectAttempts: number = 0;
     private tokenRefreshInProgress: boolean = false;
+
+    private messageHandlers: Record<WebSocketMessageType, WebSocketMessageListener[]> = {
+        'sensor_data': [],
+        'notification': [],
+        'system': [],
+        'request_data': [],
+        'request_completed': [],
+        'welcome': [],
+        'echo': [],
+        'pong': [],
+        'subscribed': [],
+        'unsubscribed': [],
+        'test_alert': [],
+        'thresholds_data': []
+    };
 
     /**
      * Конструктор
@@ -191,9 +204,10 @@ class WebSocketService {
             const userData = getUserData();
             const userId = userData?.id;
 
-            let url = `${this.url}?token=${token}`;
+            // Добавляем special_request=get_thresholds для автоматического получения пороговых значений
+            let url = `${this.url}?token=${token}&special_request=get_thresholds`;
             if (userId) {
-                url += `&userId=${userId}`;
+                url += `&user_id=${userId}`;
             }
 
             this.socket = new WebSocket(url);
@@ -214,14 +228,44 @@ class WebSocketService {
     public disconnect(): void {
         if (this.socket) {
             this.stopHeartbeat();
-            this.socket.close();
+
+            // Полностью закрываем соединение с кодом 1000 (нормальное закрытие)
+            this.socket.close(1000, 'User logout');
+
+            // Сразу удаляем обработчики для предотвращения повторных вызовов
+            this.socket.onopen = null;
+            this.socket.onmessage = null;
+            this.socket.onclose = null;
+            this.socket.onerror = null;
+
             this.socket = null;
         }
 
+        // Очищаем таймер переподключения
         if (this.reconnectTimer !== null) {
             clearTimeout(this.reconnectTimer);
             this.reconnectTimer = null;
         }
+
+        // Сбрасываем все флаги
+        this.isConnecting = false;
+        this.reconnectAttempts = 0;
+
+        // Очищаем список обработчиков событий
+        this.messageHandlers = {
+            sensor_data: [],
+            notification: [],
+            system: [],
+            request_data: [],
+            request_completed: [],
+            welcome: [],
+            echo: [],
+            pong: [],
+            subscribed: [],
+            unsubscribed: [],
+            test_alert: [],
+            thresholds_data: []
+        };
     }
 
     /**
@@ -311,19 +355,30 @@ class WebSocketService {
             type: 'request_data',
             data: {
                 target: 'sensor_data',
+                manual: true, // Флаг ручного запроса
                 timestamp: new Date().toISOString()
             }
         });
     }
 
     /**
-     * Отправляет тестовое оповещение датчика для проверки системы оповещений
+     * Логирует пороговые значения без отправки на сервер
+     * @param thresholds Массив пороговых значений для логирования
      */
-    public sendTestAlert(): void {
+    public logThresholds(thresholds: any[]): void {
+        console.log("Пороговые значения (только для визуализации):", thresholds);
+    }
+
+    /**
+     * Отправляет пороговые значения на сервер для сохранения
+     * @param thresholds Массив пороговых значений для сохранения
+     */
+    public saveThresholds(thresholds: any[]): void {
         this.send({
             type: 'request_data',
             data: {
-                target: 'test_alert',
+                target: 'save_thresholds',
+                thresholds: thresholds,
                 timestamp: new Date().toISOString()
             }
         });
@@ -336,8 +391,7 @@ class WebSocketService {
         this.isConnecting = false;
         this.resetReconnectAttempts();
         this.startHeartbeat();
-
-        setTimeout(() => this.requestSensorData(), 500);
+        this.requestThresholds();
     }
 
     /**
@@ -358,10 +412,16 @@ class WebSocketService {
                 return;
             }
 
-            // Вызываем обработчики для данного типа сообщения
+            // Вызываем подписчиков из Map для обратной совместимости
             const listeners = this.listeners.get(message.type);
-            if (listeners) {
+            if (listeners && listeners.length > 0) {
                 listeners.forEach(listener => listener(message));
+            }
+
+            // Вызываем обработчики из messageHandlers
+            const handlers = this.messageHandlers[message.type];
+            if (handlers && handlers.length > 0) {
+                handlers.forEach(handler => handler(message));
             }
         } catch (error) {
             console.error('Error parsing WebSocket message:', error);
@@ -375,47 +435,6 @@ class WebSocketService {
         this.isConnecting = false;
         this.socket = null;
         this.stopHeartbeat();
-
-        // Логирование причины закрытия
-        let closeReason = '';
-        switch (event.code) {
-            case 1000:
-                closeReason = 'Нормальне закриття';
-                break;
-            case 1001:
-                closeReason = 'Виконання завершено';
-                break;
-            case 1002:
-                closeReason = 'Помилка в протоколі';
-                break;
-            case 1003:
-                closeReason = 'Отримано дані неприйнятного типу';
-                break;
-            case 1006:
-                closeReason = 'З\'єднання неочікувано закрито';
-                break;
-            case 1007:
-                closeReason = 'Дані не відповідають типу повідомлення';
-                break;
-            case 1008:
-                closeReason = 'Порушення політики даних';
-                break;
-            case 1009:
-                closeReason = 'Повідомлення завелике';
-                break;
-            case 1010:
-                closeReason = 'Клієнт очікував на узгодження розширення';
-                break;
-            case 1011:
-                closeReason = 'Сервер зіткнувся з неочікуваною помилкою';
-                break;
-            case 1015:
-                closeReason = 'Помилка TLS';
-                break;
-            default:
-                closeReason = `Невідома причина (код ${event.code})`;
-        }
-
 
         // Проверяем код и определяем, нужно ли переподключаться
         if (
@@ -436,19 +455,6 @@ class WebSocketService {
     private handleError(): void {
         this.isConnecting = false;
         console.error('WebSocket помилка з\'єднання');
-
-        // Проверяем текущий URL и логируем его для отладки
-
-        // Проверяем, доступен ли сервер
-        fetch(this.url.replace('ws:', 'http:').replace('wss:', 'https:').split('?')[0])
-            .then(response => {
-                if (!response.ok) {
-                    console.error(`Сервер недоступний: ${response.status} ${response.statusText}`);
-                }
-            })
-            .catch(error => {
-                console.error('Сервер недоступний:', error);
-            });
 
         // Планируем переподключение
         this.scheduleReconnect();
@@ -541,21 +547,41 @@ class WebSocketService {
     }
 
     /**
-     * Преобразует числовое состояние WebSocket в строковое описание
+     * Запрашивает пороговые значения с сервера
      */
-    private getSocketStateDescription(state: number): string {
-        switch (state) {
-            case WebSocket.CONNECTING:
-                return 'CONNECTING (0) - підключення встановлюється';
-            case WebSocket.OPEN:
-                return 'OPEN (1) - підключення встановлено';
-            case WebSocket.CLOSING:
-                return 'CLOSING (2) - підключення закривається';
-            case WebSocket.CLOSED:
-                return 'CLOSED (3) - підключення закрито';
-            default:
-                return 'НЕВІДОМИЙ стан';
-        }
+    public requestThresholds(): void {
+        this.send({
+            type: 'request_data',
+            data: {
+                target: 'get_thresholds',
+                timestamp: new Date().toISOString()
+            }
+        });
+    }
+
+    /**
+     * Сбрасывает пороговые значения к значениям по умолчанию
+     */
+    public resetThresholds(): void {
+        this.send({
+            type: 'request_data',
+            data: {
+                target: 'reset_thresholds',
+                timestamp: new Date().toISOString()
+            }
+        });
+    }
+
+    /**
+     * Отправляет запрос на тестовое оповещение
+     */
+    public sendTestAlert() {
+        this.send({
+            type: 'request_data',
+            data: {
+                target: 'test_alert'
+            }
+        });
     }
 }
 
@@ -565,7 +591,6 @@ const websocketService = new WebSocketService(WS_URL);
 
 /**
  * Инициализирует WebSocket подключение с обновлением токена
- * и добавляет обработчик оповещений датчиков
  */
 export const initializeWebSocketConnection = async () => {
     try {
@@ -575,9 +600,8 @@ export const initializeWebSocketConnection = async () => {
         // Подключаемся к WebSocket
         await websocketService.connect();
 
-        // Если подключение успешно, подписываемся на оповещения от датчиков
+        // Если подключение успешно
         if (websocketService.isConnected()) {
-            websocketService.subscribe('sensor_alert', handleSensorAlert);
 
             // Запускаем периодическое обновление токена
             startTokenRefreshInterval();
@@ -589,12 +613,11 @@ export const initializeWebSocketConnection = async () => {
             const alternativeUrl = originalUrl.includes('/api/ws') ?
                 originalUrl.replace('/api/ws', '/ws') :
                 originalUrl.replace('/ws', '/api/ws');
-
             websocketService.setUrl(alternativeUrl);
             await websocketService.connect();
 
             if (websocketService.isConnected()) {
-                websocketService.subscribe('sensor_alert', handleSensorAlert);
+
                 startTokenRefreshInterval();
                 return true;
             }
@@ -607,53 +630,6 @@ export const initializeWebSocketConnection = async () => {
         console.error('Помилка ініціалізації WebSocket:', error);
         return false;
     }
-};
-
-/**
- * Обработчик оповещений от датчиков
- * @param alertData - данные оповещения
- */
-const handleSensorAlert = (alertData: any) => {
-    if (!alertData) return;
-
-    // Формируем заголовок оповещения
-    let title = 'Попередження датчика';
-    let type: 'info' | 'warning' | 'critical' = 'warning';
-
-    // Получаем понятное название типа датчика
-    const sensorType = SENSOR_TYPE_UA[alertData.type] || alertData.type;
-
-    // Определяем тип оповещения и заголовок
-    if (alertData.alert_type === 'high') {
-        title = `Високе значення датчика ${sensorType}`;
-        type = 'critical';
-    } else if (alertData.alert_type === 'low') {
-        title = `Низьке значення датчика ${sensorType}`;
-        type = 'warning';
-    }
-
-    // Формируем короткое сообщение, если полное сообщение слишком длинное
-    let message = alertData.message;
-    if (!message) {
-        // Если сообщение не указано, генерируем его на основе данных
-        const value = alertData.value.toFixed(1);
-        const unit = alertData.unit;
-
-        if (alertData.alert_type === 'high') {
-            message = `Значення датчика ${sensorType} (${value} ${unit}) перевищило верхній поріг`;
-        } else if (alertData.alert_type === 'low') {
-            message = `Значення датчика ${sensorType} (${value} ${unit}) нижче мінімального порогу`;
-        }
-    }
-
-    // Создаем оповещение
-    addAlert({
-        title: title,
-        message: message,
-        type: type,
-        sensorId: alertData.sensor_id,
-        locationId: alertData.location_id
-    });
 };
 
 /**

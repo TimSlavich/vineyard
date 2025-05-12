@@ -9,7 +9,6 @@ import { ChevronRight, ArrowUpRight, RefreshCw, ActivitySquare, Settings2, FileT
 import { weatherData as mockWeatherData } from '../data/mockData';
 import { Link } from 'react-router-dom';
 import useSensorData, { SensorData } from '../hooks/useSensorData';
-import websocketService from '../services/websocketService';
 import { getUserData } from '../utils/storage';
 
 // Типы датчиков
@@ -46,7 +45,8 @@ const DashboardPage: React.FC = () => {
     const {
         latestSensorData,
         sensorData: allSensorData,
-        isConnected
+        isConnected,
+        refreshSensorData
     } = useSensorData();
 
     // Состояние для отслеживания процесса обновления данных
@@ -59,7 +59,9 @@ const DashboardPage: React.FC = () => {
         }
 
         setIsRefreshing(true);
-        websocketService.requestSensorData();
+
+        // Используем новый метод refreshSensorData из хука
+        refreshSensorData();
 
         setTimeout(() => {
             setIsRefreshing(false);

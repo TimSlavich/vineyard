@@ -1,13 +1,33 @@
-import React from 'react';
-import { Link } from 'react-router-dom';
+import React, { useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import Button from '../components/ui/Button';
 import { ArrowRight, Leaf, BarChart3, Bell } from 'lucide-react';
 import { useEffect } from 'react';
+import { isAuthenticated } from '../utils/storage';
+import { loginAsDemoAndRedirect } from '../utils/demoHelper';
 
 const HomePage: React.FC = () => {
+  const navigate = useNavigate();
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+
   useEffect(() => {
     window.scrollTo(0, 0);
   }, []);
+
+  // Обработчик клика по кнопке "Спробувати демо"
+  const handleDemoClick = async (e: React.MouseEvent) => {
+    e.preventDefault(); // Предотвращаем стандартное поведение ссылки
+
+    // Если пользователь уже авторизован, просто перенаправляем на dashboard
+    if (isAuthenticated()) {
+      navigate('/dashboard');
+      return;
+    }
+
+    // Если не авторизован, выполняем вход в демо-режим
+    await loginAsDemoAndRedirect(navigate, setLoading, setError);
+  };
 
   return (
     <div className="min-h-screen">
@@ -31,16 +51,16 @@ const HomePage: React.FC = () => {
               Оптимізуйте управління вашим виноградником за допомогою моніторингу в реальному часі, предиктивної аналітики та інтелектуальної автоматизації.
             </p>
             <div className="flex flex-wrap gap-4">
-              <Link to="/dashboard">
-                <Button
-                  size="lg"
-                  className="bg-primary hover:bg-primary-dark"
-                  icon={<ArrowRight size={16} />}
-                  iconPosition="right"
-                >
-                  Спробувати демо
-                </Button>
-              </Link>
+              <Button
+                size="lg"
+                className="bg-primary hover:bg-primary-dark"
+                icon={<ArrowRight size={16} />}
+                iconPosition="right"
+                onClick={handleDemoClick}
+                disabled={loading}
+              >
+                {loading ? 'Завантаження...' : 'Спробувати демо'}
+              </Button>
               <Link to="/about">
                 <Button
                   size="lg"
@@ -51,6 +71,11 @@ const HomePage: React.FC = () => {
                 </Button>
               </Link>
             </div>
+            {error && (
+              <div className="mt-4 p-3 bg-red-50 border-l-4 border-error rounded-md text-error text-sm">
+                {error}
+              </div>
+            )}
           </div>
         </div>
 

@@ -1,13 +1,33 @@
-import React, { useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import React, { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Info, Users, Trophy, Clock, Globe } from 'lucide-react';
 import Button from '../components/ui/Button';
+import { isAuthenticated } from '../utils/storage';
+import { loginAsDemoAndRedirect } from '../utils/demoHelper';
 
 const AboutPage: React.FC = () => {
+    const navigate = useNavigate();
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState('');
+
     // Прокрутка страницы вверх при загрузке компонента
     useEffect(() => {
         window.scrollTo(0, 0);
     }, []);
+
+    // Обработчик клика по кнопке "Почати роботу"
+    const handleStartClick = async (e: React.MouseEvent) => {
+        e.preventDefault(); // Предотвращаем стандартное поведение ссылки
+
+        // Если пользователь уже авторизован, просто перенаправляем на dashboard
+        if (isAuthenticated()) {
+            navigate('/dashboard');
+            return;
+        }
+
+        // Если не авторизован, выполняем вход в демо-режим
+        await loginAsDemoAndRedirect(navigate, setLoading, setError);
+    };
 
     return (
         <div className="min-h-screen">
@@ -154,16 +174,21 @@ const AboutPage: React.FC = () => {
                             <p className="text-white text-opacity-90 md:pr-10 font-roboto">
                                 Приєднуйтесь до сотень виноградників, які вже використовують VineGuard для підвищення врожайності, зниження витрат та виробництва якісного винограду.
                             </p>
+                            {error && (
+                                <div className="mt-4 p-3 bg-red-50 border-l-4 border-error rounded-md text-error text-sm">
+                                    {error}
+                                </div>
+                            )}
                         </div>
                         <div>
-                            <Link to="/register">
-                                <Button
-                                    size="lg"
-                                    className="bg-primary hover:bg-primary-dark text-white border-2 border-white-200"
-                                >
-                                    Почати роботу
-                                </Button>
-                            </Link>
+                            <Button
+                                size="lg"
+                                className="bg-primary hover:bg-primary-dark text-white border-2 border-white-200"
+                                onClick={handleStartClick}
+                                disabled={loading}
+                            >
+                                {loading ? 'Завантаження...' : 'Почати роботу'}
+                            </Button>
                         </div>
                     </div>
                 </div>

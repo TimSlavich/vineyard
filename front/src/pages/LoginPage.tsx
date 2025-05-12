@@ -48,7 +48,7 @@ const LoginPage: React.FC = () => {
           last_name: '',
           is_active: true,
           is_admin: false,
-          role: 'viewer',
+          role: 'new_user',
           created_at: new Date().toISOString(),
           updated_at: new Date().toISOString()
         };

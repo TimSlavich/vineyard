@@ -1,9 +1,10 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import { ArrowLeft, Loader2, RefreshCw } from 'lucide-react';
+import { ArrowLeft, Loader2, RefreshCw, AlertTriangle } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import Card from '../components/ui/Card';
 import diagnosticApi, { DiagnosticResult } from '../services/api/diagnosticApi';
 import useSensorData from '../hooks/useSensorData';
+import websocketService from '../services/websocketService';
 
 const DiagnosticPage: React.FC = () => {
     const [isRunning, setIsRunning] = useState(false);

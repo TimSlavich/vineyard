@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 import { SensorData } from '../../types';
 import Card from './Card';
-import { ArrowUp, ArrowDown, Thermometer, Droplets, CloudRain, Sun, Wind, Leaf, Wind as WindIcon, Ruler, Cloudy } from 'lucide-react';
+import { ArrowUp, ArrowDown, Thermometer, Droplets, CloudRain, Sun, Wind, Leaf, Wind as WindIcon, Ruler, Cloudy, MoreVertical } from 'lucide-react';
 import SensorModal from './SensorModal';
+import websocketService from '../../services/websocketService';
 
 interface SensorCardProps {
   data: SensorData;
@@ -11,6 +12,7 @@ interface SensorCardProps {
 
 const SensorCard = ({ data, previousData = [] }: SensorCardProps) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [showOptions, setShowOptions] = useState(false);
 
   const openModal = () => setIsModalOpen(true);
   const closeModal = () => setIsModalOpen(false);
@@ -159,7 +161,7 @@ const SensorCard = ({ data, previousData = [] }: SensorCardProps) => {
   return (
     <>
       <Card
-        className="flex flex-col h-full cursor-pointer"
+        className="flex flex-col h-full cursor-pointer relative"
         hoverable
         onClick={openModal}
       >
@@ -210,6 +212,35 @@ const SensorCard = ({ data, previousData = [] }: SensorCardProps) => {
             </span>
           </div>
         </div>
+
+        {/* Кнопка опций */}
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            setShowOptions(!showOptions);
+          }}
+          className="absolute top-3 right-3 p-1 rounded-full hover:bg-gray-100 transition-colors"
+        >
+          <MoreVertical size={16} className="text-gray-500" />
+        </button>
+
+        {/* Выпадающее меню с опциями */}
+        {showOptions && (
+          <div className="absolute top-10 right-3 bg-white shadow-md rounded-md z-10 py-1 border border-gray-200">
+            <button
+              onClick={(e) => { e.stopPropagation(); setShowOptions(false); }}
+              className="w-full text-left px-4 py-2 hover:bg-gray-100 text-sm"
+            >
+              Добавить в избранное
+            </button>
+            <button
+              onClick={(e) => { e.stopPropagation(); setShowOptions(false); }}
+              className="w-full text-left px-4 py-2 hover:bg-gray-100 text-sm"
+            >
+              Настроить оповещения
+            </button>
+          </div>
+        )}
       </Card>
 
       {isModalOpen && (

@@ -4,7 +4,7 @@ import Button from '../components/ui/Button';
 import { useDeviceSettings } from '../context/DeviceSettingsContext';
 import { Bell, Smartphone, Save, RefreshCw } from 'lucide-react';
 import ModalMessage from '../components/ui/ModalMessage';
-import { thresholds as initialThresholds, notificationSettings as initialNotificationSettings } from '../data/mockData';
+import { notificationSettings as initialNotificationSettings } from '../data/mockData';
 import { getUserData } from '../utils/storage';
 import { useNavigate } from 'react-router-dom';
 import {
@@ -24,12 +24,16 @@ import {
 // Компонент для отображения списка устройств
 const DevicesTab = memo(({
   allDevices,
-  handleUpdateStatus,
-  getDeviceStatusClass
+  getDeviceStatusClass,
+  setDetailsOpen,
+  setDetailsDevice,
+  handleUpdateStatus
 }: {
   allDevices: any[],
-  handleUpdateStatus: () => void,
-  getDeviceStatusClass: (status: string) => string
+  getDeviceStatusClass: (status: string) => string,
+  setDetailsOpen: React.Dispatch<React.SetStateAction<boolean>>,
+  setDetailsDevice: React.Dispatch<React.SetStateAction<any>>,
+  handleUpdateStatus: () => void
 }) => {
   return (
     <Card title="Пристрої та датчики" className="mb-6">
@@ -123,14 +127,25 @@ const ThresholdsTab = memo(({
   handleThresholdChange,
   handleSaveThresholds,
   handleResetThresholds,
-  handleTestAlert
+  handleTestAlert,
+  loading
 }: {
   localThresholds: any[],
   handleThresholdChange: (id: string, field: 'min' | 'max', value: number) => void,
   handleSaveThresholds: () => void,
   handleResetThresholds: () => void,
-  handleTestAlert: () => void
+  handleTestAlert: () => void,
+  loading: boolean
 }) => {
+  // Безопасное преобразование строки в число
+  const safeParseFloat = (value: string): number => {
+    const parsed = parseFloat(value);
+    if (isNaN(parsed)) return 0;
+
+    // Округляем до 2 знаков после запятой для более читаемых значений
+    return Math.round(parsed * 100) / 100;
+  };
+
   return (
     <Card title="Порогові значення" className="mb-6">
       <div className="mb-4 flex flex-wrap gap-2">
@@ -160,56 +175,78 @@ const ThresholdsTab = memo(({
         </Button>
       </div>
 
-      <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
-              <tr>
-                <th scope="col" className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Тип датчика
-                </th>
-                <th scope="col" className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Мінімум
-                </th>
-                <th scope="col" className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Максимум
-                </th>
-                <th scope="col" className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Одиниці виміру
-                </th>
-              </tr>
-            </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
-              {localThresholds.map((threshold) => (
-                <tr key={threshold.id} className="hover:bg-gray-50">
-                  <td className="px-4 py-3 text-sm text-gray-900">
-                    {SENSOR_TYPE_UA[threshold.sensorType]}
-                  </td>
-                  <td className="px-4 py-3">
-                    <input
-                      type="number"
-                      className="w-24 px-3 py-1 border border-gray-300 rounded-md text-gray-800 text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
-                      value={threshold.min}
-                      onChange={(e) => handleThresholdChange(threshold.id, 'min', parseFloat(e.target.value))}
-                    />
-                  </td>
-                  <td className="px-4 py-3">
-                    <input
-                      type="number"
-                      className="w-24 px-3 py-1 border border-gray-300 rounded-md text-gray-800 text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
-                      value={threshold.max}
-                      onChange={(e) => handleThresholdChange(threshold.id, 'max', parseFloat(e.target.value))}
-                    />
-                  </td>
-                  <td className="px-4 py-3 text-sm text-gray-900">
-                    {threshold.unit}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+      {loading ? (
+        <div className="p-6 flex justify-center items-center">
+          <div className="flex items-center space-x-3">
+            <div className="w-6 h-6 border-2 border-t-transparent border-primary rounded-full animate-spin"></div>
+            <span className="text-gray-600">Завантаження порогових значень...</span>
+          </div>
         </div>
-      </div>
+      ) : (!localThresholds || localThresholds.length === 0) ? (
+        <div className="p-6 flex justify-center">
+          <p className="text-gray-600">Порогові значення відсутні. Натисніть "Скинути до початкових", щоб створити їх.</p>
+        </div>
+      ) : (
+        <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
+          <div className="overflow-x-auto">
+            <table className="min-w-full divide-y divide-gray-200">
+              <thead className="bg-gray-50">
+                <tr>
+                  <th scope="col" className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Тип датчика
+                  </th>
+                  <th scope="col" className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Мінімум
+                  </th>
+                  <th scope="col" className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Максимум
+                  </th>
+                  <th scope="col" className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Одиниці виміру
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="bg-white divide-y divide-gray-200">
+                {localThresholds.map((threshold) => (
+                  <tr key={threshold.id} className="hover:bg-gray-50">
+                    <td className="px-4 py-3 text-sm text-gray-900">
+                      {SENSOR_TYPE_UA[threshold.sensorType] || threshold.sensorType}
+                      {!SENSOR_TYPE_UA[threshold.sensorType] &&
+                        <span className="text-xs text-red-500 ml-1">
+                          (Нет перевода)
+                        </span>
+                      }
+                    </td>
+                    <td className="px-4 py-3">
+                      <input
+                        type="number"
+                        className="w-24 px-3 py-1 border border-gray-300 rounded-md text-gray-800 text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+                        value={isNaN(threshold.min) ? '' : threshold.min}
+                        min="0"
+                        step="0.1"
+                        onChange={(e) => handleThresholdChange(threshold.id, 'min', safeParseFloat(e.target.value))}
+                      />
+                    </td>
+                    <td className="px-4 py-3">
+                      <input
+                        type="number"
+                        className="w-24 px-3 py-1 border border-gray-300 rounded-md text-gray-800 text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+                        value={isNaN(threshold.max) ? '' : threshold.max}
+                        min="0"
+                        step="0.1"
+                        onChange={(e) => handleThresholdChange(threshold.id, 'max', safeParseFloat(e.target.value))}
+                      />
+                    </td>
+                    <td className="px-4 py-3 text-sm text-gray-900">
+                      {threshold.unit}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
     </Card>
   );
 });
@@ -217,10 +254,23 @@ const ThresholdsTab = memo(({
 // Основной компонент страницы настроек
 const SettingsPage: React.FC = () => {
   const [activeTab, setActiveTab] = useState('devices');
-  const { devices, setDevices, thresholds, setThresholds, notificationSettings, setNotificationSettings, robots, setRobots } = useDeviceSettings();
+  const {
+    devices,
+    setDevices,
+    thresholds,
+    setThresholds,
+    notificationSettings,
+    setNotificationSettings,
+    robots,
+    setRobots,
+    fetchThresholds,
+    updateAllThresholds,
+    resetThresholds,
+    loading
+  } = useDeviceSettings();
   const [detailsOpen, setDetailsOpen] = useState(false);
   const [detailsDevice, setDetailsDevice] = useState<any>(null);
-  const [localThresholds, setLocalThresholds] = useState(thresholds);
+  const [localThresholds, setLocalThresholds] = useState<any[]>([]);
   const [saveModalOpen, setSaveModalOpen] = useState(false);
   const [thresholdResetModalOpen, setThresholdResetModalOpen] = useState(false);
   const [notifSaveModalOpen, setNotifSaveModalOpen] = useState(false);
@@ -247,9 +297,32 @@ const SettingsPage: React.FC = () => {
   const navigate = useNavigate();
   const [userSettings, setUserSettings] = useState<UserSettings>(loadUserSettings());
 
+  // Инициализация при загрузке компонента
+  useEffect(() => {
+    // При монтировании компонента запрашиваем актуальные пороговые значения
+    fetchThresholds();
+
+    // Устанавливаем таймер для повторного запроса через 2 секунды, если данные не пришли
+    const timer = setTimeout(() => {
+      if (thresholds.length === 0 && !loading.thresholds) {
+        fetchThresholds();
+      }
+    }, 2000);
+
+    return () => clearTimeout(timer);
+  }, []);
+
+  // Обновляем локальные пороговые значения при получении от сервера
   useEffect(() => {
     setLocalThresholds(thresholds);
   }, [thresholds]);
+
+  // При переключении на вкладку пороговых значений, повторно запрашиваем данные если их нет
+  useEffect(() => {
+    if (activeTab === 'thresholds' && thresholds.length === 0 && !loading.thresholds) {
+      fetchThresholds();
+    }
+  }, [activeTab]);
 
   // Объединяем устройства и роботов для таблицы
   const allDevices = useMemo(() => [
@@ -276,9 +349,22 @@ const SettingsPage: React.FC = () => {
   ], [devices, robots]);
 
   const handleThresholdChange = (id: string, field: 'min' | 'max', value: number) => {
+    // Проверяем значение на NaN и ограничиваем отрицательные значения
+    // для типов датчиков, которые не могут иметь отрицательные значения
+    const threshold = localThresholds.find(t => t.id === id);
+    let validValue = isNaN(value) ? 0 : value;
+
+    // Для некоторых типов датчиков (температура) разрешаем отрицательные значения
+    if (threshold && ['humidity', 'soil_moisture', 'light', 'wind_speed', 'rainfall', 'co2'].includes(threshold.sensorType)) {
+      validValue = Math.max(0, validValue);
+    }
+
+    // Округляем до 2 знаков после запятой
+    validValue = Math.round(validValue * 100) / 100;
+
     setLocalThresholds(prev =>
       prev.map(threshold =>
-        threshold.id === id ? { ...threshold, [field]: value } : threshold
+        threshold.id === id ? { ...threshold, [field]: validValue } : threshold
       )
     );
   };
@@ -343,14 +429,47 @@ const SettingsPage: React.FC = () => {
 
   // Сохранить изменения порогов
   const handleSaveThresholds = () => {
-    setThresholds(localThresholds);
-    setSaveModalOpen(true);
+    // Используем функцию из контекста для сохранения
+    updateAllThresholds(localThresholds)
+      .then(() => {
+        // При успехе показываем уведомление
+        setSaveModalOpen(true);
+      })
+      .catch(error => {
+        console.error('Ошибка при сохранении пороговых значений:', error);
+
+        // Отображаем ошибку пользователю
+        import('../services/notificationService').then(({ addAlert }) => {
+          addAlert({
+            title: 'Ошибка',
+            message: 'Не удалось сохранить пороговые значения',
+            type: 'critical',
+            sensorId: 'threshold-save-error',
+          });
+        });
+      });
   };
 
   // Сбросить к стандартным
   const handleResetThresholds = () => {
-    setLocalThresholds(initialThresholds);
-    setThresholdResetModalOpen(true);
+    // Используем функцию resetThresholds из контекста
+    resetThresholds()
+      .then(() => {
+        setThresholdResetModalOpen(true);
+      })
+      .catch(error => {
+        console.error('Ошибка при сбросе пороговых значений:', error);
+
+        // Отображаем ошибку пользователю
+        import('../services/notificationService').then(({ addAlert }) => {
+          addAlert({
+            title: 'Ошибка',
+            message: 'Не удалось сбросить пороговые значения',
+            type: 'critical',
+            sensorId: 'threshold-reset-error',
+          });
+        });
+      });
   };
 
   // Сохранить настройки уведомлений
@@ -366,20 +485,51 @@ const SettingsPage: React.FC = () => {
 
   // Функция для отправки тестового оповещения
   const handleTestAlert = () => {
-    // Вариант 1: Отправить тестовое оповещение через WebSocket
+    // Создаем переменную для хранения состояния кнопки
+    const btnElement = document.querySelector('button.border-warning');
+    const originalText = btnElement?.textContent || 'Тестове оповіщення';
+
+    if (btnElement) {
+      btnElement.textContent = 'Відправка...';
+      btnElement.setAttribute('disabled', 'true');
+    }
+
+    // Отправляем тестовое оповещение через WebSocket
     import('../services/websocketService').then(({ default: websocketService }) => {
       websocketService.sendTestAlert();
-    });
 
-    // Вариант 2: Создаем локальное оповещение напрямую через notificationService
-    import('../services/notificationService').then(({ addAlert }) => {
-      addAlert({
-        title: 'Тестове оповіщення',
-        message: 'Це тестове оповіщення для перевірки роботи системи сповіщень. Поточні налаштування порогових значень працюють.',
-        type: 'info',
-        sensorId: 'test_sensor',
-        locationId: 'test_location'
+      // Устанавливаем обработчик для получения ответа от сервера
+      const unsubscribe = websocketService.subscribe('request_completed', (data) => {
+        // Проверяем, что это ответ на тестовое оповещение
+        if (data && data.message && data.message.includes('Тестовое оповещение')) {
+          unsubscribe();
+
+          // Импортируем addAlert для создания оповещения
+          import('../services/notificationService').then(({ addAlert }) => {
+            addAlert({
+              title: 'Тестове оповіщення',
+              message: 'Тестове оповіщення успішно отримано. Система оповіщень працює нормально.',
+              type: 'info',
+              sensorId: 'test-notification',
+            });
+          });
+
+          // Возвращаем кнопку в исходное состояние
+          if (btnElement) {
+            btnElement.textContent = originalText;
+            btnElement.removeAttribute('disabled');
+          }
+        }
       });
+
+      // Устанавливаем таймаут на 3 секунды
+      setTimeout(() => {
+        // Возвращаем кнопку в исходное состояние
+        if (btnElement) {
+          btnElement.textContent = originalText;
+          btnElement.removeAttribute('disabled');
+        }
+      }, 3000);
     });
   };
 
@@ -465,8 +615,10 @@ const SettingsPage: React.FC = () => {
       {activeTab === 'devices' && (
         <DevicesTab
           allDevices={allDevices}
-          handleUpdateStatus={handleUpdateStatus}
           getDeviceStatusClass={getDeviceStatusClass}
+          setDetailsOpen={setDetailsOpen}
+          setDetailsDevice={setDetailsDevice}
+          handleUpdateStatus={handleUpdateStatus}
         />
       )}
 
@@ -478,6 +630,7 @@ const SettingsPage: React.FC = () => {
           handleSaveThresholds={handleSaveThresholds}
           handleResetThresholds={handleResetThresholds}
           handleTestAlert={handleTestAlert}
+          loading={loading.thresholds}
         />
       )}
 
