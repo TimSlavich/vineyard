@@ -52,7 +52,7 @@ async def create_demo_user_if_not_exists():
     Создает демо-пользователя, если он еще не существует.
     """
     try:
-        demo_user = await User.get_or_none(username="demo_user")
+        demo_user = await User.get_or_none(email="demo@example.com")
 
         if not demo_user:
             # Хешируем пароль "demo"
@@ -96,7 +96,7 @@ async def create_admin_user_if_not_exists():
     Создает пользователя-администратора, если он еще не существует.
     """
     try:
-        admin_user = await User.get_or_none(username="s_love.ich")
+        admin_user = await User.get_or_none(email="koktim44@gmail.com")
 
         if not admin_user:
             # Хешируем пароль

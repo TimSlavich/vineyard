@@ -102,7 +102,7 @@ const Navbar = () => {
     const isActive = location.pathname === path;
     const baseClasses = 'px-3 py-2 text-sm font-medium rounded-md transition-colors duration-150 font-inter';
 
-    if (isHomePage && !isScrolled && path !== '/dashboard') {
+    if (isHomePage && !isScrolled) {
       return isActive
         ? `${baseClasses} text-white bg-white bg-opacity-20`
         : `${baseClasses} text-white hover:bg-white hover:bg-opacity-10`;

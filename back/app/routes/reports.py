@@ -703,7 +703,7 @@ async def get_report_templates(
     templates = [
         {
             "id": 1,
-            "name": "Сводка данных датчиків",
+            "name": "Зведення даних датчиків",
             "type": "sensor_data",
             "description": "Зведення даних датчиків за вказаний період",
             "parameters": ["start_date", "end_date", "sensor_type", "location_id"],

@@ -323,30 +323,33 @@ class WebSocketService {
     }
 
     /**
-     * Подписывается на определенный тип сообщений и возвращает функцию для отписки
-     * @param type - тип сообщения
-     * @param callback - функция-обработчик, которая будет вызываться при получении сообщения
-     * @returns функция для отписки
+     * Подписка на определенный тип сообщений от WebSocket
+     * @param type Тип сообщения
+     * @param callback Функция обратного вызова
+     * @returns Функция для отписки
      */
     public subscribe<T = any>(type: WebSocketMessageType, callback: (data: T) => void): () => void {
-        const listener = (message: WebSocketMessage) => {
-            if (message.data === undefined) return;
+        console.debug(`Подписка на события типа: ${type}`);
 
-            if (Array.isArray(message.data) && message.data.length > 0) {
-                message.data.forEach((item: any) => callback(item as T));
-            } else if (typeof message.data === 'object' && message.data !== null) {
-                if ('data' in message.data && Array.isArray(message.data.data)) {
-                    message.data.data.forEach((item: any) => callback(item as T));
-                } else {
-                    callback(message.data as T);
+        const listener = (message: WebSocketMessage) => {
+            try {
+                if (message.type === type) {
+                    console.debug(`Получено событие типа ${type}:`, message.data);
+                    callback(message.data);
                 }
-            } else {
-                callback(message.data as T);
+            } catch (error) {
+                console.error(`Ошибка при обработке события типа ${type}:`, error);
             }
         };
 
+        // Добавляем слушатель
         this.addMessageListener(type, listener);
-        return () => this.removeMessageListener(type, listener);
+
+        // Возвращаем функцию отписки
+        return () => {
+            console.debug(`Отписка от событий типа: ${type}`);
+            this.removeMessageListener(type, listener);
+        };
     }
 
     /**

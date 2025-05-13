@@ -133,6 +133,8 @@ export interface UserProfileUpdateRequest {
     name?: string;
     email?: string;
     timezone?: string;
+    first_name?: string;
+    last_name?: string;
 }
 
 /**

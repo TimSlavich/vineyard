@@ -10,6 +10,7 @@ interface ModalMessageProps {
     onClose: () => void;
     onConfirm?: (() => void) | null;
     children?: React.ReactNode;
+    hideDefaultButtons?: boolean;
 }
 
 const iconMap = {
@@ -28,10 +29,19 @@ const ModalMessage: React.FC<ModalMessageProps> = ({
     onClose,
     onConfirm,
     children,
+    hideDefaultButtons = false,
 }) => {
     // Ничего не рендерим, если модальное окно закрыто
     // Используем либо open, либо isOpen
     if (!open && !isOpen) return null;
+
+    // Проверяем, содержит ли message кастомные элементы с кнопками
+    const hasCustomButtons = React.isValidElement(message) &&
+        typeof message.props === 'object' &&
+        (
+            // Просто проверяем, что это div с классом space-y-3 (наш стандартный контейнер для модальных окон с кнопками)
+            (typeof message.props.className === 'string' && message.props.className.includes('space-y-3'))
+        );
 
     // Обработчик подтверждения - вызывает onConfirm и закрывает модальное окно
     const handleConfirm = () => {
@@ -79,28 +89,30 @@ const ModalMessage: React.FC<ModalMessageProps> = ({
                     {children}
 
                     {/* Разные типы кнопок в зависимости от типа модального окна */}
-                    {type === 'confirm' ? (
-                        <div className="flex gap-3">
-                            <button
-                                className="px-6 py-2 rounded bg-gray-200 text-gray-700 hover:bg-gray-300 font-medium"
-                                onClick={onClose}
-                            >
-                                Скасувати
-                            </button>
+                    {!children && !hasCustomButtons && !hideDefaultButtons && (
+                        type === 'confirm' ? (
+                            <div className="flex gap-3">
+                                <button
+                                    className="px-6 py-2 rounded bg-gray-200 text-gray-700 hover:bg-gray-300 font-medium"
+                                    onClick={onClose}
+                                >
+                                    Скасувати
+                                </button>
+                                <button
+                                    className="px-6 py-2 rounded bg-primary text-white hover:bg-primary-dark font-medium"
+                                    onClick={handleConfirm}
+                                >
+                                    OK
+                                </button>
+                            </div>
+                        ) : (
                             <button
                                 className="px-6 py-2 rounded bg-primary text-white hover:bg-primary-dark font-medium"
-                                onClick={handleConfirm}
+                                onClick={onClose}
                             >
                                 OK
                             </button>
-                        </div>
-                    ) : (
-                        <button
-                            className="px-6 py-2 rounded bg-primary text-white hover:bg-primary-dark font-medium"
-                            onClick={onClose}
-                        >
-                            OK
-                        </button>
+                        )
                     )}
                 </div>
             </div>

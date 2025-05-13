@@ -155,20 +155,6 @@ const CookiesPolicyPage: React.FC = () => {
                                             </p>
                                         </div>
                                     </div>
-                                    <div className="flex items-start p-4 bg-gray-50 rounded-lg">
-                                        <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center mr-4 flex-shrink-0">
-                                            <span className="text-gray-600 font-bold">M</span>
-                                        </div>
-                                        <div>
-                                            <p className="font-medium text-gray-800 mb-1">Mapbox</p>
-                                            <p className="text-gray-600 font-roboto text-sm">
-                                                Використовується для відображення карт виноградників.
-                                                <a href="https://www.mapbox.com/privacy" className="text-primary underline ml-1" target="_blank" rel="noopener noreferrer">
-                                                    Політика конфіденційності Mapbox
-                                                </a>
-                                            </p>
-                                        </div>
-                                    </div>
                                 </div>
                             </div>
                         </div>

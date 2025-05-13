@@ -131,6 +131,7 @@ export const addAlert = (alert: Omit<Alert, 'id' | 'timestamp' | 'read'>): void 
         return;
     }
 
+    // Создаем уведомление
     const newAlert: Alert = {
         id: `alert-${Date.now()}`,
         timestamp: new Date().toISOString(),
@@ -141,7 +142,8 @@ export const addAlert = (alert: Omit<Alert, 'id' | 'timestamp' | 'read'>): void 
     // Добавляем уведомление в начало массива и ограничиваем его размер
     globalAlerts = [newAlert, ...globalAlerts].slice(0, MAX_ALERTS);
 
-    // Оповещаем подписчиков
+    // Всегда оповещаем подписчиков и сохраняем в хранилище
+    console.debug(`Отправка уведомления: ${newAlert.title}`);
     notifySubscribers();
 };
 
@@ -213,7 +215,11 @@ export const convertSensorAlertToAlert = (sensorAlert: SensorAlert): Alert => {
 
 // Инициализация подписки на WebSocket-оповещения от датчиков
 export const initSensorAlertSubscription = () => {
+    console.debug('Инициализация подписки на уведомления датчиков');
+
     const unsubscribe = websocketService.subscribe<SensorAlert>('sensor_alert', (sensorAlert) => {
+        console.debug('Получено уведомление от датчика через WebSocket:', sensorAlert);
+
         // Проверяем роль пользователя
         const userData = getUserData();
         if (userData?.role === 'new_user') {
@@ -224,6 +230,8 @@ export const initSensorAlertSubscription = () => {
 
         // Проверяем, есть ли уже оповещения от этого датчика с тем же типом алерта
         const sensorIdStr = sensorAlert.id.toString();
+        console.debug(`Проверка существующих уведомлений для датчика ID=${sensorIdStr}, тип=${sensorAlert.alert_type}`);
+
         const existingAlerts = globalAlerts.filter(alert => {
             // Анализируем ID, чтобы извлечь ID датчика
             // Новый формат: sensor-alert-{id}-{timestamp}-{random}
@@ -241,21 +249,23 @@ export const initSensorAlertSubscription = () => {
             return false;
         });
 
+        console.debug(`Найдено ${existingAlerts.length} существующих уведомлений для данного датчика`);
+
         // Удаляем существующие оповещения от этого датчика с тем же типом
         if (existingAlerts.length > 0) {
             const alertIdsToRemove = existingAlerts.map(alert => alert.id);
             globalAlerts = globalAlerts.filter(alert => !alertIdsToRemove.includes(alert.id));
+            console.debug(`Удалены существующие уведомления: ${alertIdsToRemove.join(', ')}`);
         }
 
-        // Преобразуем оповещение от датчика в формат Alert и добавляем его
+        // Преобразуем оповещение от датчика в формат Alert
         const alert = convertSensorAlertToAlert(sensorAlert);
+        console.debug('Преобразованное уведомление:', alert);
 
         // Добавляем новое оповещение
+        console.debug('Вызов addAlert для нового уведомления от датчика');
         addAlert(alert);
     });
 
     return unsubscribe;
 };
-
-// Запускаем подписку при импорте модуля
-const sensorAlertUnsubscribe = initSensorAlertSubscription(); 

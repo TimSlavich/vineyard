@@ -4,7 +4,7 @@ import Button from '../components/ui/Button';
 import { useDeviceSettings } from '../context/DeviceSettingsContext';
 import { Bell, Smartphone, Save, RefreshCw } from 'lucide-react';
 import ModalMessage from '../components/ui/ModalMessage';
-import { getUserData } from '../utils/storage';
+import { getUserData, setItem } from '../utils/storage';
 import { useNavigate } from 'react-router-dom';
 import {
   translateDeviceStatus,
@@ -21,6 +21,7 @@ import {
 } from '../services/userSettingsService';
 import useSensorData from '../hooks/useSensorData';
 import { NotificationSetting } from '../types';
+import { userApi } from '../services/api/userApi';
 
 // Компонент для отображения списка устройств
 const DevicesTab = memo(({
@@ -297,15 +298,18 @@ const SettingsPage: React.FC = () => {
   const [thresholdResetModalOpen, setThresholdResetModalOpen] = useState(false);
   const [notifSaveModalOpen, setNotifSaveModalOpen] = useState(false);
   const [notifResetModalOpen, setNotifResetModalOpen] = useState(false);
-  const userData = getUserData() || { name: '', email: '' };
+  const userData = getUserData() || { first_name: '', last_name: '', email: '' };
   const [account, setAccount] = useState({
-    name: userData.name || '',
+    name: [userData.first_name, userData.last_name].filter(Boolean).join(' '),
     email: userData.email || '',
     timezone: 'Europe/Kyiv',
   });
   const [accountNameEdit, setAccountNameEdit] = useState(account.name);
   const [accountNameChanged, setAccountNameChanged] = useState(false);
   const [accountModalOpen, setAccountModalOpen] = useState(false);
+  const [isUpdatingAccount, setIsUpdatingAccount] = useState(false);
+  const [accountUpdateSuccess, setAccountUpdateSuccess] = useState(false);
+  const [accountUpdateError, setAccountUpdateError] = useState('');
   const [passwordModalOpen, setPasswordModalOpen] = useState(false);
   const [passwordSuccess, setPasswordSuccess] = useState(false);
   const [oldPassword, setOldPassword] = useState('');
@@ -685,6 +689,46 @@ const SettingsPage: React.FC = () => {
     setNotifResetModalOpen(true);
   };
 
+  // Функция для обновления имени пользователя
+  const handleUpdateUserName = async () => {
+    if (!accountNameChanged || !accountNameEdit.trim()) return;
+
+    setIsUpdatingAccount(true);
+    setAccountUpdateError('');
+
+    try {
+      // Разделяем полное имя на имя и фамилию
+      const nameParts = accountNameEdit.trim().split(' ');
+      const firstName = nameParts[0] || '';
+      const lastName = nameParts.slice(1).join(' ') || '';
+
+      // Вызываем API для обновления профиля
+      const updatedUserData = await userApi.updateProfile({
+        first_name: firstName,
+        last_name: lastName
+      });
+
+      // Обновляем данные в localStorage
+      setItem('user', updatedUserData);
+
+      // Формируем полное имя из first_name и last_name
+      const fullName = [updatedUserData.first_name, updatedUserData.last_name].filter(Boolean).join(' ');
+
+      // Обновляем локальное состояние
+      setAccount(prev => ({ ...prev, name: fullName }));
+      setAccountNameEdit(fullName);
+      setAccountNameChanged(false);
+      setAccountUpdateSuccess(true);
+    } catch (error) {
+      console.error('Помилка при оновленні імені користувача:', error);
+      setAccountUpdateError(error instanceof Error ? error.message : 'Не вдалося оновити ім\'я користувача');
+      setAccountUpdateSuccess(false);
+    } finally {
+      setIsUpdatingAccount(false);
+      setAccountModalOpen(true);
+    }
+  };
+
   return (
     <div className="px-6 py-8 md:px-8 lg:px-12 min-h-screen">
       <div className="mb-8">
@@ -764,7 +808,6 @@ const SettingsPage: React.FC = () => {
         <NotificationSettings
           settings={userSettings.notifications.channels}
           onToggleChannel={handleToggleNotificationChannel}
-          onToggleAlertType={handleToggleNotificationAlertType}
           onSaveSettings={handleSaveNotificationSettings}
           onResetSettings={handleResetNotificationSettings}
         />
@@ -791,14 +834,10 @@ const SettingsPage: React.FC = () => {
                   onChange={e => { setAccountNameEdit(e.target.value); setAccountNameChanged(e.target.value !== account.name); }}
                 />
                 <Button
-                  onClick={() => {
-                    setAccount(a => ({ ...a, name: accountNameEdit }));
-                    setAccountNameChanged(false);
-                    setAccountModalOpen(true);
-                  }}
-                  disabled={!accountNameChanged}
+                  onClick={handleUpdateUserName}
+                  disabled={!accountNameChanged || isUpdatingAccount}
                 >
-                  Зберегти
+                  {isUpdatingAccount ? 'Зберігаю...' : 'Зберегти'}
                 </Button>
               </div>
             </div>
@@ -957,11 +996,14 @@ const SettingsPage: React.FC = () => {
       />
       <ModalMessage
         isOpen={accountModalOpen}
-        type="success"
-        title="Зміни акаунта збережено"
-        message="Всі зміни профілю успішно збережено."
         onClose={() => setAccountModalOpen(false)}
-      />
+        title={accountUpdateSuccess ? "Профіль оновлено" : "Помилка оновлення"}
+        type={accountUpdateSuccess ? "success" : "error"}
+      >
+        {accountUpdateSuccess
+          ? "Ім'я користувача успішно оновлено."
+          : `Помилка при оновленні імені користувача: ${accountUpdateError || 'Невідома помилка'}`}
+      </ModalMessage>
       <ModalMessage
         isOpen={passwordModalOpen}
         type="info"
@@ -1033,6 +1075,7 @@ const SettingsPage: React.FC = () => {
         isOpen={deleteModalOpen && deleteStep === 0}
         type="error"
         title="Видалення акаунта"
+        hideDefaultButtons={true}
         message={
           <div className="space-y-3">
             <div>Ви дійсно хочете видалити акаунт? Це дія незворотна. Для підтвердження введіть пароль:</div>
@@ -1044,7 +1087,7 @@ const SettingsPage: React.FC = () => {
               onChange={e => setDeletePassword(e.target.value)}
             />
             {deleteError && <div className="text-error text-sm">{deleteError}</div>}
-            <div className="flex gap-3 justify-end pt-2">
+            <div className="flex gap-3 justify-center pt-4">
               <Button variant="outline" onClick={() => { setDeleteModalOpen(false); setDeleteError(''); setDeletePassword(''); }}>Скасувати</Button>
               <Button
                 variant="primary"
@@ -1069,21 +1112,43 @@ const SettingsPage: React.FC = () => {
         isOpen={deleteModalOpen && deleteStep === 1}
         type="error"
         title="Підтвердження видалення"
+        hideDefaultButtons={true}
         message={
           <div className="space-y-3">
             <div>Ви точно хочете видалити акаунт? Всі ваші дані буде втрачено безповоротно.</div>
-            <div className="flex gap-3 justify-end pt-2">
+            <div className="flex gap-3 justify-center pt-4">
               <Button variant="outline" onClick={() => { setDeleteModalOpen(false); setDeleteStep(0); setDeletePassword(''); }}>Скасувати</Button>
               <Button
                 variant="primary"
                 className="bg-red-500 hover:bg-red-600 text-white border-red-500"
-                onClick={() => {
-                  // Удаляем всё из localStorage, делаем редирект
-                  localStorage.clear();
-                  setDeleteModalOpen(false);
-                  setTimeout(() => {
-                    navigate('/');
-                  }, 200);
+                onClick={async () => {
+                  try {
+                    // Отображаем состояние загрузки на кнопке
+                    const btnElement = document.querySelector('.bg-red-500.hover\\:bg-red-600');
+                    if (btnElement) {
+                      const originalText = btnElement.textContent;
+                      btnElement.textContent = 'Видалення...';
+                      btnElement.setAttribute('disabled', 'true');
+                    }
+
+                    // Вызываем API для удаления аккаунта
+                    await userApi.deleteAccount();
+                    
+                    setTimeout(() => {
+                      navigate('/');
+                    }, 200);
+
+                    // В случае успеха API метод сам выполнит редирект
+                  } catch (error) {
+                    console.error('Помилка при видаленні акаунта:', error);
+
+                    // В случае ошибки вручную очищаем локальное хранилище и перенаправляем
+                    localStorage.clear();
+                    setDeleteModalOpen(false);
+                    setTimeout(() => {
+                      navigate('/');
+                    }, 200);
+                  }
                 }}
               >
                 Видалити назавжди

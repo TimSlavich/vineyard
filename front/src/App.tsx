@@ -24,6 +24,7 @@ import { DeviceSettingsProvider } from './context/DeviceSettingsContext';
 import { setRedirectCallback } from './services/api/baseApi';
 import { loginAsDemoAndRedirect } from './utils/demoHelper';
 import { initializeWebSocketConnection } from './services/websocketService';
+import { initSensorAlertSubscription } from './services/notificationService';
 
 // Захищений маршрут, який перевіряє аутентифікацію
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
@@ -72,8 +73,14 @@ const AppContent = () => {
   useEffect(() => {
     if (isAuthenticated()) {
       // Инициализируем соединение для получения данных с датчиков
-      // Обратите внимание: логика оповещений удалена, осталась только визуализация
-      initializeWebSocketConnection();
+      initializeWebSocketConnection()
+        .then(() => {
+          // Инициализируем подписку на уведомления датчиков
+          initSensorAlertSubscription();
+        })
+        .catch(error => {
+          console.error('Ошибка при инициализации WebSocket соединения:', error);
+        });
     }
   }, []);
 

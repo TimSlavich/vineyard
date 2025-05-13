@@ -1,0 +1,1299 @@
+{
+  "type": "sensor_data",
+  "generated_at": "2025-05-13T20:19:46.768910",
+  "generated_by": "demo_user",
+  "parameters": {
+    "start_date": "2025-05-13T00:00:00+00:00",
+    "end_date": "2025-05-13T23:59:59.999000+00:00",
+    "sensor_type": "soil_moisture",
+    "location_id": null
+  },
+  "summary": {
+    "total_records": 158,
+    "sensor_types": [
+      "soil_moisture"
+    ],
+    "date_range": {
+      "start": "2025-05-13T00:00:00+00:00",
+      "end": "2025-05-13T23:59:59.999000+00:00"
+    }
+  },
+  "statistics": {
+    "soil_moisture": {
+      "min": 20.0,
+      "max": 80.0,
+      "avg": 55.39059678377378,
+      "median": 67.90088625564043,
+      "count": 158,
+      "unit": "%"
+    }
+  },
+  "data": {
+    "soil_moisture": [
+      {
+        "timestamp": "2025-05-13T20:18:32.267234+00:00",
+        "value": 45.464386036403255,
+        "unit": "%",
+        "sensor_id": "1_soil_moisture_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T20:18:09.454454+00:00",
+        "value": 45.72141890836357,
+        "unit": "%",
+        "sensor_id": "1_soil_moisture_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T20:16:17.117241+00:00",
+        "value": 46.32134970393579,
+        "unit": "%",
+        "sensor_id": "1_soil_moisture_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T20:16:16.921781+00:00",
+        "value": 46.96476063514514,
+        "unit": "%",
+        "sensor_id": "1_soil_moisture_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T20:16:00.019606+00:00",
+        "value": 67.60270116180124,
+        "unit": "%",
+        "sensor_id": "1_soil_moisture_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T20:12:22.453791+00:00",
+        "value": 68.81935683532922,
+        "unit": "%",
+        "sensor_id": "1_soil_moisture_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T20:12:18.929031+00:00",
+        "value": 68.36443529097338,
+        "unit": "%",
+        "sensor_id": "1_soil_moisture_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T20:11:28.460281+00:00",
+        "value": 68.07075799390662,
+        "unit": "%",
+        "sensor_id": "1_soil_moisture_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T20:10:59.810928+00:00",
+        "value": 68.77677317699272,
+        "unit": "%",
+        "sensor_id": "1_soil_moisture_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T20:05:59.715138+00:00",
+        "value": 70.02017133779594,
+        "unit": "%",
+        "sensor_id": "1_soil_moisture_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T20:01:41.251764+00:00",
+        "value": 70.79066912542527,
+        "unit": "%",
+        "sensor_id": "1_soil_moisture_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T20:01:37.633426+00:00",
+        "value": 70.3201387354183,
+        "unit": "%",
+        "sensor_id": "1_soil_moisture_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T20:00:59.588208+00:00",
+        "value": 70.8345564984081,
+        "unit": "%",
+        "sensor_id": "1_soil_moisture_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T20:00:57.353910+00:00",
+        "value": 71.79692225715267,
+        "unit": "%",
+        "sensor_id": "1_soil_moisture_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T19:55:59.481583+00:00",
+        "value": 73.08353429093626,
+        "unit": "%",
+        "sensor_id": "1_soil_moisture_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T19:50:59.367047+00:00",
+        "value": 72.14023267026138,
+        "unit": "%",
+        "sensor_id": "1_soil_moisture_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T19:47:36.775423+00:00",
+        "value": 73.3032061467104,
+        "unit": "%",
+        "sensor_id": "1_soil_moisture_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T19:47:07.343526+00:00",
+        "value": 72.2530019484708,
+        "unit": "%",
+        "sensor_id": "1_soil_moisture_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T19:45:59.189100+00:00",
+        "value": 71.3007732638709,
+        "unit": "%",
+        "sensor_id": "1_soil_moisture_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T19:43:12.733854+00:00",
+        "value": 71.74715347762299,
+        "unit": "%",
+        "sensor_id": "1_soil_moisture_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T19:40:59.078427+00:00",
+        "value": 70.26828710515548,
+        "unit": "%",
+        "sensor_id": "1_soil_moisture_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T19:36:52.880793+00:00",
+        "value": 69.05148928644842,
+        "unit": "%",
+        "sensor_id": "1_soil_moisture_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T19:36:02.242648+00:00",
+        "value": 68.80158648607015,
+        "unit": "%",
+        "sensor_id": "1_soil_moisture_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T19:35:58.924911+00:00",
+        "value": 68.05585415223918,
+        "unit": "%",
+        "sensor_id": "1_soil_moisture_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T19:35:06.447110+00:00",
+        "value": 67.27604739230098,
+        "unit": "%",
+        "sensor_id": "1_soil_moisture_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T19:34:34.399146+00:00",
+        "value": 67.0839022586262,
+        "unit": "%",
+        "sensor_id": "1_soil_moisture_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T19:34:22.200853+00:00",
+        "value": 68.44335432785607,
+        "unit": "%",
+        "sensor_id": "1_soil_moisture_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T19:34:20.780346+00:00",
+        "value": 69.80865447230828,
+        "unit": "%",
+        "sensor_id": "1_soil_moisture_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T19:34:02.451438+00:00",
+        "value": 70.52015286388416,
+        "unit": "%",
+        "sensor_id": "1_soil_moisture_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T19:34:01.447801+00:00",
+        "value": 71.69817603409139,
+        "unit": "%",
+        "sensor_id": "1_soil_moisture_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T19:33:29.451392+00:00",
+        "value": 72.44125837574396,
+        "unit": "%",
+        "sensor_id": "1_soil_moisture_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T19:31:24.498581+00:00",
+        "value": 73.41987048940844,
+        "unit": "%",
+        "sensor_id": "1_soil_moisture_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T19:30:58.830245+00:00",
+        "value": 74.30206068621946,
+        "unit": "%",
+        "sensor_id": "1_soil_moisture_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T19:30:58.742515+00:00",
+        "value": 74.6751777272385,
+        "unit": "%",
+        "sensor_id": "1_soil_moisture_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T19:28:19.587812+00:00",
+        "value": 71.96264363736722,
+        "unit": "%",
+        "sensor_id": "1_soil_moisture_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T19:28:18.522045+00:00",
+        "value": 71.54205709103566,
+        "unit": "%",
+        "sensor_id": "1_soil_moisture_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T19:28:13.518249+00:00",
+        "value": 71.73197877293606,
+        "unit": "%",
+        "sensor_id": "1_soil_moisture_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T19:28:09.513717+00:00",
+        "value": 71.87945004581559,
+        "unit": "%",
+        "sensor_id": "1_soil_moisture_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T19:28:06.514693+00:00",
+        "value": 73.27340318091392,
+        "unit": "%",
+        "sensor_id": "1_soil_moisture_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T19:27:52.522111+00:00",
+        "value": 72.80671950519348,
+        "unit": "%",
+        "sensor_id": "1_soil_moisture_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T19:27:46.551349+00:00",
+        "value": 73.10124037565815,
+        "unit": "%",
+        "sensor_id": "1_soil_moisture_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T19:27:32.514642+00:00",
+        "value": 72.51041706823013,
+        "unit": "%",
+        "sensor_id": "1_soil_moisture_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T19:27:31.523857+00:00",
+        "value": 72.71196806967436,
+        "unit": "%",
+        "sensor_id": "1_soil_moisture_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T19:27:30.237739+00:00",
+        "value": 73.85182420379945,
+        "unit": "%",
+        "sensor_id": "1_soil_moisture_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T19:26:56.878435+00:00",
+        "value": 73.52480008560978,
+        "unit": "%",
+        "sensor_id": "1_soil_moisture_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T19:26:56.713916+00:00",
+        "value": 73.07781430952424,
+        "unit": "%",
+        "sensor_id": "1_soil_moisture_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T19:26:40.510988+00:00",
+        "value": 71.62995856479448,
+        "unit": "%",
+        "sensor_id": "1_soil_moisture_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T19:26:38.515671+00:00",
+        "value": 70.2800500924041,
+        "unit": "%",
+        "sensor_id": "1_soil_moisture_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T19:26:29.518293+00:00",
+        "value": 69.25410117595911,
+        "unit": "%",
+        "sensor_id": "1_soil_moisture_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T19:26:26.521111+00:00",
+        "value": 69.97387314525305,
+        "unit": "%",
+        "sensor_id": "1_soil_moisture_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T19:26:19.514612+00:00",
+        "value": 70.18966988240727,
+        "unit": "%",
+        "sensor_id": "1_soil_moisture_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T19:26:15.515376+00:00",
+        "value": 71.59354530682394,
+        "unit": "%",
+        "sensor_id": "1_soil_moisture_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T19:25:30.511918+00:00",
+        "value": 72.29192474518315,
+        "unit": "%",
+        "sensor_id": "1_soil_moisture_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T19:25:28.516884+00:00",
+        "value": 73.07010305791262,
+        "unit": "%",
+        "sensor_id": "1_soil_moisture_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T19:25:27.525990+00:00",
+        "value": 73.91584886058263,
+        "unit": "%",
+        "sensor_id": "1_soil_moisture_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T19:25:14.519985+00:00",
+        "value": 73.41409685193663,
+        "unit": "%",
+        "sensor_id": "1_soil_moisture_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T19:23:02.521270+00:00",
+        "value": 72.44680476993773,
+        "unit": "%",
+        "sensor_id": "1_soil_moisture_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T19:22:59.504150+00:00",
+        "value": 73.74012142774639,
+        "unit": "%",
+        "sensor_id": "1_soil_moisture_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T19:22:55.502747+00:00",
+        "value": 73.66494557388381,
+        "unit": "%",
+        "sensor_id": "1_soil_moisture_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T19:22:30.034531+00:00",
+        "value": 72.53153147886744,
+        "unit": "%",
+        "sensor_id": "1_soil_moisture_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T19:21:09.644405+00:00",
+        "value": 71.6785329807083,
+        "unit": "%",
+        "sensor_id": "1_soil_moisture_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T19:21:05.602489+00:00",
+        "value": 70.24320271036758,
+        "unit": "%",
+        "sensor_id": "1_soil_moisture_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T19:20:54.113362+00:00",
+        "value": 69.07293458737689,
+        "unit": "%",
+        "sensor_id": "1_soil_moisture_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T19:20:51.142702+00:00",
+        "value": 68.16458299659321,
+        "unit": "%",
+        "sensor_id": "1_soil_moisture_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T19:20:40.964002+00:00",
+        "value": 68.86242327893179,
+        "unit": "%",
+        "sensor_id": "1_soil_moisture_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T19:20:20.765574+00:00",
+        "value": 69.0007466949867,
+        "unit": "%",
+        "sensor_id": "1_soil_moisture_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T19:18:30.933005+00:00",
+        "value": 70.41326140470395,
+        "unit": "%",
+        "sensor_id": "1_soil_moisture_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T19:18:21.462559+00:00",
+        "value": 69.02807326680673,
+        "unit": "%",
+        "sensor_id": "1_soil_moisture_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T19:17:29.865962+00:00",
+        "value": 68.49485810844594,
+        "unit": "%",
+        "sensor_id": "1_soil_moisture_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T19:14:11.973416+00:00",
+        "value": 67.56563078218097,
+        "unit": "%",
+        "sensor_id": "1_soil_moisture_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T19:14:01.437910+00:00",
+        "value": 67.74591835904168,
+        "unit": "%",
+        "sensor_id": "1_soil_moisture_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T19:13:59.658544+00:00",
+        "value": 68.77436754285102,
+        "unit": "%",
+        "sensor_id": "1_soil_moisture_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T19:13:48.534632+00:00",
+        "value": 70.07881494496216,
+        "unit": "%",
+        "sensor_id": "1_soil_moisture_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T19:13:23.887157+00:00",
+        "value": 69.53630070375348,
+        "unit": "%",
+        "sensor_id": "1_soil_moisture_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T19:12:30.700746+00:00",
+        "value": 69.24275845486623,
+        "unit": "%",
+        "sensor_id": "1_soil_moisture_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T19:12:29.711195+00:00",
+        "value": 70.62086072843866,
+        "unit": "%",
+        "sensor_id": "1_soil_moisture_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T19:11:58.368374+00:00",
+        "value": 71.03016711537137,
+        "unit": "%",
+        "sensor_id": "1_soil_moisture_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T19:11:35.199691+00:00",
+        "value": 72.23203329168207,
+        "unit": "%",
+        "sensor_id": "1_soil_moisture_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T19:11:08.728743+00:00",
+        "value": 72.24924335748682,
+        "unit": "%",
+        "sensor_id": "1_soil_moisture_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T19:07:48.671817+00:00",
+        "value": 72.41465437019824,
+        "unit": "%",
+        "sensor_id": "1_soil_moisture_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T19:07:39.084765+00:00",
+        "value": 71.36077053603277,
+        "unit": "%",
+        "sensor_id": "1_soil_moisture_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T19:07:29.612974+00:00",
+        "value": 72.07294335476354,
+        "unit": "%",
+        "sensor_id": "1_soil_moisture_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T19:07:29.501580+00:00",
+        "value": 70.88809786309027,
+        "unit": "%",
+        "sensor_id": "1_soil_moisture_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T19:05:00.585273+00:00",
+        "value": 33.083999668168886,
+        "unit": "%",
+        "sensor_id": "1_soil_moisture_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T19:00:56.822963+00:00",
+        "value": 34.43927486796784,
+        "unit": "%",
+        "sensor_id": "1_soil_moisture_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T18:58:12.114968+00:00",
+        "value": 34.90770054171639,
+        "unit": "%",
+        "sensor_id": "1_soil_moisture_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T18:57:54.731427+00:00",
+        "value": 36.35504189457392,
+        "unit": "%",
+        "sensor_id": "1_soil_moisture_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T18:57:27.190057+00:00",
+        "value": 37.25631333300326,
+        "unit": "%",
+        "sensor_id": "1_soil_moisture_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T18:55:56.732666+00:00",
+        "value": 37.155339673090744,
+        "unit": "%",
+        "sensor_id": "1_soil_moisture_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T18:50:56.585111+00:00",
+        "value": 37.51814189076284,
+        "unit": "%",
+        "sensor_id": "1_soil_moisture_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T18:45:56.436165+00:00",
+        "value": 36.29394982529979,
+        "unit": "%",
+        "sensor_id": "1_soil_moisture_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T18:40:56.339481+00:00",
+        "value": 37.587488216057245,
+        "unit": "%",
+        "sensor_id": "1_soil_moisture_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T18:35:56.216258+00:00",
+        "value": 36.9525598229658,
+        "unit": "%",
+        "sensor_id": "1_soil_moisture_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T18:30:56.081125+00:00",
+        "value": 35.61364517706497,
+        "unit": "%",
+        "sensor_id": "1_soil_moisture_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T18:25:55.971033+00:00",
+        "value": 36.40871656649423,
+        "unit": "%",
+        "sensor_id": "1_soil_moisture_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T18:20:55.852753+00:00",
+        "value": 35.543176966949865,
+        "unit": "%",
+        "sensor_id": "1_soil_moisture_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T18:15:55.749703+00:00",
+        "value": 36.792264520201584,
+        "unit": "%",
+        "sensor_id": "1_soil_moisture_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T18:10:55.622925+00:00",
+        "value": 36.4189717558056,
+        "unit": "%",
+        "sensor_id": "1_soil_moisture_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T18:09:02.948840+00:00",
+        "value": 36.90683320042219,
+        "unit": "%",
+        "sensor_id": "1_soil_moisture_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T18:05:55.513768+00:00",
+        "value": 37.94855061717073,
+        "unit": "%",
+        "sensor_id": "1_soil_moisture_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T18:00:55.360190+00:00",
+        "value": 38.79962027777375,
+        "unit": "%",
+        "sensor_id": "1_soil_moisture_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T17:55:55.264260+00:00",
+        "value": 38.60030311386967,
+        "unit": "%",
+        "sensor_id": "1_soil_moisture_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T17:50:55.147058+00:00",
+        "value": 38.420527057036274,
+        "unit": "%",
+        "sensor_id": "1_soil_moisture_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T17:45:54.998086+00:00",
+        "value": 39.201209778660036,
+        "unit": "%",
+        "sensor_id": "1_soil_moisture_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T17:40:54.836447+00:00",
+        "value": 39.21023120995942,
+        "unit": "%",
+        "sensor_id": "1_soil_moisture_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T17:40:54.757092+00:00",
+        "value": 40.338936121719065,
+        "unit": "%",
+        "sensor_id": "1_soil_moisture_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T17:38:20.317354+00:00",
+        "value": 40.012366503550204,
+        "unit": "%",
+        "sensor_id": "1_soil_moisture_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T17:38:12.746305+00:00",
+        "value": 39.468334389594986,
+        "unit": "%",
+        "sensor_id": "1_soil_moisture_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T17:37:54.950492+00:00",
+        "value": 38.78091897402981,
+        "unit": "%",
+        "sensor_id": "1_soil_moisture_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T17:37:43.404020+00:00",
+        "value": 39.41535488938822,
+        "unit": "%",
+        "sensor_id": "1_soil_moisture_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T17:37:37.413674+00:00",
+        "value": 38.890605148359974,
+        "unit": "%",
+        "sensor_id": "1_soil_moisture_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T17:37:22.247257+00:00",
+        "value": 37.58185684050845,
+        "unit": "%",
+        "sensor_id": "1_soil_moisture_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T17:37:20.120114+00:00",
+        "value": 37.83162467728223,
+        "unit": "%",
+        "sensor_id": "1_soil_moisture_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T17:33:12.633805+00:00",
+        "value": 39.2375905405112,
+        "unit": "%",
+        "sensor_id": "1_soil_moisture_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T17:29:36.170067+00:00",
+        "value": 40.174421457152086,
+        "unit": "%",
+        "sensor_id": "1_soil_moisture_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T17:29:32.598272+00:00",
+        "value": 39.57451227196736,
+        "unit": "%",
+        "sensor_id": "1_soil_moisture_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T17:29:06.130515+00:00",
+        "value": 39.59533354403918,
+        "unit": "%",
+        "sensor_id": "1_soil_moisture_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T17:28:12.525891+00:00",
+        "value": 38.900593999359145,
+        "unit": "%",
+        "sensor_id": "1_soil_moisture_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T17:28:12.452946+00:00",
+        "value": 38.486160719097555,
+        "unit": "%",
+        "sensor_id": "1_soil_moisture_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:57:52.371404+00:00",
+        "value": 33.2875904247062,
+        "unit": "%",
+        "sensor_id": "1_soil_moisture_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:56:20.746720+00:00",
+        "value": 33.043363903616836,
+        "unit": "%",
+        "sensor_id": "1_soil_moisture_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:55:30.696199+00:00",
+        "value": 33.173065921211574,
+        "unit": "%",
+        "sensor_id": "1_soil_moisture_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:54:48.424759+00:00",
+        "value": 32.21505854945348,
+        "unit": "%",
+        "sensor_id": "1_soil_moisture_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:51:20.648572+00:00",
+        "value": 32.216580669713295,
+        "unit": "%",
+        "sensor_id": "1_soil_moisture_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:48:50.933574+00:00",
+        "value": 32.616412197621706,
+        "unit": "%",
+        "sensor_id": "1_soil_moisture_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:47:55.497364+00:00",
+        "value": 31.117809344840666,
+        "unit": "%",
+        "sensor_id": "1_soil_moisture_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:47:46.661489+00:00",
+        "value": 30.18744236363176,
+        "unit": "%",
+        "sensor_id": "1_soil_moisture_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:47:42.794823+00:00",
+        "value": 30.245947605007526,
+        "unit": "%",
+        "sensor_id": "1_soil_moisture_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:47:32.955040+00:00",
+        "value": 28.7718710365481,
+        "unit": "%",
+        "sensor_id": "1_soil_moisture_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:47:23.352775+00:00",
+        "value": 29.90815036097341,
+        "unit": "%",
+        "sensor_id": "1_soil_moisture_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:46:20.491850+00:00",
+        "value": 28.829140780740303,
+        "unit": "%",
+        "sensor_id": "1_soil_moisture_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:43:26.165212+00:00",
+        "value": 29.700432744197673,
+        "unit": "%",
+        "sensor_id": "1_soil_moisture_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:43:22.483608+00:00",
+        "value": 29.745601463268144,
+        "unit": "%",
+        "sensor_id": "1_soil_moisture_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:41:20.290415+00:00",
+        "value": 29.044885437178348,
+        "unit": "%",
+        "sensor_id": "1_soil_moisture_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:37:17.629520+00:00",
+        "value": 28.928626412370836,
+        "unit": "%",
+        "sensor_id": "1_soil_moisture_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:36:20.214635+00:00",
+        "value": 28.620502338695864,
+        "unit": "%",
+        "sensor_id": "1_soil_moisture_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:36:20.094800+00:00",
+        "value": 29.456689207453444,
+        "unit": "%",
+        "sensor_id": "1_soil_moisture_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:36:11.833032+00:00",
+        "value": 51.24029863984127,
+        "unit": "%",
+        "sensor_id": "1_soil_moisture_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:31:11.451282+00:00",
+        "value": 50.325010227187335,
+        "unit": "%",
+        "sensor_id": "1_soil_moisture_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:26:11.250078+00:00",
+        "value": 49.71379267241072,
+        "unit": "%",
+        "sensor_id": "1_soil_moisture_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:21:11.153258+00:00",
+        "value": 48.93432859482131,
+        "unit": "%",
+        "sensor_id": "1_soil_moisture_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:21:11.074884+00:00",
+        "value": 49.12802649072671,
+        "unit": "%",
+        "sensor_id": "1_soil_moisture_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:18:22.069036+00:00",
+        "value": 29.144204078154683,
+        "unit": "%",
+        "sensor_id": "1_soil_moisture_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:18:21.996486+00:00",
+        "value": 27.965126860759806,
+        "unit": "%",
+        "sensor_id": "1_soil_moisture_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:14:23.840239+00:00",
+        "value": 20.397278458171108,
+        "unit": "%",
+        "sensor_id": "1_soil_moisture_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:14:23.720031+00:00",
+        "value": 20.0,
+        "unit": "%",
+        "sensor_id": "1_soil_moisture_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:09:59.108168+00:00",
+        "value": 39.72754349544346,
+        "unit": "%",
+        "sensor_id": "1_soil_moisture_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:09:58.981847+00:00",
+        "value": 40.82292815367935,
+        "unit": "%",
+        "sensor_id": "1_soil_moisture_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T08:59:43.441408+00:00",
+        "value": 71.5158527583027,
+        "unit": "%",
+        "sensor_id": "1_soil_moisture_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T08:59:43.215871+00:00",
+        "value": 72.414431630293,
+        "unit": "%",
+        "sensor_id": "1_soil_moisture_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T08:58:20.971148+00:00",
+        "value": 27.143814341090906,
+        "unit": "%",
+        "sensor_id": "1_soil_moisture_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T08:58:20.890712+00:00",
+        "value": 28.1951986042136,
+        "unit": "%",
+        "sensor_id": "1_soil_moisture_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T08:53:35.895010+00:00",
+        "value": 79.76096048511337,
+        "unit": "%",
+        "sensor_id": "1_soil_moisture_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T08:48:35.716066+00:00",
+        "value": 80.0,
+        "unit": "%",
+        "sensor_id": "1_soil_moisture_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T08:48:35.633657+00:00",
+        "value": 80.0,
+        "unit": "%",
+        "sensor_id": "1_soil_moisture_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T08:46:43.134305+00:00",
+        "value": 60.416709834105696,
+        "unit": "%",
+        "sensor_id": "1_soil_moisture_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T08:46:12.787652+00:00",
+        "value": 61.754765929136965,
+        "unit": "%",
+        "sensor_id": "1_soil_moisture_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T08:46:12.720988+00:00",
+        "value": 62.01813990439687,
+        "unit": "%",
+        "sensor_id": "1_soil_moisture_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      }
+    ]
+  }
+}

@@ -283,7 +283,12 @@ export class UserApi extends BaseApi {
      */
     async updateProfile(data: UserProfileUpdateRequest): Promise<User> {
         try {
-            return await this.patch<User>('/auth/me', data);
+            const updatedUser = await this.patch<User>('/auth/me', data);
+
+            // Сохраняем обновленные данные пользователя в localStorage
+            setItem('user', updatedUser);
+
+            return updatedUser;
         } catch (error) {
             console.error('Error updating user profile:', error);
             throw error;
