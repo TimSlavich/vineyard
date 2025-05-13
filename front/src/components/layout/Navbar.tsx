@@ -5,6 +5,7 @@ import Button from '../ui/Button';
 import { isAuthenticated, logout, getUserData } from '../../utils/storage';
 import NotificationCenter from '../ui/NotificationCenter';
 import { userApi } from '../../services/api/userApi';
+import UserAvatar from '../ui/UserAvatar';
 
 const Navbar = () => {
   const location = useLocation();
@@ -184,10 +185,10 @@ const Navbar = () => {
                     >
                       <span className="sr-only">Відкрити меню користувача</span>
                       <div className="flex items-center">
-                        <img
-                          className="h-8 w-8 rounded-full object-cover"
-                          src={userData?.avatar}
-                          alt="Аватар користувача"
+                        <UserAvatar
+                          name={userData?.first_name || userData?.username}
+                          email={userData?.email}
+                          size="sm"
                         />
                         <ChevronDown size={16} className="ml-1 text-gray-500" />
                       </div>
@@ -259,10 +260,10 @@ const Navbar = () => {
             <div className="pt-4 pb-3 border-t border-gray-200">
               <div className="flex items-center px-4">
                 <div className="flex-shrink-0">
-                  <img
-                    className="h-10 w-10 rounded-full object-cover"
-                    src={userData?.avatar}
-                    alt="Аватар користувача"
+                  <UserAvatar
+                    name={userData?.first_name || userData?.username}
+                    email={userData?.email}
+                    size="md"
                   />
                 </div>
                 <div className="ml-3">

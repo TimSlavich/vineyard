@@ -1,0 +1,395 @@
+{
+  "type": "sensor_data",
+  "generated_at": "2025-05-13T17:35:54.890336",
+  "generated_by": "demo_user",
+  "parameters": {
+    "start_date": "2025-04-14T00:00:00+00:00",
+    "end_date": "2025-05-13T23:59:59.999000+00:00",
+    "sensor_type": "ph",
+    "location_id": null
+  },
+  "summary": {
+    "total_records": 45,
+    "sensor_types": [
+      "ph"
+    ],
+    "date_range": {
+      "start": "2025-04-14T00:00:00+00:00",
+      "end": "2025-05-13T23:59:59.999000+00:00"
+    }
+  },
+  "statistics": {
+    "ph": {
+      "min": 5.5,
+      "max": 7.860202545681945,
+      "avg": 6.713771975713506,
+      "median": 6.847717467157852,
+      "count": 45,
+      "unit": "pH"
+    }
+  },
+  "data": {
+    "ph": [
+      {
+        "timestamp": "2025-05-13T17:33:12.650757+00:00",
+        "value": 6.970867222819784,
+        "unit": "pH",
+        "sensor_id": "1_ph_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T17:29:36.181397+00:00",
+        "value": 6.888324420583023,
+        "unit": "pH",
+        "sensor_id": "1_ph_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T17:29:32.608751+00:00",
+        "value": 6.956935672564791,
+        "unit": "pH",
+        "sensor_id": "1_ph_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T17:29:06.140731+00:00",
+        "value": 6.883876590880073,
+        "unit": "pH",
+        "sensor_id": "1_ph_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T17:28:12.555794+00:00",
+        "value": 6.953784576936883,
+        "unit": "pH",
+        "sensor_id": "1_ph_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T17:28:12.459926+00:00",
+        "value": 7.0143569600198905,
+        "unit": "pH",
+        "sensor_id": "1_ph_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:57:52.423621+00:00",
+        "value": 6.611097172097454,
+        "unit": "pH",
+        "sensor_id": "1_ph_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:56:20.757193+00:00",
+        "value": 6.6393397297870855,
+        "unit": "pH",
+        "sensor_id": "1_ph_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:55:30.729457+00:00",
+        "value": 6.738068038979025,
+        "unit": "pH",
+        "sensor_id": "1_ph_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:54:48.458902+00:00",
+        "value": 6.805881485138034,
+        "unit": "pH",
+        "sensor_id": "1_ph_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:51:20.659282+00:00",
+        "value": 6.8534371945155375,
+        "unit": "pH",
+        "sensor_id": "1_ph_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:48:50.957808+00:00",
+        "value": 6.802775476771668,
+        "unit": "pH",
+        "sensor_id": "1_ph_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:47:55.508755+00:00",
+        "value": 6.830428211388438,
+        "unit": "pH",
+        "sensor_id": "1_ph_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:47:46.682733+00:00",
+        "value": 6.789171867873439,
+        "unit": "pH",
+        "sensor_id": "1_ph_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:47:42.806089+00:00",
+        "value": 6.867735608416532,
+        "unit": "pH",
+        "sensor_id": "1_ph_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:47:32.982120+00:00",
+        "value": 6.847717467157852,
+        "unit": "pH",
+        "sensor_id": "1_ph_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:47:23.373395+00:00",
+        "value": 6.906784263198695,
+        "unit": "pH",
+        "sensor_id": "1_ph_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:46:20.519484+00:00",
+        "value": 6.878536206161286,
+        "unit": "pH",
+        "sensor_id": "1_ph_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:43:26.175701+00:00",
+        "value": 6.855745685258849,
+        "unit": "pH",
+        "sensor_id": "1_ph_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:43:22.499693+00:00",
+        "value": 6.865850993926563,
+        "unit": "pH",
+        "sensor_id": "1_ph_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:41:20.324943+00:00",
+        "value": 6.835110393616458,
+        "unit": "pH",
+        "sensor_id": "1_ph_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:37:17.647524+00:00",
+        "value": 6.830532769756791,
+        "unit": "pH",
+        "sensor_id": "1_ph_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:36:20.224731+00:00",
+        "value": 6.85738645911995,
+        "unit": "pH",
+        "sensor_id": "1_ph_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:36:20.105218+00:00",
+        "value": 6.83474199527062,
+        "unit": "pH",
+        "sensor_id": "1_ph_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:36:11.848537+00:00",
+        "value": 6.987527896167551,
+        "unit": "pH",
+        "sensor_id": "1_ph_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:31:11.556322+00:00",
+        "value": 6.949200073434786,
+        "unit": "pH",
+        "sensor_id": "1_ph_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:26:11.268379+00:00",
+        "value": 7.024056307781578,
+        "unit": "pH",
+        "sensor_id": "1_ph_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:21:11.160362+00:00",
+        "value": 6.94642533324668,
+        "unit": "pH",
+        "sensor_id": "1_ph_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:21:11.081906+00:00",
+        "value": 6.985468819290256,
+        "unit": "pH",
+        "sensor_id": "1_ph_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:18:22.076332+00:00",
+        "value": 6.5521155398702575,
+        "unit": "pH",
+        "sensor_id": "1_ph_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:18:22.003559+00:00",
+        "value": 6.554609865968783,
+        "unit": "pH",
+        "sensor_id": "1_ph_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:14:23.875901+00:00",
+        "value": 6.91498284814132,
+        "unit": "pH",
+        "sensor_id": "1_ph_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:14:23.729130+00:00",
+        "value": 7.006130321356788,
+        "unit": "pH",
+        "sensor_id": "1_ph_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:09:59.118709+00:00",
+        "value": 6.530788498280371,
+        "unit": "pH",
+        "sensor_id": "1_ph_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:09:58.991874+00:00",
+        "value": 6.616665455027859,
+        "unit": "pH",
+        "sensor_id": "1_ph_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T08:59:43.457359+00:00",
+        "value": 7.860202545681945,
+        "unit": "pH",
+        "sensor_id": "1_ph_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T08:59:43.233227+00:00",
+        "value": 7.8269487933505735,
+        "unit": "pH",
+        "sensor_id": "1_ph_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T08:58:20.979087+00:00",
+        "value": 6.010668858253138,
+        "unit": "pH",
+        "sensor_id": "1_ph_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T08:58:20.897596+00:00",
+        "value": 6.033682786117832,
+        "unit": "pH",
+        "sensor_id": "1_ph_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T08:53:35.916425+00:00",
+        "value": 6.13898073055073,
+        "unit": "pH",
+        "sensor_id": "1_ph_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T08:48:35.725234+00:00",
+        "value": 6.056560411231906,
+        "unit": "pH",
+        "sensor_id": "1_ph_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T08:48:35.642374+00:00",
+        "value": 6.0423455735277845,
+        "unit": "pH",
+        "sensor_id": "1_ph_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T08:46:43.145273+00:00",
+        "value": 5.666519845384113,
+        "unit": "pH",
+        "sensor_id": "1_ph_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T08:46:12.792983+00:00",
+        "value": 5.597371942204794,
+        "unit": "pH",
+        "sensor_id": "1_ph_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T08:46:12.729186+00:00",
+        "value": 5.5,
+        "unit": "pH",
+        "sensor_id": "1_ph_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      }
+    ]
+  }
+}

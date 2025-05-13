@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
 import { SensorData } from '../../types';
 import Card from './Card';
-import { ArrowUp, ArrowDown, Thermometer, Droplets, CloudRain, Sun, Wind, Leaf, Wind as WindIcon, Ruler, Cloudy, MoreVertical } from 'lucide-react';
+import { ArrowUp, ArrowDown, Thermometer, Droplets, CloudRain, Sun, Wind, Leaf, Wind as WindIcon, Ruler, Cloudy, MoreVertical, Loader2 } from 'lucide-react';
 import SensorModal from './SensorModal';
 import { formatSensorValue } from '../../utils/numberUtils';
+import { getUserData } from '../../utils/storage';
 
 interface SensorCardProps {
   data: SensorData;
@@ -13,6 +14,10 @@ interface SensorCardProps {
 const SensorCard = ({ data, previousData = [] }: SensorCardProps) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [showOptions, setShowOptions] = useState(false);
+
+  // Проверяем роль пользователя
+  const userRole = getUserData()?.role || '';
+  const isNewUser = userRole === 'new_user';
 
   const openModal = () => setIsModalOpen(true);
   const closeModal = () => setIsModalOpen(false);
@@ -173,6 +178,38 @@ const SensorCard = ({ data, previousData = [] }: SensorCardProps) => {
     // Для остальных типов датчиков используем целые числа
     return formatSensorValue(Math.round(value), 0);
   };
+
+  // Если пользователь new_user, показываем заглушку вместо данных датчика
+  if (isNewUser) {
+    return (
+      <Card className="flex flex-col h-full relative">
+        <div className="flex justify-between items-center mb-4">
+          <div className="flex items-center">
+            <div className="p-2 rounded-full bg-gray-100 mr-3">
+              {getIcon()}
+            </div>
+            <h4 className="font-inter font-medium text-gray-800">
+              {formatTitle(data.type)}
+            </h4>
+          </div>
+        </div>
+
+        <div className="flex flex-col items-center justify-center py-6">
+          <Loader2 className="w-8 h-8 text-primary animate-spin mb-3" />
+          <p className="text-sm text-gray-600 text-center font-medium font-roboto">
+            Очікування даних з датчиків...
+          </p>
+        </div>
+
+        <div className="mt-auto text-xs text-gray-500 font-roboto">
+          <div className="flex justify-between">
+            <span>Розташування</span>
+            <span className="font-medium text-gray-700">{data.location.name}</span>
+          </div>
+        </div>
+      </Card>
+    );
+  }
 
   return (
     <>

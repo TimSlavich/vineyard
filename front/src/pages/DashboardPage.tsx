@@ -5,7 +5,7 @@ import AlertsCard from '../components/dashboard/AlertsCard';
 import LineChart from '../components/charts/LineChart';
 import ComparativeChart from '../components/charts/ComparativeChart';
 import Card from '../components/ui/Card';
-import { ChevronRight, ArrowUpRight, RefreshCw, ActivitySquare, Settings2, FileText } from 'lucide-react';
+import { ChevronRight, ArrowUpRight, Loader2, ActivitySquare, Settings2, FileText } from 'lucide-react';
 import { weatherData as mockWeatherData } from '../data/mockData';
 import { Link } from 'react-router-dom';
 import useSensorData, { SensorData } from '../hooks/useSensorData';
@@ -25,23 +25,30 @@ const SENSOR_TYPES = {
     CO2: 'co2'
 };
 
-// Преобразование данных датчиков в удобный формат
+// Функция для преобразования данных датчика в формат для отображения
 const transformSensorData = (sensor: SensorData) => {
+    const typeName = sensor.type;
+    const locationName = sensor.location_id ? `Локація ${sensor.location_id.split('_').pop()}` : 'Невідома локація';
+
     return {
         id: sensor.sensor_id,
         type: sensor.type as string,
         value: Number(sensor.value.toFixed(2)),
         unit: sensor.unit,
         timestamp: sensor.timestamp,
-        status: sensor.status,
+        status: sensor.status || 'normal',
         location: {
             id: sensor.location_id,
-            name: `Локація ${sensor.location_id.split('_').pop()}`
+            name: locationName
         }
     };
 };
 
 const DashboardPage: React.FC = () => {
+    // Проверяем роль пользователя
+    const userRole = getUserData()?.role || '';
+    const isNewUser = userRole === 'new_user';
+
     const {
         latestSensorData,
         sensorData: allSensorData,
@@ -335,7 +342,7 @@ const DashboardPage: React.FC = () => {
                             : 'bg-primary text-white hover:bg-primary-dark'
                             }`}
                     >
-                        <RefreshCw size={16} className={isRefreshing ? 'animate-spin' : ''} />
+                        <Loader2 size={16} className={isRefreshing ? 'animate-spin' : ''} />
                         {isRefreshing ? 'Оновлення...' : 'Оновити дані'}
                     </button>
                 </div>
@@ -384,7 +391,7 @@ const DashboardPage: React.FC = () => {
                     {displayReadings.length === 0 && Object.keys(latestSensorData).length === 0 && (
                         <div className="col-span-full text-center py-8 bg-gray-50 rounded-lg">
                             <p className="text-gray-600 font-medium">Очікування даних з датчиків...</p>
-                            <p className="text-gray-500 mt-2">Дані оновлюються кожні 10 секунд</p>
+                            <p className="text-gray-500 mt-2">Дані оновлюються кожні 5 хв</p>
                         </div>
                     )}
                     {displayReadings.length === 0 && Object.keys(latestSensorData).length > 0 && (
@@ -405,15 +412,26 @@ const DashboardPage: React.FC = () => {
             {/* Графики и дополнительная информация */}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
                 <div className="lg:col-span-2">
-                    <LineChart
-                        key="dashboard-temperature-chart"
-                        title="Температура (Останні 24 години)"
-                        data={temperatureData}
-                        color="#F59E0B"
-                        unit="°C"
-                        height={280}
-                        noDataMessage="Очікування даних температури..."
-                    />
+                    {isNewUser ? (
+                        <Card title="Температура (Останні 24 години)" className="h-full">
+                            <div className="flex flex-col items-center justify-center py-12">
+                                <Loader2 className="w-12 h-12 text-primary animate-spin mb-4" />
+                                <p className="text-lg text-gray-600 text-center font-medium font-roboto">
+                                    Очікування даних з датчиків...
+                                </p>
+                            </div>
+                        </Card>
+                    ) : (
+                        <LineChart
+                            key="dashboard-temperature-chart"
+                            title="Температура (Останні 24 години)"
+                            data={temperatureData}
+                            color="#F59E0B"
+                            unit="°C"
+                            height={280}
+                            noDataMessage="Очікування даних температури..."
+                        />
+                    )}
                 </div>
 
                 <div className="col-span-1 md:col-span-2 lg:col-span-1">
@@ -423,26 +441,48 @@ const DashboardPage: React.FC = () => {
 
             {/* График влажности почвы */}
             <div className="mb-12">
-                <LineChart
-                    key="dashboard-soilmoisture-chart"
-                    title="Вологість ґрунту (Останні 24 години)"
-                    data={soilMoistureData}
-                    color="#10B981"
-                    unit="%"
-                    height={240}
-                    noDataMessage="Очікування даних вологості ґрунту..."
-                />
+                {isNewUser ? (
+                    <Card title="Вологість ґрунту (Останні 24 години)" className="h-full">
+                        <div className="flex flex-col items-center justify-center py-12">
+                            <Loader2 className="w-12 h-12 text-primary animate-spin mb-4" />
+                            <p className="text-lg text-gray-600 text-center font-medium font-roboto">
+                                Очікування даних з датчиків...
+                            </p>
+                        </div>
+                    </Card>
+                ) : (
+                    <LineChart
+                        key="dashboard-soilmoisture-chart"
+                        title="Вологість ґрунту (Останні 24 години)"
+                        data={soilMoistureData}
+                        color="#10B981"
+                        unit="%"
+                        height={240}
+                        noDataMessage="Очікування даних вологості ґрунту..."
+                    />
+                )}
             </div>
 
             {/* Сравнительный график температуры и влажности воздуха */}
             <div className="mb-12">
-                <ComparativeChart
-                    key="dashboard-comparative-chart"
-                    title="Порівняння температури та вологості повітря (Останні 24 години)"
-                    series={comparativeChartSeries}
-                    height={300}
-                    noDataMessage="Очікування даних для порівняльного графіка..."
-                />
+                {isNewUser ? (
+                    <Card title="Порівняння температури та вологості повітря (Останні 24 години)" className="h-full">
+                        <div className="flex flex-col items-center justify-center py-12">
+                            <Loader2 className="w-12 h-12 text-primary animate-spin mb-4" />
+                            <p className="text-lg text-gray-600 text-center font-medium font-roboto">
+                                Очікування даних з датчиків...
+                            </p>
+                        </div>
+                    </Card>
+                ) : (
+                    <ComparativeChart
+                        key="dashboard-comparative-chart"
+                        title="Порівняння температури та вологості повітря (Останні 24 години)"
+                        series={comparativeChartSeries}
+                        height={300}
+                        noDataMessage="Очікування даних для порівняльного графіка..."
+                    />
+                )}
             </div>
 
             {/* Уведомления и статус устройств */}
@@ -452,36 +492,47 @@ const DashboardPage: React.FC = () => {
                 </div>
 
                 <div>
-                    <Card title="Статус системи" className="h-full">
-                        <div className="p-4">
-                            <div className="flex items-center justify-between mb-6 pb-4 border-b border-gray-100">
-                                <div>
-                                    <h4 className="font-medium text-gray-800">Онлайн датчики</h4>
-                                    <p className="text-2xl font-semibold mt-1">{Object.keys(latestSensorData).length}</p>
+                    {isNewUser ? (
+                        <Card title="Статус системи" className="h-full">
+                            <div className="flex flex-col items-center justify-center py-8">
+                                <Loader2 className="w-10 h-10 text-primary animate-spin mb-4" />
+                                <p className="text-lg text-gray-600 text-center font-medium font-roboto">
+                                    Очікування даних з датчиків...
+                                </p>
+                            </div>
+                        </Card>
+                    ) : (
+                        <Card title="Статус системи" className="h-full">
+                            <div className="p-4">
+                                <div className="flex items-center justify-between mb-6 pb-4 border-b border-gray-100">
+                                    <div>
+                                        <h4 className="font-medium text-gray-800">Онлайн датчики</h4>
+                                        <p className="text-2xl font-semibold mt-1">{Object.keys(latestSensorData).length}</p>
+                                    </div>
+                                    <div className="w-10 h-10 rounded-full bg-success-50 flex items-center justify-center">
+                                        <ArrowUpRight className="text-success-600" size={20} />
+                                    </div>
                                 </div>
-                                <div className="w-10 h-10 rounded-full bg-success-50 flex items-center justify-center">
-                                    <ArrowUpRight className="text-success-600" size={20} />
+
+                                <div className="space-y-3">
+                                    <Link to="/diagnostics" className="text-primary flex items-center justify-center py-2 border border-primary rounded-md hover:bg-primary hover:text-white transition-colors">
+                                        <ActivitySquare size={18} className="mr-2" />
+                                        Переглянути діагностику
+                                    </Link>
+
+                                    <Link to="/calibrate" className="text-primary flex items-center justify-center py-2 border border-primary rounded-md hover:bg-primary hover:text-white transition-colors">
+                                        <Settings2 size={18} className="mr-2" />
+                                        Калібрування датчиків
+                                    </Link>
+
+                                    <Link to="/reports" className="text-primary flex items-center justify-center py-2 border border-primary rounded-md hover:bg-primary hover:text-white transition-colors">
+                                        <FileText size={18} className="mr-2" />
+                                        Створення звітів
+                                    </Link>
                                 </div>
                             </div>
-
-                            <div className="space-y-3">
-                                <Link to="/diagnostics" className="text-primary flex items-center justify-center py-2 border border-primary rounded-md hover:bg-primary hover:text-white transition-colors">
-                                    <ActivitySquare size={18} className="mr-2" />
-                                    Переглянути діагностику
-                                </Link>
-
-                                <Link to="/calibrate" className="text-primary flex items-center justify-center py-2 border border-primary rounded-md hover:bg-primary hover:text-white transition-colors">
-                                    <Settings2 size={18} className="mr-2" />
-                                    Калібрування датчиків
-                                </Link>
-
-                                <Link to="/reports" className="text-primary flex items-center justify-center py-2 border border-primary rounded-md hover:bg-primary hover:text-white transition-colors">
-                                    <FileText size={18} className="mr-2" />
-                                    Створення звітів
-                                </Link>
-                            </div>
-                        </div>
-                    </Card>
+                        </Card>
+                    )}
                 </div>
             </div>
         </div>

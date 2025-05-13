@@ -739,41 +739,7 @@ async def get_saved_reports(
     # Получаем отчеты текущего пользователя
     user_reports = _generated_reports.get(current_user.id, [])
 
-    # Если нет сохраненных отчетов, возвращаем демо-данные
-    if not user_reports:
-        saved_reports = [
-            {
-                "id": "report-1",
-                "name": "Звіт_температура_2023-10-15",
-                "date": "15.10.2023, 14:30:22",
-                "size": "1.45 MB",
-                "type": "daily",
-                "format": "pdf",
-                "url": "/reports/download/report-1.pdf",
-            },
-            {
-                "id": "report-2",
-                "name": "Звіт_вологість_ґрунту_2023-10-10",
-                "date": "10.10.2023, 09:15:07",
-                "size": "2.12 MB",
-                "type": "weekly",
-                "format": "xlsx",
-                "url": "/reports/download/report-2.xlsx",
-            },
-            {
-                "id": "report-3",
-                "name": "Звіт_всі_показники_2023-09-30",
-                "date": "30.09.2023, 18:45:33",
-                "size": "3.78 MB",
-                "type": "monthly",
-                "format": "pdf",
-                "url": "/reports/download/report-3.pdf",
-            },
-        ]
-    else:
-        saved_reports = user_reports
-
-    return {"success": True, "data": saved_reports}
+    return {"success": True, "data": user_reports}
 
 
 @router.get("/{report_id}/download", response_model=Dict[str, Any])

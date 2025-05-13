@@ -129,16 +129,6 @@ export const weatherData: WeatherData = {
 export const alerts: Alert[] = [
   {
     id: '1',
-    title: 'Критична температура',
-    message: 'Температура на ділянці "Північний схил" перевищила 32°C більше ніж на 2 години',
-    type: 'critical',
-    timestamp: new Date(Date.now() - 1000 * 60 * 30).toISOString(), // 30 mins ago
-    read: false,
-    sensorId: 'temperature-0',
-    locationId: 'loc1',
-  },
-  {
-    id: '2',
     title: 'Низька вологість ґрунту',
     message: 'Вологість ґрунту на ділянці "Південний схил" нижче оптимального рівня',
     type: 'warning',
@@ -148,7 +138,7 @@ export const alerts: Alert[] = [
     locationId: 'loc2',
   },
   {
-    id: '3',
+    id: '2',
     title: 'Оновлення системи',
     message: 'Система VineGuard була оновлена до версії 2.4.1',
     type: 'info',
@@ -156,7 +146,7 @@ export const alerts: Alert[] = [
     read: true,
   },
   {
-    id: '4',
+    id: '3',
     title: 'Датчик відключений',
     message: 'Датчик №247 на ділянці "Північний схил" не в мережі',
     type: 'warning',
@@ -165,7 +155,7 @@ export const alerts: Alert[] = [
     locationId: 'loc1',
   },
   {
-    id: '5',
+    id: '4',
     title: 'Низький заряд батареї',
     message: 'Рівень заряду батареї пристрою №103 нижче 15%',
     type: 'warning',

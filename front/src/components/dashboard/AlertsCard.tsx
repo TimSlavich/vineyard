@@ -4,9 +4,32 @@ import AlertItem from '../ui/AlertItem';
 import Button from '../ui/Button';
 import { Link } from 'react-router-dom';
 import { useAlerts } from '../../services/notificationService';
+import { getUserData } from '../../utils/storage';
+import { Loader2 } from 'lucide-react';
 
 const AlertsCard: React.FC = () => {
   const [alerts, markAsRead] = useAlerts();
+
+  // Проверяем роль пользователя
+  const userRole = getUserData()?.role || '';
+  const isNewUser = userRole === 'new_user';
+
+  // Для пользователя new_user показываем заглушку
+  if (isNewUser) {
+    return (
+      <Card
+        title="Останні сповіщення"
+        className="h-full"
+      >
+        <div className="flex flex-col items-center justify-center py-8">
+          <Loader2 className="w-10 h-10 text-primary animate-spin mb-4" />
+          <p className="text-lg text-gray-600 text-center font-medium font-roboto">
+            Очікування даних з датчиків...
+          </p>
+        </div>
+      </Card>
+    );
+  }
 
   // Сортировка оповещений по дате (новые в начале)
   const recentAlerts = [...alerts]

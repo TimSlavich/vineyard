@@ -43,7 +43,6 @@ const RegisterPage: React.FC = () => {
 
     try {
       setLoading(true);
-      console.log('Начинаем процесс регистрации...');
 
       // Подготавливаем данные пользователя
       const userData = {
@@ -56,9 +55,7 @@ const RegisterPage: React.FC = () => {
       };
 
       // Регистрация пользователя через API
-      console.log('Отправляем запрос на регистрацию');
       const registerResponse = await userApi.register(userData);
-      console.log('Получен ответ от сервера:', registerResponse);
 
       // Получаем сохраненные данные
       const accessToken = getItem('accessToken');
@@ -75,32 +72,23 @@ const RegisterPage: React.FC = () => {
         } else {
           console.warn('В ответе отсутствуют токены, но регистрация считается успешной');
         }
-      } else {
-        console.log('Токен доступа был успешно сохранен:', accessToken);
       }
 
       // Если у нас уже есть данные пользователя, используем их
       // Иначе пытаемся получить профиль
       if (!userInfo) {
         try {
-          console.log('Пытаемся получить профиль пользователя');
           userInfo = await userApi.getProfile();
-          console.log('Успешно получен профиль пользователя:', userInfo);
         } catch (profileError) {
           console.warn('Не удалось получить профиль пользователя:', profileError);
-          console.log('Продолжаем с данными из ответа регистрации');
           // Здесь мы НЕ создаем базовый профиль, полагаемся на данные из ответа API
         }
-      } else {
-        console.log('Используем существующие данные пользователя:', userInfo);
-      }
+        }
 
       // Сохраняем данные и устанавливаем флаг авторизации
-      console.log('Устанавливаем пользователя как авторизованного');
       setAuthenticated(true, userInfo);
 
       // Перенаправление на dashboard
-      console.log('Перенаправляем на dashboard');
       navigate('/dashboard');
     } catch (err: any) {
       console.error('Ошибка при регистрации:', err);

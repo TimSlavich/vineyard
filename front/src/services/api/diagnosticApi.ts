@@ -25,7 +25,6 @@ export class DiagnosticApi extends BaseApi {
 
             // Оборачиваем ответ в формат ApiResponse, если он не в этом формате
             if (Array.isArray(response)) {
-                console.log('Получены результаты диагностики:', response);
                 return {
                     success: true,
                     data: response

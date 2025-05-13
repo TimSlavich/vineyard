@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
+import React from 'react';
 import Card from '../ui/Card';
 import Switch from '../ui/Switch';
-import { NOTIF_LABELS_UA, NOTIFICATION_CHANNEL_UA } from '../../utils/translations';
+import { NOTIFICATION_CHANNEL_UA } from '../../utils/translations';
 
 interface NotificationChannelSetting {
     type: string;
@@ -11,8 +11,7 @@ interface NotificationChannelSetting {
 
 interface NotificationSettingsProps {
     settings: NotificationChannelSetting[];
-    onToggleChannel: (type: string, enabled: boolean) => void;
-    onToggleAlertType: (channelType: string, alertType: string, enabled: boolean) => void;
+    onToggleChannel: (channelType: string, enabled: boolean) => void;
     onSaveSettings: () => void;
     onResetSettings: () => void;
 }
@@ -20,17 +19,14 @@ interface NotificationSettingsProps {
 const NotificationSettings: React.FC<NotificationSettingsProps> = ({
     settings,
     onToggleChannel,
-    onToggleAlertType,
     onSaveSettings,
     onResetSettings
 }) => {
-    const [showDetails, setShowDetails] = useState<Record<string, boolean>>({});
-
-    const toggleDetails = (channelType: string) => {
-        setShowDetails(prev => ({
-            ...prev,
-            [channelType]: !prev[channelType]
-        }));
+    // Запрос разрешения на браузерные уведомления
+    const requestNotificationPermission = () => {
+        if ('Notification' in window && Notification.permission !== 'granted') {
+            Notification.requestPermission();
+        }
     };
 
     return (
@@ -51,84 +47,58 @@ const NotificationSettings: React.FC<NotificationSettingsProps> = ({
             </div>
 
             <div className="space-y-4">
-                {settings.map(channel => (
-                    <div key={channel.type} className="border border-gray-200 rounded-lg overflow-hidden">
-                        <div className="flex items-center justify-between p-4 bg-gray-50">
-                            <div className="flex items-center">
-                                <Switch
-                                    checked={channel.enabled}
-                                    onChange={() => onToggleChannel(channel.type, !channel.enabled)}
-                                    id={`channel-${channel.type}`}
-                                    aria-label={`Увімкнути ${NOTIFICATION_CHANNEL_UA[channel.type] || channel.type}`}
-                                />
-                                <label
-                                    htmlFor={`channel-${channel.type}`}
-                                    className="ml-2 font-medium cursor-pointer"
-                                >
-                                    {NOTIFICATION_CHANNEL_UA[channel.type] || channel.type}
-                                </label>
-                            </div>
-                            <button
-                                onClick={() => toggleDetails(channel.type)}
-                                className="text-sm text-primary hover:underline"
-                            >
-                                {showDetails[channel.type] ? 'Згорнути' : 'Налаштувати'}
-                            </button>
-                        </div>
+                {settings.map(channel => {
+                    const isBrowserChannel = channel.type === 'browser';
 
-                        {showDetails[channel.type] && (
-                            <div className="p-4 border-t border-gray-200">
-                                <p className="text-sm text-gray-600 mb-3">
-                                    Виберіть, які типи сповіщень ви хочете отримувати через {NOTIFICATION_CHANNEL_UA[channel.type] || channel.type}:
-                                </p>
-                                <div className="space-y-2">
-                                    {Object.entries(NOTIF_LABELS_UA).map(([alertType, label]) => (
-                                        <div key={alertType} className="flex items-center">
-                                            <Switch
-                                                checked={channel.alertTypes.includes(alertType)}
-                                                onChange={() => onToggleAlertType(
-                                                    channel.type,
-                                                    alertType,
-                                                    !channel.alertTypes.includes(alertType)
-                                                )}
-                                                id={`channel-${channel.type}-${alertType}`}
-                                                disabled={!channel.enabled}
-                                                aria-label={`Увімкнути ${label}`}
-                                            />
-                                            <label
-                                                htmlFor={`channel-${channel.type}-${alertType}`}
-                                                className={`ml-2 cursor-pointer ${!channel.enabled ? 'text-gray-400' : ''}`}
-                                            >
-                                                {label}
-                                            </label>
-                                        </div>
-                                    ))}
-                                </div>
-                                {channel.type === 'browser' && (
-                                    <div className="mt-4 p-3 bg-blue-50 text-blue-800 rounded-md text-sm">
-                                        <p>Браузерні сповіщення будуть відображатися навіть коли вкладка не активна.</p>
-                                        <button
-                                            onClick={() => {
-                                                if ('Notification' in window && Notification.permission !== 'granted') {
-                                                    Notification.requestPermission();
+                    return (
+                        <div key={channel.type} className="border border-gray-200 rounded-lg overflow-hidden">
+                            <div className="flex items-center justify-between p-4 bg-gray-50">
+                                <div className="flex items-center">
+                                    <Switch
+                                        checked={isBrowserChannel ? channel.enabled : false}
+                                        onChange={() => {
+                                            if (isBrowserChannel) {
+                                                // Если включаем уведомления, запрашиваем разрешение
+                                                if (!channel.enabled) {
+                                                    requestNotificationPermission();
                                                 }
-                                            }}
-                                            className="mt-2 px-3 py-1 bg-blue-100 hover:bg-blue-200 rounded text-blue-800"
+                                                onToggleChannel(channel.type, !channel.enabled);
+                                            }
+                                        }}
+                                        id={`channel-${channel.type}`}
+                                        disabled={!isBrowserChannel}
+                                        aria-label={`Увімкнути ${NOTIFICATION_CHANNEL_UA[channel.type] || channel.type}`}
+                                    />
+                                    <div className="ml-2 flex items-center">
+                                        <label
+                                            htmlFor={`channel-${channel.type}`}
+                                            className={`font-medium ${isBrowserChannel ? 'text-gray-800 cursor-pointer' : 'text-gray-500 cursor-not-allowed'}`}
                                         >
-                                            Запросити дозвіл на сповіщення
-                                        </button>
+                                            {NOTIFICATION_CHANNEL_UA[channel.type] || channel.type}
+                                        </label>
+                                        {!isBrowserChannel && (
+                                            <span className="ml-2 text-xs px-2 py-0.5 bg-gray-200 text-gray-600 rounded-full">
+                                                В розробці
+                                            </span>
+                                        )}
                                     </div>
-                                )}
+                                </div>
                             </div>
-                        )}
-                    </div>
-                ))}
+                        </div>
+                    );
+                })}
 
                 {settings.length === 0 && (
                     <div className="p-4 bg-gray-50 text-gray-600 rounded-md text-center">
                         Немає доступних каналів сповіщень
                     </div>
                 )}
+            </div>
+
+            <div className="mt-6 p-4 bg-yellow-50 rounded-lg">
+                <p className="text-sm text-yellow-700">
+                    Функціональність email та SMS сповіщень знаходиться в розробці. Наразі працюють тільки браузерні сповіщення.
+                </p>
             </div>
         </Card>
     );

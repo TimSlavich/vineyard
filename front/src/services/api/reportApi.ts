@@ -572,54 +572,18 @@ export class ReportApi extends BaseApi {
             const reportsKey = 'generated_reports';
             const savedReports = JSON.parse(localStorage.getItem(reportsKey) || '[]');
 
-            // Если есть сохраненные отчеты, возвращаем их
-            if (savedReports.length > 0) {
-                return {
-                    success: true,
-                    data: savedReports.map((report: any) => ({
-                        id: report.id,
-                        name: report.name,
-                        date: report.date,
-                        size: report.size,
-                        type: report.type as ReportType,
-                        format: report.format as ReportFormat,
-                        url: `/api/reports/download/${report.id}.${report.format}`
-                    }))
-                };
-            }
-
-            // Если нет сохраненных отчетов, возвращаем демо-данные
+            // Возвращаем сохраненные отчеты
             return {
                 success: true,
-                data: [
-                    {
-                        id: 'report-1',
-                        name: 'Звіт_температура_2023-10-15',
-                        date: '15.10.2023, 14:30:22',
-                        size: '1.45 MB',
-                        type: 'daily',
-                        format: 'pdf',
-                        url: '/mock-reports/report-1.pdf'
-                    },
-                    {
-                        id: 'report-2',
-                        name: 'Звіт_вологість_ґрунту_2023-10-10',
-                        date: '10.10.2023, 09:15:07',
-                        size: '2.12 MB',
-                        type: 'weekly',
-                        format: 'xlsx',
-                        url: '/mock-reports/report-2.xlsx'
-                    },
-                    {
-                        id: 'report-3',
-                        name: 'Звіт_всі_показники_2023-09-30',
-                        date: '30.09.2023, 18:45:33',
-                        size: '3.78 MB',
-                        type: 'monthly',
-                        format: 'pdf',
-                        url: '/mock-reports/report-3.pdf'
-                    }
-                ]
+                data: savedReports.map((report: any) => ({
+                    id: report.id,
+                    name: report.name,
+                    date: report.date,
+                    size: report.size,
+                    type: report.type as ReportType,
+                    format: report.format as ReportFormat,
+                    url: `/api/reports/download/${report.id}.${report.format}`
+                }))
             };
         } catch (error) {
             // Возвращаем пустой список в случае ошибки

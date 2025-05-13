@@ -3,6 +3,7 @@ import Navbar from './Navbar';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { isAuthenticated, isLocalStorageAvailable, getUserData } from '../../utils/storage';
 import DemoBanner from '../ui/DemoBanner';
+import NewUserBanner from '../ui/NewUserBanner';
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -12,6 +13,7 @@ const Layout = ({ children }: LayoutProps) => {
   const location = useLocation();
   const navigate = useNavigate();
   const [isDemoUser, setIsDemoUser] = useState(false);
+  const [isNewUser, setIsNewUser] = useState(false);
 
   // Определение типов страниц
   const pathname = location.pathname;
@@ -50,13 +52,17 @@ const Layout = ({ children }: LayoutProps) => {
           const userData = getUserData();
           // Проверяем, является ли пользователь демо-пользователем
           setIsDemoUser(userData && userData.role === 'demo');
+          // Проверяем, является ли пользователь новым пользователем
+          setIsNewUser(userData && userData.role === 'new_user');
         } else {
           setIsDemoUser(false);
+          setIsNewUser(false);
         }
       }
     } catch (err) {
       // Ошибка при проверке аутентификации
       setIsDemoUser(false);
+      setIsNewUser(false);
     }
   }, [location.pathname]);
 
@@ -70,6 +76,11 @@ const Layout = ({ children }: LayoutProps) => {
       {/* Демо-баннер отображается на всех страницах кроме публичных, если пользователь в демо-режиме */}
       {isDemoUser && !isPublicPage && !isLoginPage &&
         <DemoBanner className="sticky top-16 z-10" />
+      }
+
+      {/* Баннер для новых пользователей */}
+      {isNewUser && !isPublicPage && !isLoginPage &&
+        <NewUserBanner className="sticky top-16 z-10" />
       }
 
       <main className={mainClasses}>

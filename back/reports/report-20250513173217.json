@@ -1,0 +1,3654 @@
+{
+  "type": "sensor_data",
+  "generated_at": "2025-05-13T17:32:17.070642",
+  "generated_by": "demo_user",
+  "parameters": {
+    "start_date": "2025-05-13T00:00:00+00:00",
+    "end_date": "2025-05-13T23:59:59.999000+00:00",
+    "sensor_type": "temperature",
+    "location_id": null
+  },
+  "summary": {
+    "total_records": 440,
+    "sensor_types": [
+      "co2",
+      "rainfall",
+      "wind_direction",
+      "wind_speed",
+      "ph",
+      "light",
+      "soil_temperature",
+      "soil_moisture",
+      "humidity",
+      "temperature"
+    ],
+    "date_range": {
+      "start": "2025-05-13T00:00:00+00:00",
+      "end": "2025-05-13T23:59:59.999000+00:00"
+    }
+  },
+  "statistics": {
+    "co2": {
+      "min": 326.0610451237209,
+      "max": 1122.1530798660935,
+      "avg": 699.7855909505204,
+      "median": 722.7425889627982,
+      "count": 44,
+      "unit": "ppm"
+    },
+    "rainfall": {
+      "min": 0.0,
+      "max": 50.0,
+      "avg": 32.55525824163544,
+      "median": 38.44210805894873,
+      "count": 44,
+      "unit": "mm"
+    },
+    "wind_direction": {
+      "min": 0.0,
+      "max": 359.0,
+      "avg": 221.86086769971905,
+      "median": 193.50523151970944,
+      "count": 44,
+      "unit": "degrees"
+    },
+    "wind_speed": {
+      "min": 0.022934184891679532,
+      "max": 19.89251014668931,
+      "avg": 11.855251298676887,
+      "median": 13.864222918914571,
+      "count": 44,
+      "unit": "m/s"
+    },
+    "ph": {
+      "min": 5.5,
+      "max": 7.860202545681945,
+      "avg": 6.707928901915636,
+      "median": 6.841413930387155,
+      "count": 44,
+      "unit": "pH"
+    },
+    "light": {
+      "min": 1573.39939484993,
+      "max": 96651.63820774807,
+      "avg": 51647.477104879144,
+      "median": 39975.75458681847,
+      "count": 44,
+      "unit": "lux"
+    },
+    "soil_temperature": {
+      "min": 12.108697479288033,
+      "max": 29.07431429454365,
+      "avg": 18.835591196445993,
+      "median": 17.626471383310978,
+      "count": 44,
+      "unit": "°C"
+    },
+    "soil_moisture": {
+      "min": 20.0,
+      "max": 80.0,
+      "avg": 40.87405917978849,
+      "median": 33.108214912414205,
+      "count": 44,
+      "unit": "%"
+    },
+    "humidity": {
+      "min": 40.0,
+      "max": 93.80259400410723,
+      "avg": 67.78279970041413,
+      "median": 71.69269853056309,
+      "count": 44,
+      "unit": "%"
+    },
+    "temperature": {
+      "min": 16.365516770872112,
+      "max": 33.547357753944674,
+      "avg": 24.765150728770948,
+      "median": 23.76388146923847,
+      "count": 44,
+      "unit": "°C"
+    }
+  },
+  "data": {
+    "co2": [
+      {
+        "timestamp": "2025-05-13T17:29:36.199654+00:00",
+        "value": 1007.7545989456585,
+        "unit": "ppm",
+        "sensor_id": "1_co2_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T17:29:32.631879+00:00",
+        "value": 1016.9465783340428,
+        "unit": "ppm",
+        "sensor_id": "1_co2_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T17:29:06.154750+00:00",
+        "value": 970.4751519580796,
+        "unit": "ppm",
+        "sensor_id": "1_co2_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T17:28:12.565182+00:00",
+        "value": 996.236349201549,
+        "unit": "ppm",
+        "sensor_id": "1_co2_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T17:28:12.469020+00:00",
+        "value": 996.5828748776937,
+        "unit": "ppm",
+        "sensor_id": "1_co2_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:57:52.496739+00:00",
+        "value": 675.6785116818593,
+        "unit": "ppm",
+        "sensor_id": "1_co2_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:56:20.770860+00:00",
+        "value": 703.2397327886051,
+        "unit": "ppm",
+        "sensor_id": "1_co2_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:55:30.756412+00:00",
+        "value": 743.7925372674432,
+        "unit": "ppm",
+        "sensor_id": "1_co2_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:54:48.493411+00:00",
+        "value": 770.8284620762863,
+        "unit": "ppm",
+        "sensor_id": "1_co2_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:51:20.673083+00:00",
+        "value": 740.4221883790382,
+        "unit": "ppm",
+        "sensor_id": "1_co2_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:48:50.987492+00:00",
+        "value": 738.2690664457106,
+        "unit": "ppm",
+        "sensor_id": "1_co2_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:47:55.525217+00:00",
+        "value": 707.0967919288969,
+        "unit": "ppm",
+        "sensor_id": "1_co2_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:47:46.710176+00:00",
+        "value": 702.8925198762516,
+        "unit": "ppm",
+        "sensor_id": "1_co2_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:47:42.821729+00:00",
+        "value": 709.8230883064172,
+        "unit": "ppm",
+        "sensor_id": "1_co2_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:47:33.005805+00:00",
+        "value": 746.1573164758314,
+        "unit": "ppm",
+        "sensor_id": "1_co2_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:47:23.394172+00:00",
+        "value": 735.6620896191791,
+        "unit": "ppm",
+        "sensor_id": "1_co2_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:46:20.556833+00:00",
+        "value": 784.5919048848377,
+        "unit": "ppm",
+        "sensor_id": "1_co2_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:43:26.193043+00:00",
+        "value": 763.2570141304714,
+        "unit": "ppm",
+        "sensor_id": "1_co2_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:43:22.526209+00:00",
+        "value": 741.2068826932564,
+        "unit": "ppm",
+        "sensor_id": "1_co2_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:41:20.359606+00:00",
+        "value": 771.6431847564427,
+        "unit": "ppm",
+        "sensor_id": "1_co2_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:37:17.671727+00:00",
+        "value": 795.2676751720571,
+        "unit": "ppm",
+        "sensor_id": "1_co2_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:36:20.240409+00:00",
+        "value": 774.1787333518698,
+        "unit": "ppm",
+        "sensor_id": "1_co2_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:36:20.119448+00:00",
+        "value": 755.8804850409078,
+        "unit": "ppm",
+        "sensor_id": "1_co2_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:36:11.867138+00:00",
+        "value": 690.3812082826746,
+        "unit": "ppm",
+        "sensor_id": "1_co2_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:31:11.668467+00:00",
+        "value": 641.6527348238578,
+        "unit": "ppm",
+        "sensor_id": "1_co2_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:26:11.290719+00:00",
+        "value": 599.4081676391352,
+        "unit": "ppm",
+        "sensor_id": "1_co2_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:21:11.172406+00:00",
+        "value": 590.6877523319442,
+        "unit": "ppm",
+        "sensor_id": "1_co2_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:21:11.091072+00:00",
+        "value": 571.1652868819963,
+        "unit": "ppm",
+        "sensor_id": "1_co2_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:18:22.087067+00:00",
+        "value": 583.712723486616,
+        "unit": "ppm",
+        "sensor_id": "1_co2_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:18:22.012739+00:00",
+        "value": 565.0752651989742,
+        "unit": "ppm",
+        "sensor_id": "1_co2_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:14:23.912460+00:00",
+        "value": 326.0610451237209,
+        "unit": "ppm",
+        "sensor_id": "1_co2_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:14:23.739899+00:00",
+        "value": 347.11168103738146,
+        "unit": "ppm",
+        "sensor_id": "1_co2_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:09:59.142185+00:00",
+        "value": 766.1955043094886,
+        "unit": "ppm",
+        "sensor_id": "1_co2_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:09:59.004207+00:00",
+        "value": 805.4597710520254,
+        "unit": "ppm",
+        "sensor_id": "1_co2_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T08:59:43.471652+00:00",
+        "value": 1091.1721626658443,
+        "unit": "ppm",
+        "sensor_id": "1_co2_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T08:59:43.277412+00:00",
+        "value": 1122.1530798660935,
+        "unit": "ppm",
+        "sensor_id": "1_co2_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T08:58:20.991414+00:00",
+        "value": 444.8957286089095,
+        "unit": "ppm",
+        "sensor_id": "1_co2_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T08:58:20.908971+00:00",
+        "value": 413.0153723792255,
+        "unit": "ppm",
+        "sensor_id": "1_co2_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T08:53:35.940342+00:00",
+        "value": 377.1234897096071,
+        "unit": "ppm",
+        "sensor_id": "1_co2_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T08:48:35.735877+00:00",
+        "value": 329.31835197246085,
+        "unit": "ppm",
+        "sensor_id": "1_co2_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T08:48:35.653377+00:00",
+        "value": 348.2798639727386,
+        "unit": "ppm",
+        "sensor_id": "1_co2_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T08:46:43.159650+00:00",
+        "value": 605.5378830158309,
+        "unit": "ppm",
+        "sensor_id": "1_co2_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T08:46:12.800147+00:00",
+        "value": 600.287482331712,
+        "unit": "ppm",
+        "sensor_id": "1_co2_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T08:46:12.738178+00:00",
+        "value": 623.987708940273,
+        "unit": "ppm",
+        "sensor_id": "1_co2_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      }
+    ],
+    "rainfall": [
+      {
+        "timestamp": "2025-05-13T17:29:36.196200+00:00",
+        "value": 21.046682545756298,
+        "unit": "mm",
+        "sensor_id": "1_rainfall_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T17:29:32.621772+00:00",
+        "value": 26.02099367316198,
+        "unit": "mm",
+        "sensor_id": "1_rainfall_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T17:29:06.151363+00:00",
+        "value": 23.55179135185493,
+        "unit": "mm",
+        "sensor_id": "1_rainfall_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T17:28:12.562711+00:00",
+        "value": 20.04249422335924,
+        "unit": "mm",
+        "sensor_id": "1_rainfall_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T17:28:12.466838+00:00",
+        "value": 20.813808439911362,
+        "unit": "mm",
+        "sensor_id": "1_rainfall_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:57:52.483567+00:00",
+        "value": 45.46374239116347,
+        "unit": "mm",
+        "sensor_id": "1_rainfall_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:56:20.767618+00:00",
+        "value": 50.0,
+        "unit": "mm",
+        "sensor_id": "1_rainfall_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:55:30.750560+00:00",
+        "value": 48.80256161907285,
+        "unit": "mm",
+        "sensor_id": "1_rainfall_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:54:48.486467+00:00",
+        "value": 50.0,
+        "unit": "mm",
+        "sensor_id": "1_rainfall_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:51:20.669855+00:00",
+        "value": 48.00453156623453,
+        "unit": "mm",
+        "sensor_id": "1_rainfall_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:48:50.974970+00:00",
+        "value": 44.26526994696137,
+        "unit": "mm",
+        "sensor_id": "1_rainfall_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:47:55.520044+00:00",
+        "value": 45.37153547285798,
+        "unit": "mm",
+        "sensor_id": "1_rainfall_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:47:46.702662+00:00",
+        "value": 45.91678115706673,
+        "unit": "mm",
+        "sensor_id": "1_rainfall_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:47:42.817199+00:00",
+        "value": 43.639632206010845,
+        "unit": "mm",
+        "sensor_id": "1_rainfall_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:47:32.999437+00:00",
+        "value": 45.23583212213366,
+        "unit": "mm",
+        "sensor_id": "1_rainfall_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:47:23.387660+00:00",
+        "value": 42.96335648864512,
+        "unit": "mm",
+        "sensor_id": "1_rainfall_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:46:20.546062+00:00",
+        "value": 38.54327570358467,
+        "unit": "mm",
+        "sensor_id": "1_rainfall_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:43:26.189106+00:00",
+        "value": 41.23741989817915,
+        "unit": "mm",
+        "sensor_id": "1_rainfall_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:43:22.522279+00:00",
+        "value": 44.17969637826113,
+        "unit": "mm",
+        "sensor_id": "1_rainfall_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:41:20.350655+00:00",
+        "value": 41.88052903719249,
+        "unit": "mm",
+        "sensor_id": "1_rainfall_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:37:17.667176+00:00",
+        "value": 38.340940414312804,
+        "unit": "mm",
+        "sensor_id": "1_rainfall_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:36:20.236802+00:00",
+        "value": 40.607288485868565,
+        "unit": "mm",
+        "sensor_id": "1_rainfall_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:36:20.115989+00:00",
+        "value": 44.48033203630077,
+        "unit": "mm",
+        "sensor_id": "1_rainfall_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:36:11.862877+00:00",
+        "value": 0.0,
+        "unit": "mm",
+        "sensor_id": "1_rainfall_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:31:11.627936+00:00",
+        "value": 0.0,
+        "unit": "mm",
+        "sensor_id": "1_rainfall_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:26:11.285484+00:00",
+        "value": 1.7739856843939705,
+        "unit": "mm",
+        "sensor_id": "1_rainfall_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:21:11.169971+00:00",
+        "value": 0.0,
+        "unit": "mm",
+        "sensor_id": "1_rainfall_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:21:11.088647+00:00",
+        "value": 0.0,
+        "unit": "mm",
+        "sensor_id": "1_rainfall_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:18:22.084184+00:00",
+        "value": 38.12460647825414,
+        "unit": "mm",
+        "sensor_id": "1_rainfall_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:18:22.010410+00:00",
+        "value": 42.50101645945712,
+        "unit": "mm",
+        "sensor_id": "1_rainfall_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:14:23.903225+00:00",
+        "value": 46.8130759702018,
+        "unit": "mm",
+        "sensor_id": "1_rainfall_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:14:23.737256+00:00",
+        "value": 50.0,
+        "unit": "mm",
+        "sensor_id": "1_rainfall_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:09:59.139254+00:00",
+        "value": 31.48228349316536,
+        "unit": "mm",
+        "sensor_id": "1_rainfall_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:09:59.000905+00:00",
+        "value": 32.035759727309966,
+        "unit": "mm",
+        "sensor_id": "1_rainfall_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T08:59:43.468418+00:00",
+        "value": 19.54072431709976,
+        "unit": "mm",
+        "sensor_id": "1_rainfall_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T08:59:43.263630+00:00",
+        "value": 15.713715461435886,
+        "unit": "mm",
+        "sensor_id": "1_rainfall_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T08:58:20.988984+00:00",
+        "value": 25.75516510277992,
+        "unit": "mm",
+        "sensor_id": "1_rainfall_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T08:58:20.906404+00:00",
+        "value": 30.325862941069055,
+        "unit": "mm",
+        "sensor_id": "1_rainfall_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T08:53:35.934870+00:00",
+        "value": 19.21905589240908,
+        "unit": "mm",
+        "sensor_id": "1_rainfall_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T08:48:35.733005+00:00",
+        "value": 20.99538010262325,
+        "unit": "mm",
+        "sensor_id": "1_rainfall_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T08:48:35.650107+00:00",
+        "value": 25.588895746262004,
+        "unit": "mm",
+        "sensor_id": "1_rainfall_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T08:46:43.156077+00:00",
+        "value": 38.152062717552425,
+        "unit": "mm",
+        "sensor_id": "1_rainfall_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T08:46:12.798399+00:00",
+        "value": 42.36728750842096,
+        "unit": "mm",
+        "sensor_id": "1_rainfall_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T08:46:12.735923+00:00",
+        "value": 41.63398987163476,
+        "unit": "mm",
+        "sensor_id": "1_rainfall_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      }
+    ],
+    "wind_direction": [
+      {
+        "timestamp": "2025-05-13T17:29:36.192616+00:00",
+        "value": 153.86777434720838,
+        "unit": "degrees",
+        "sensor_id": "1_wind_direction_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T17:29:32.615602+00:00",
+        "value": 163.06333753671888,
+        "unit": "degrees",
+        "sensor_id": "1_wind_direction_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T17:29:06.148087+00:00",
+        "value": 177.09801700433965,
+        "unit": "degrees",
+        "sensor_id": "1_wind_direction_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T17:28:12.560281+00:00",
+        "value": 170.06087520691972,
+        "unit": "degrees",
+        "sensor_id": "1_wind_direction_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T17:28:12.464667+00:00",
+        "value": 165.33353669475565,
+        "unit": "degrees",
+        "sensor_id": "1_wind_direction_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:57:52.471775+00:00",
+        "value": 193.25933385083624,
+        "unit": "degrees",
+        "sensor_id": "1_wind_direction_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:56:20.764128+00:00",
+        "value": 191.8520801023932,
+        "unit": "degrees",
+        "sensor_id": "1_wind_direction_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:55:30.743131+00:00",
+        "value": 180.22447059430772,
+        "unit": "degrees",
+        "sensor_id": "1_wind_direction_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:54:48.477072+00:00",
+        "value": 182.57391652666234,
+        "unit": "degrees",
+        "sensor_id": "1_wind_direction_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:51:20.666683+00:00",
+        "value": 183.46607135765265,
+        "unit": "degrees",
+        "sensor_id": "1_wind_direction_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:48:50.970176+00:00",
+        "value": 177.84727819551355,
+        "unit": "degrees",
+        "sensor_id": "1_wind_direction_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:47:55.515473+00:00",
+        "value": 171.82153462717304,
+        "unit": "degrees",
+        "sensor_id": "1_wind_direction_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:47:46.696867+00:00",
+        "value": 163.2120004160417,
+        "unit": "degrees",
+        "sensor_id": "1_wind_direction_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:47:42.813359+00:00",
+        "value": 167.89866099372736,
+        "unit": "degrees",
+        "sensor_id": "1_wind_direction_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:47:32.994223+00:00",
+        "value": 172.69950901669822,
+        "unit": "degrees",
+        "sensor_id": "1_wind_direction_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:47:23.383300+00:00",
+        "value": 185.10381466168036,
+        "unit": "degrees",
+        "sensor_id": "1_wind_direction_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:46:20.541937+00:00",
+        "value": 182.87632920830086,
+        "unit": "degrees",
+        "sensor_id": "1_wind_direction_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:43:26.184731+00:00",
+        "value": 193.75112918858264,
+        "unit": "degrees",
+        "sensor_id": "1_wind_direction_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:43:22.516478+00:00",
+        "value": 174.29408197183577,
+        "unit": "degrees",
+        "sensor_id": "1_wind_direction_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:41:20.337898+00:00",
+        "value": 191.1670897040087,
+        "unit": "degrees",
+        "sensor_id": "1_wind_direction_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:37:17.660674+00:00",
+        "value": 188.67695610996768,
+        "unit": "degrees",
+        "sensor_id": "1_wind_direction_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:36:20.233396+00:00",
+        "value": 201.79541681911616,
+        "unit": "degrees",
+        "sensor_id": "1_wind_direction_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:36:20.112540+00:00",
+        "value": 221.19148332281026,
+        "unit": "degrees",
+        "sensor_id": "1_wind_direction_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:36:11.858560+00:00",
+        "value": 281.7492231458986,
+        "unit": "degrees",
+        "sensor_id": "1_wind_direction_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:31:11.598874+00:00",
+        "value": 290.75778204318175,
+        "unit": "degrees",
+        "sensor_id": "1_wind_direction_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:26:11.278742+00:00",
+        "value": 284.97280425584916,
+        "unit": "degrees",
+        "sensor_id": "1_wind_direction_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:21:11.167552+00:00",
+        "value": 301.28249958709813,
+        "unit": "degrees",
+        "sensor_id": "1_wind_direction_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:21:11.086436+00:00",
+        "value": 289.2990453555967,
+        "unit": "degrees",
+        "sensor_id": "1_wind_direction_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:18:22.081093+00:00",
+        "value": 348.76824397585085,
+        "unit": "degrees",
+        "sensor_id": "1_wind_direction_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:18:22.008105+00:00",
+        "value": 359.0,
+        "unit": "degrees",
+        "sensor_id": "1_wind_direction_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:14:23.895343+00:00",
+        "value": 303.70687218586454,
+        "unit": "degrees",
+        "sensor_id": "1_wind_direction_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:14:23.734537+00:00",
+        "value": 283.75152751704735,
+        "unit": "degrees",
+        "sensor_id": "1_wind_direction_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:09:59.135909+00:00",
+        "value": 231.45262673702766,
+        "unit": "degrees",
+        "sensor_id": "1_wind_direction_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:09:58.998022+00:00",
+        "value": 221.69530039616808,
+        "unit": "degrees",
+        "sensor_id": "1_wind_direction_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T08:59:43.465091+00:00",
+        "value": 359.0,
+        "unit": "degrees",
+        "sensor_id": "1_wind_direction_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T08:59:43.251825+00:00",
+        "value": 359.0,
+        "unit": "degrees",
+        "sensor_id": "1_wind_direction_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T08:58:20.986514+00:00",
+        "value": 0.0,
+        "unit": "degrees",
+        "sensor_id": "1_wind_direction_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T08:58:20.903717+00:00",
+        "value": 3.1545343703601443,
+        "unit": "degrees",
+        "sensor_id": "1_wind_direction_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T08:53:35.928427+00:00",
+        "value": 286.59010564566535,
+        "unit": "degrees",
+        "sensor_id": "1_wind_direction_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T08:48:35.730559+00:00",
+        "value": 276.5424336609809,
+        "unit": "degrees",
+        "sensor_id": "1_wind_direction_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T08:48:35.647458+00:00",
+        "value": 283.2996479073533,
+        "unit": "degrees",
+        "sensor_id": "1_wind_direction_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T08:46:43.152497+00:00",
+        "value": 284.87060677762196,
+        "unit": "degrees",
+        "sensor_id": "1_wind_direction_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T08:46:12.796596+00:00",
+        "value": 280.3851489105506,
+        "unit": "degrees",
+        "sensor_id": "1_wind_direction_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T08:46:12.733646+00:00",
+        "value": 279.4650788582722,
+        "unit": "degrees",
+        "sensor_id": "1_wind_direction_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      }
+    ],
+    "wind_speed": [
+      {
+        "timestamp": "2025-05-13T17:29:36.188111+00:00",
+        "value": 12.515091900190662,
+        "unit": "m/s",
+        "sensor_id": "1_wind_speed_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T17:29:32.612089+00:00",
+        "value": 11.288172901955724,
+        "unit": "m/s",
+        "sensor_id": "1_wind_speed_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T17:29:06.144232+00:00",
+        "value": 10.248327894378994,
+        "unit": "m/s",
+        "sensor_id": "1_wind_speed_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T17:28:12.557988+00:00",
+        "value": 8.32890311361174,
+        "unit": "m/s",
+        "sensor_id": "1_wind_speed_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T17:28:12.462243+00:00",
+        "value": 7.082997321075679,
+        "unit": "m/s",
+        "sensor_id": "1_wind_speed_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:57:52.447329+00:00",
+        "value": 16.964501200632416,
+        "unit": "m/s",
+        "sensor_id": "1_wind_speed_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:56:20.760576+00:00",
+        "value": 18.655771289920366,
+        "unit": "m/s",
+        "sensor_id": "1_wind_speed_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:55:30.735747+00:00",
+        "value": 17.12805267057368,
+        "unit": "m/s",
+        "sensor_id": "1_wind_speed_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:54:48.467015+00:00",
+        "value": 17.23570467279336,
+        "unit": "m/s",
+        "sensor_id": "1_wind_speed_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:51:20.663014+00:00",
+        "value": 15.534873153286691,
+        "unit": "m/s",
+        "sensor_id": "1_wind_speed_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:48:50.963954+00:00",
+        "value": 14.644306794546907,
+        "unit": "m/s",
+        "sensor_id": "1_wind_speed_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:47:55.512207+00:00",
+        "value": 15.030475086610272,
+        "unit": "m/s",
+        "sensor_id": "1_wind_speed_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:47:46.688591+00:00",
+        "value": 15.066333752357565,
+        "unit": "m/s",
+        "sensor_id": "1_wind_speed_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:47:42.810025+00:00",
+        "value": 16.83091240588901,
+        "unit": "m/s",
+        "sensor_id": "1_wind_speed_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:47:32.988439+00:00",
+        "value": 17.669929620969445,
+        "unit": "m/s",
+        "sensor_id": "1_wind_speed_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:47:23.378412+00:00",
+        "value": 16.12941251297741,
+        "unit": "m/s",
+        "sensor_id": "1_wind_speed_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:46:20.531049+00:00",
+        "value": 17.551363087870914,
+        "unit": "m/s",
+        "sensor_id": "1_wind_speed_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:43:26.178861+00:00",
+        "value": 15.93408768945661,
+        "unit": "m/s",
+        "sensor_id": "1_wind_speed_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:43:22.509328+00:00",
+        "value": 14.699631887899859,
+        "unit": "m/s",
+        "sensor_id": "1_wind_speed_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:41:20.329970+00:00",
+        "value": 16.583911189836815,
+        "unit": "m/s",
+        "sensor_id": "1_wind_speed_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:37:17.653870+00:00",
+        "value": 16.250804409899192,
+        "unit": "m/s",
+        "sensor_id": "1_wind_speed_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:36:20.228359+00:00",
+        "value": 16.81277724368773,
+        "unit": "m/s",
+        "sensor_id": "1_wind_speed_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:36:20.108996+00:00",
+        "value": 18.447276128373794,
+        "unit": "m/s",
+        "sensor_id": "1_wind_speed_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:36:11.854419+00:00",
+        "value": 6.867484128418636,
+        "unit": "m/s",
+        "sensor_id": "1_wind_speed_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:31:11.566419+00:00",
+        "value": 8.210669551810195,
+        "unit": "m/s",
+        "sensor_id": "1_wind_speed_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:26:11.273727+00:00",
+        "value": 8.841493774439787,
+        "unit": "m/s",
+        "sensor_id": "1_wind_speed_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:21:11.164618+00:00",
+        "value": 10.158875426376316,
+        "unit": "m/s",
+        "sensor_id": "1_wind_speed_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:21:11.084247+00:00",
+        "value": 8.915778332810081,
+        "unit": "m/s",
+        "sensor_id": "1_wind_speed_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:18:22.078619+00:00",
+        "value": 12.178854532995691,
+        "unit": "m/s",
+        "sensor_id": "1_wind_speed_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:18:22.005763+00:00",
+        "value": 13.084139043282233,
+        "unit": "m/s",
+        "sensor_id": "1_wind_speed_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:14:23.884099+00:00",
+        "value": 5.152216403379649,
+        "unit": "m/s",
+        "sensor_id": "1_wind_speed_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:14:23.731771+00:00",
+        "value": 5.490058473197308,
+        "unit": "m/s",
+        "sensor_id": "1_wind_speed_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:09:59.129244+00:00",
+        "value": 18.834139249679854,
+        "unit": "m/s",
+        "sensor_id": "1_wind_speed_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:09:58.994957+00:00",
+        "value": 17.0175295773053,
+        "unit": "m/s",
+        "sensor_id": "1_wind_speed_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T08:59:43.461802+00:00",
+        "value": 4.527192984859468,
+        "unit": "m/s",
+        "sensor_id": "1_wind_speed_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T08:59:43.243826+00:00",
+        "value": 3.4283276866200616,
+        "unit": "m/s",
+        "sensor_id": "1_wind_speed_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T08:58:20.982921+00:00",
+        "value": 19.89251014668931,
+        "unit": "m/s",
+        "sensor_id": "1_wind_speed_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T08:58:20.899884+00:00",
+        "value": 19.66594955052178,
+        "unit": "m/s",
+        "sensor_id": "1_wind_speed_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T08:53:35.922368+00:00",
+        "value": 0.022934184891679532,
+        "unit": "m/s",
+        "sensor_id": "1_wind_speed_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T08:48:35.728057+00:00",
+        "value": 0.24682741465831493,
+        "unit": "m/s",
+        "sensor_id": "1_wind_speed_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T08:48:35.644954+00:00",
+        "value": 1.7625285237018633,
+        "unit": "m/s",
+        "sensor_id": "1_wind_speed_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T08:46:43.148837+00:00",
+        "value": 2.4151092347032055,
+        "unit": "m/s",
+        "sensor_id": "1_wind_speed_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T08:46:12.794839+00:00",
+        "value": 4.021808118626788,
+        "unit": "m/s",
+        "sensor_id": "1_wind_speed_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T08:46:12.731514+00:00",
+        "value": 4.263012874020623,
+        "unit": "m/s",
+        "sensor_id": "1_wind_speed_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      }
+    ],
+    "ph": [
+      {
+        "timestamp": "2025-05-13T17:29:36.181397+00:00",
+        "value": 6.888324420583023,
+        "unit": "pH",
+        "sensor_id": "1_ph_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T17:29:32.608751+00:00",
+        "value": 6.956935672564791,
+        "unit": "pH",
+        "sensor_id": "1_ph_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T17:29:06.140731+00:00",
+        "value": 6.883876590880073,
+        "unit": "pH",
+        "sensor_id": "1_ph_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T17:28:12.555794+00:00",
+        "value": 6.953784576936883,
+        "unit": "pH",
+        "sensor_id": "1_ph_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T17:28:12.459926+00:00",
+        "value": 7.0143569600198905,
+        "unit": "pH",
+        "sensor_id": "1_ph_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:57:52.423621+00:00",
+        "value": 6.611097172097454,
+        "unit": "pH",
+        "sensor_id": "1_ph_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:56:20.757193+00:00",
+        "value": 6.6393397297870855,
+        "unit": "pH",
+        "sensor_id": "1_ph_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:55:30.729457+00:00",
+        "value": 6.738068038979025,
+        "unit": "pH",
+        "sensor_id": "1_ph_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:54:48.458902+00:00",
+        "value": 6.805881485138034,
+        "unit": "pH",
+        "sensor_id": "1_ph_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:51:20.659282+00:00",
+        "value": 6.8534371945155375,
+        "unit": "pH",
+        "sensor_id": "1_ph_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:48:50.957808+00:00",
+        "value": 6.802775476771668,
+        "unit": "pH",
+        "sensor_id": "1_ph_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:47:55.508755+00:00",
+        "value": 6.830428211388438,
+        "unit": "pH",
+        "sensor_id": "1_ph_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:47:46.682733+00:00",
+        "value": 6.789171867873439,
+        "unit": "pH",
+        "sensor_id": "1_ph_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:47:42.806089+00:00",
+        "value": 6.867735608416532,
+        "unit": "pH",
+        "sensor_id": "1_ph_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:47:32.982120+00:00",
+        "value": 6.847717467157852,
+        "unit": "pH",
+        "sensor_id": "1_ph_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:47:23.373395+00:00",
+        "value": 6.906784263198695,
+        "unit": "pH",
+        "sensor_id": "1_ph_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:46:20.519484+00:00",
+        "value": 6.878536206161286,
+        "unit": "pH",
+        "sensor_id": "1_ph_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:43:26.175701+00:00",
+        "value": 6.855745685258849,
+        "unit": "pH",
+        "sensor_id": "1_ph_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:43:22.499693+00:00",
+        "value": 6.865850993926563,
+        "unit": "pH",
+        "sensor_id": "1_ph_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:41:20.324943+00:00",
+        "value": 6.835110393616458,
+        "unit": "pH",
+        "sensor_id": "1_ph_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:37:17.647524+00:00",
+        "value": 6.830532769756791,
+        "unit": "pH",
+        "sensor_id": "1_ph_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:36:20.224731+00:00",
+        "value": 6.85738645911995,
+        "unit": "pH",
+        "sensor_id": "1_ph_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:36:20.105218+00:00",
+        "value": 6.83474199527062,
+        "unit": "pH",
+        "sensor_id": "1_ph_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:36:11.848537+00:00",
+        "value": 6.987527896167551,
+        "unit": "pH",
+        "sensor_id": "1_ph_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:31:11.556322+00:00",
+        "value": 6.949200073434786,
+        "unit": "pH",
+        "sensor_id": "1_ph_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:26:11.268379+00:00",
+        "value": 7.024056307781578,
+        "unit": "pH",
+        "sensor_id": "1_ph_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:21:11.160362+00:00",
+        "value": 6.94642533324668,
+        "unit": "pH",
+        "sensor_id": "1_ph_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:21:11.081906+00:00",
+        "value": 6.985468819290256,
+        "unit": "pH",
+        "sensor_id": "1_ph_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:18:22.076332+00:00",
+        "value": 6.5521155398702575,
+        "unit": "pH",
+        "sensor_id": "1_ph_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:18:22.003559+00:00",
+        "value": 6.554609865968783,
+        "unit": "pH",
+        "sensor_id": "1_ph_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:14:23.875901+00:00",
+        "value": 6.91498284814132,
+        "unit": "pH",
+        "sensor_id": "1_ph_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:14:23.729130+00:00",
+        "value": 7.006130321356788,
+        "unit": "pH",
+        "sensor_id": "1_ph_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:09:59.118709+00:00",
+        "value": 6.530788498280371,
+        "unit": "pH",
+        "sensor_id": "1_ph_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:09:58.991874+00:00",
+        "value": 6.616665455027859,
+        "unit": "pH",
+        "sensor_id": "1_ph_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T08:59:43.457359+00:00",
+        "value": 7.860202545681945,
+        "unit": "pH",
+        "sensor_id": "1_ph_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T08:59:43.233227+00:00",
+        "value": 7.8269487933505735,
+        "unit": "pH",
+        "sensor_id": "1_ph_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T08:58:20.979087+00:00",
+        "value": 6.010668858253138,
+        "unit": "pH",
+        "sensor_id": "1_ph_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T08:58:20.897596+00:00",
+        "value": 6.033682786117832,
+        "unit": "pH",
+        "sensor_id": "1_ph_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T08:53:35.916425+00:00",
+        "value": 6.13898073055073,
+        "unit": "pH",
+        "sensor_id": "1_ph_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T08:48:35.725234+00:00",
+        "value": 6.056560411231906,
+        "unit": "pH",
+        "sensor_id": "1_ph_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T08:48:35.642374+00:00",
+        "value": 6.0423455735277845,
+        "unit": "pH",
+        "sensor_id": "1_ph_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T08:46:43.145273+00:00",
+        "value": 5.666519845384113,
+        "unit": "pH",
+        "sensor_id": "1_ph_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T08:46:12.792983+00:00",
+        "value": 5.597371942204794,
+        "unit": "pH",
+        "sensor_id": "1_ph_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T08:46:12.729186+00:00",
+        "value": 5.5,
+        "unit": "pH",
+        "sensor_id": "1_ph_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      }
+    ],
+    "light": [
+      {
+        "timestamp": "2025-05-13T17:29:36.177333+00:00",
+        "value": 73596.06889964339,
+        "unit": "lux",
+        "sensor_id": "1_light_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T17:29:32.605314+00:00",
+        "value": 78472.77791141771,
+        "unit": "lux",
+        "sensor_id": "1_light_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T17:29:06.137584+00:00",
+        "value": 84903.44244872434,
+        "unit": "lux",
+        "sensor_id": "1_light_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T17:28:12.551815+00:00",
+        "value": 85222.89573599941,
+        "unit": "lux",
+        "sensor_id": "1_light_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T17:28:12.457438+00:00",
+        "value": 86810.66095807834,
+        "unit": "lux",
+        "sensor_id": "1_light_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:57:52.407237+00:00",
+        "value": 46409.66000216867,
+        "unit": "lux",
+        "sensor_id": "1_light_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:56:20.753752+00:00",
+        "value": 42627.03552267789,
+        "unit": "lux",
+        "sensor_id": "1_light_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:55:30.720036+00:00",
+        "value": 37324.473650959044,
+        "unit": "lux",
+        "sensor_id": "1_light_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:54:48.449810+00:00",
+        "value": 36540.09950160544,
+        "unit": "lux",
+        "sensor_id": "1_light_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:51:20.655611+00:00",
+        "value": 32029.689354839305,
+        "unit": "lux",
+        "sensor_id": "1_light_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:48:50.946855+00:00",
+        "value": 29552.257818342277,
+        "unit": "lux",
+        "sensor_id": "1_light_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:47:55.505195+00:00",
+        "value": 31782.479729427123,
+        "unit": "lux",
+        "sensor_id": "1_light_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:47:46.676659+00:00",
+        "value": 31959.68710045968,
+        "unit": "lux",
+        "sensor_id": "1_light_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:47:42.802361+00:00",
+        "value": 29876.718057858277,
+        "unit": "lux",
+        "sensor_id": "1_light_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:47:32.969259+00:00",
+        "value": 26254.779353154383,
+        "unit": "lux",
+        "sensor_id": "1_light_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:47:23.366971+00:00",
+        "value": 28285.289516011635,
+        "unit": "lux",
+        "sensor_id": "1_light_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:46:20.515125+00:00",
+        "value": 28595.132973519205,
+        "unit": "lux",
+        "sensor_id": "1_light_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:43:26.172492+00:00",
+        "value": 24784.865269162732,
+        "unit": "lux",
+        "sensor_id": "1_light_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:43:22.491049+00:00",
+        "value": 24311.91936580056,
+        "unit": "lux",
+        "sensor_id": "1_light_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:41:20.320385+00:00",
+        "value": 20812.57274245182,
+        "unit": "lux",
+        "sensor_id": "1_light_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:37:17.641216+00:00",
+        "value": 17855.66228048843,
+        "unit": "lux",
+        "sensor_id": "1_light_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:36:20.221045+00:00",
+        "value": 18599.25472216367,
+        "unit": "lux",
+        "sensor_id": "1_light_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:36:20.101743+00:00",
+        "value": 15383.546267735888,
+        "unit": "lux",
+        "sensor_id": "1_light_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:36:11.843506+00:00",
+        "value": 80261.62306761222,
+        "unit": "lux",
+        "sensor_id": "1_light_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:31:11.525706+00:00",
+        "value": 80225.22538795341,
+        "unit": "lux",
+        "sensor_id": "1_light_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:26:11.262884+00:00",
+        "value": 80941.5055534501,
+        "unit": "lux",
+        "sensor_id": "1_light_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:21:11.158236+00:00",
+        "value": 78700.1068038776,
+        "unit": "lux",
+        "sensor_id": "1_light_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:21:11.079589+00:00",
+        "value": 77184.84857942184,
+        "unit": "lux",
+        "sensor_id": "1_light_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:18:22.074154+00:00",
+        "value": 20804.935486741248,
+        "unit": "lux",
+        "sensor_id": "1_light_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:18:22.001294+00:00",
+        "value": 20411.243801959285,
+        "unit": "lux",
+        "sensor_id": "1_light_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:14:23.859665+00:00",
+        "value": 96651.63820774807,
+        "unit": "lux",
+        "sensor_id": "1_light_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:14:23.726380+00:00",
+        "value": 91554.4416091216,
+        "unit": "lux",
+        "sensor_id": "1_light_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:09:59.115242+00:00",
+        "value": 86242.94303666387,
+        "unit": "lux",
+        "sensor_id": "1_light_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:09:58.988702+00:00",
+        "value": 84802.82036280127,
+        "unit": "lux",
+        "sensor_id": "1_light_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T08:59:43.452345+00:00",
+        "value": 23278.49283436229,
+        "unit": "lux",
+        "sensor_id": "1_light_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T08:59:43.228407+00:00",
+        "value": 21748.740843407635,
+        "unit": "lux",
+        "sensor_id": "1_light_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T08:58:20.976259+00:00",
+        "value": 1573.39939484993,
+        "unit": "lux",
+        "sensor_id": "1_light_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T08:58:20.895395+00:00",
+        "value": 4233.532315575047,
+        "unit": "lux",
+        "sensor_id": "1_light_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T08:53:35.909036+00:00",
+        "value": 89218.00735086772,
+        "unit": "lux",
+        "sensor_id": "1_light_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T08:48:35.722723+00:00",
+        "value": 86632.5200122987,
+        "unit": "lux",
+        "sensor_id": "1_light_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T08:48:35.639522+00:00",
+        "value": 86200.48758482073,
+        "unit": "lux",
+        "sensor_id": "1_light_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T08:46:43.141656+00:00",
+        "value": 80310.16054282337,
+        "unit": "lux",
+        "sensor_id": "1_light_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T08:46:12.791272+00:00",
+        "value": 74090.12470890788,
+        "unit": "lux",
+        "sensor_id": "1_light_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T08:46:12.725937+00:00",
+        "value": 75431.22594672935,
+        "unit": "lux",
+        "sensor_id": "1_light_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      }
+    ],
+    "soil_temperature": [
+      {
+        "timestamp": "2025-05-13T17:29:36.173543+00:00",
+        "value": 17.954054416629095,
+        "unit": "°C",
+        "sensor_id": "1_soil_temperature_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T17:29:32.601767+00:00",
+        "value": 17.944449994757953,
+        "unit": "°C",
+        "sensor_id": "1_soil_temperature_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T17:29:06.134336+00:00",
+        "value": 17.851166594172835,
+        "unit": "°C",
+        "sensor_id": "1_soil_temperature_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T17:28:12.529369+00:00",
+        "value": 17.979282699600773,
+        "unit": "°C",
+        "sensor_id": "1_soil_temperature_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T17:28:12.455270+00:00",
+        "value": 17.953478165728136,
+        "unit": "°C",
+        "sensor_id": "1_soil_temperature_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:57:52.381357+00:00",
+        "value": 17.838942413405544,
+        "unit": "°C",
+        "sensor_id": "1_soil_temperature_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:56:20.750315+00:00",
+        "value": 17.820011385346422,
+        "unit": "°C",
+        "sensor_id": "1_soil_temperature_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:55:30.702465+00:00",
+        "value": 17.56471036896094,
+        "unit": "°C",
+        "sensor_id": "1_soil_temperature_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:54:48.437442+00:00",
+        "value": 17.429563797825033,
+        "unit": "°C",
+        "sensor_id": "1_soil_temperature_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:51:20.652008+00:00",
+        "value": 17.344956614906334,
+        "unit": "°C",
+        "sensor_id": "1_soil_temperature_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:48:50.939080+00:00",
+        "value": 17.64161483432452,
+        "unit": "°C",
+        "sensor_id": "1_soil_temperature_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:47:55.501611+00:00",
+        "value": 17.61132793229744,
+        "unit": "°C",
+        "sensor_id": "1_soil_temperature_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:47:46.669912+00:00",
+        "value": 17.365098340854374,
+        "unit": "°C",
+        "sensor_id": "1_soil_temperature_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:47:42.798548+00:00",
+        "value": 17.082321084405336,
+        "unit": "°C",
+        "sensor_id": "1_soil_temperature_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:47:32.962641+00:00",
+        "value": 16.806851294757067,
+        "unit": "°C",
+        "sensor_id": "1_soil_temperature_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:47:23.358596+00:00",
+        "value": 17.03924798901087,
+        "unit": "°C",
+        "sensor_id": "1_soil_temperature_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:46:20.503924+00:00",
+        "value": 16.785666826941796,
+        "unit": "°C",
+        "sensor_id": "1_soil_temperature_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:43:26.168732+00:00",
+        "value": 16.857334716837,
+        "unit": "°C",
+        "sensor_id": "1_soil_temperature_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:43:22.487614+00:00",
+        "value": 16.947431453053326,
+        "unit": "°C",
+        "sensor_id": "1_soil_temperature_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:41:20.302643+00:00",
+        "value": 16.893411370565545,
+        "unit": "°C",
+        "sensor_id": "1_soil_temperature_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:37:17.636162+00:00",
+        "value": 16.6031326821421,
+        "unit": "°C",
+        "sensor_id": "1_soil_temperature_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:36:20.217915+00:00",
+        "value": 16.862810941432087,
+        "unit": "°C",
+        "sensor_id": "1_soil_temperature_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:36:20.098417+00:00",
+        "value": 17.02207576389506,
+        "unit": "°C",
+        "sensor_id": "1_soil_temperature_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:36:11.837997+00:00",
+        "value": 23.07155248475329,
+        "unit": "°C",
+        "sensor_id": "1_soil_temperature_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:31:11.478844+00:00",
+        "value": 23.16866736967263,
+        "unit": "°C",
+        "sensor_id": "1_soil_temperature_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:26:11.254644+00:00",
+        "value": 23.292834931842787,
+        "unit": "°C",
+        "sensor_id": "1_soil_temperature_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:21:11.155947+00:00",
+        "value": 23.029928422408354,
+        "unit": "°C",
+        "sensor_id": "1_soil_temperature_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:21:11.077306+00:00",
+        "value": 23.228788745881218,
+        "unit": "°C",
+        "sensor_id": "1_soil_temperature_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:18:22.071890+00:00",
+        "value": 23.133393407683094,
+        "unit": "°C",
+        "sensor_id": "1_soil_temperature_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:18:21.999001+00:00",
+        "value": 22.843542247480624,
+        "unit": "°C",
+        "sensor_id": "1_soil_temperature_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:14:23.849698+00:00",
+        "value": 12.108697479288033,
+        "unit": "°C",
+        "sensor_id": "1_soil_temperature_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:14:23.722926+00:00",
+        "value": 12.31826647305787,
+        "unit": "°C",
+        "sensor_id": "1_soil_temperature_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:09:59.111991+00:00",
+        "value": 25.424769738511717,
+        "unit": "°C",
+        "sensor_id": "1_soil_temperature_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:09:58.985129+00:00",
+        "value": 25.34565046268891,
+        "unit": "°C",
+        "sensor_id": "1_soil_temperature_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T08:59:43.447037+00:00",
+        "value": 19.474818395447542,
+        "unit": "°C",
+        "sensor_id": "1_soil_temperature_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T08:59:43.223465+00:00",
+        "value": 19.362271785882786,
+        "unit": "°C",
+        "sensor_id": "1_soil_temperature_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T08:58:20.973909+00:00",
+        "value": 13.560025489260196,
+        "unit": "°C",
+        "sensor_id": "1_soil_temperature_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T08:58:20.893042+00:00",
+        "value": 13.494805641702387,
+        "unit": "°C",
+        "sensor_id": "1_soil_temperature_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T08:53:35.901808+00:00",
+        "value": 29.07000896672812,
+        "unit": "°C",
+        "sensor_id": "1_soil_temperature_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T08:48:35.719689+00:00",
+        "value": 28.97719354884127,
+        "unit": "°C",
+        "sensor_id": "1_soil_temperature_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T08:48:35.636832+00:00",
+        "value": 29.07431429454365,
+        "unit": "°C",
+        "sensor_id": "1_soil_temperature_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T08:46:43.137967+00:00",
+        "value": 13.236350002202922,
+        "unit": "°C",
+        "sensor_id": "1_soil_temperature_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T08:46:12.789449+00:00",
+        "value": 13.24084560442638,
+        "unit": "°C",
+        "sensor_id": "1_soil_temperature_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T08:46:12.723371+00:00",
+        "value": 13.110345469470372,
+        "unit": "°C",
+        "sensor_id": "1_soil_temperature_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      }
+    ],
+    "soil_moisture": [
+      {
+        "timestamp": "2025-05-13T17:29:36.170067+00:00",
+        "value": 40.174421457152086,
+        "unit": "%",
+        "sensor_id": "1_soil_moisture_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T17:29:32.598272+00:00",
+        "value": 39.57451227196736,
+        "unit": "%",
+        "sensor_id": "1_soil_moisture_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T17:29:06.130515+00:00",
+        "value": 39.59533354403918,
+        "unit": "%",
+        "sensor_id": "1_soil_moisture_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T17:28:12.525891+00:00",
+        "value": 38.900593999359145,
+        "unit": "%",
+        "sensor_id": "1_soil_moisture_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T17:28:12.452946+00:00",
+        "value": 38.486160719097555,
+        "unit": "%",
+        "sensor_id": "1_soil_moisture_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:57:52.371404+00:00",
+        "value": 33.2875904247062,
+        "unit": "%",
+        "sensor_id": "1_soil_moisture_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:56:20.746720+00:00",
+        "value": 33.043363903616836,
+        "unit": "%",
+        "sensor_id": "1_soil_moisture_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:55:30.696199+00:00",
+        "value": 33.173065921211574,
+        "unit": "%",
+        "sensor_id": "1_soil_moisture_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:54:48.424759+00:00",
+        "value": 32.21505854945348,
+        "unit": "%",
+        "sensor_id": "1_soil_moisture_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:51:20.648572+00:00",
+        "value": 32.216580669713295,
+        "unit": "%",
+        "sensor_id": "1_soil_moisture_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:48:50.933574+00:00",
+        "value": 32.616412197621706,
+        "unit": "%",
+        "sensor_id": "1_soil_moisture_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:47:55.497364+00:00",
+        "value": 31.117809344840666,
+        "unit": "%",
+        "sensor_id": "1_soil_moisture_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:47:46.661489+00:00",
+        "value": 30.18744236363176,
+        "unit": "%",
+        "sensor_id": "1_soil_moisture_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:47:42.794823+00:00",
+        "value": 30.245947605007526,
+        "unit": "%",
+        "sensor_id": "1_soil_moisture_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:47:32.955040+00:00",
+        "value": 28.7718710365481,
+        "unit": "%",
+        "sensor_id": "1_soil_moisture_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:47:23.352775+00:00",
+        "value": 29.90815036097341,
+        "unit": "%",
+        "sensor_id": "1_soil_moisture_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:46:20.491850+00:00",
+        "value": 28.829140780740303,
+        "unit": "%",
+        "sensor_id": "1_soil_moisture_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:43:26.165212+00:00",
+        "value": 29.700432744197673,
+        "unit": "%",
+        "sensor_id": "1_soil_moisture_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:43:22.483608+00:00",
+        "value": 29.745601463268144,
+        "unit": "%",
+        "sensor_id": "1_soil_moisture_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:41:20.290415+00:00",
+        "value": 29.044885437178348,
+        "unit": "%",
+        "sensor_id": "1_soil_moisture_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:37:17.629520+00:00",
+        "value": 28.928626412370836,
+        "unit": "%",
+        "sensor_id": "1_soil_moisture_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:36:20.214635+00:00",
+        "value": 28.620502338695864,
+        "unit": "%",
+        "sensor_id": "1_soil_moisture_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:36:20.094800+00:00",
+        "value": 29.456689207453444,
+        "unit": "%",
+        "sensor_id": "1_soil_moisture_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:36:11.833032+00:00",
+        "value": 51.24029863984127,
+        "unit": "%",
+        "sensor_id": "1_soil_moisture_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:31:11.451282+00:00",
+        "value": 50.325010227187335,
+        "unit": "%",
+        "sensor_id": "1_soil_moisture_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:26:11.250078+00:00",
+        "value": 49.71379267241072,
+        "unit": "%",
+        "sensor_id": "1_soil_moisture_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:21:11.153258+00:00",
+        "value": 48.93432859482131,
+        "unit": "%",
+        "sensor_id": "1_soil_moisture_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:21:11.074884+00:00",
+        "value": 49.12802649072671,
+        "unit": "%",
+        "sensor_id": "1_soil_moisture_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:18:22.069036+00:00",
+        "value": 29.144204078154683,
+        "unit": "%",
+        "sensor_id": "1_soil_moisture_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:18:21.996486+00:00",
+        "value": 27.965126860759806,
+        "unit": "%",
+        "sensor_id": "1_soil_moisture_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:14:23.840239+00:00",
+        "value": 20.397278458171108,
+        "unit": "%",
+        "sensor_id": "1_soil_moisture_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:14:23.720031+00:00",
+        "value": 20.0,
+        "unit": "%",
+        "sensor_id": "1_soil_moisture_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:09:59.108168+00:00",
+        "value": 39.72754349544346,
+        "unit": "%",
+        "sensor_id": "1_soil_moisture_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:09:58.981847+00:00",
+        "value": 40.82292815367935,
+        "unit": "%",
+        "sensor_id": "1_soil_moisture_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T08:59:43.441408+00:00",
+        "value": 71.5158527583027,
+        "unit": "%",
+        "sensor_id": "1_soil_moisture_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T08:59:43.215871+00:00",
+        "value": 72.414431630293,
+        "unit": "%",
+        "sensor_id": "1_soil_moisture_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T08:58:20.971148+00:00",
+        "value": 27.143814341090906,
+        "unit": "%",
+        "sensor_id": "1_soil_moisture_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T08:58:20.890712+00:00",
+        "value": 28.1951986042136,
+        "unit": "%",
+        "sensor_id": "1_soil_moisture_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T08:53:35.895010+00:00",
+        "value": 79.76096048511337,
+        "unit": "%",
+        "sensor_id": "1_soil_moisture_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T08:48:35.716066+00:00",
+        "value": 80.0,
+        "unit": "%",
+        "sensor_id": "1_soil_moisture_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T08:48:35.633657+00:00",
+        "value": 80.0,
+        "unit": "%",
+        "sensor_id": "1_soil_moisture_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T08:46:43.134305+00:00",
+        "value": 60.416709834105696,
+        "unit": "%",
+        "sensor_id": "1_soil_moisture_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T08:46:12.787652+00:00",
+        "value": 61.754765929136965,
+        "unit": "%",
+        "sensor_id": "1_soil_moisture_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T08:46:12.720988+00:00",
+        "value": 62.01813990439687,
+        "unit": "%",
+        "sensor_id": "1_soil_moisture_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      }
+    ],
+    "humidity": [
+      {
+        "timestamp": "2025-05-13T17:29:36.166120+00:00",
+        "value": 76.15748053789913,
+        "unit": "%",
+        "sensor_id": "1_humidity_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T17:29:32.594647+00:00",
+        "value": 75.74506467099833,
+        "unit": "%",
+        "sensor_id": "1_humidity_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T17:29:06.126236+00:00",
+        "value": 76.71066593344815,
+        "unit": "%",
+        "sensor_id": "1_humidity_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T17:28:12.523258+00:00",
+        "value": 76.76496254211823,
+        "unit": "%",
+        "sensor_id": "1_humidity_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T17:28:12.450707+00:00",
+        "value": 75.85813308325308,
+        "unit": "%",
+        "sensor_id": "1_humidity_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:57:52.345316+00:00",
+        "value": 76.24564535616948,
+        "unit": "%",
+        "sensor_id": "1_humidity_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:56:20.742842+00:00",
+        "value": 75.03880645907844,
+        "unit": "%",
+        "sensor_id": "1_humidity_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:55:30.689305+00:00",
+        "value": 73.79417538946532,
+        "unit": "%",
+        "sensor_id": "1_humidity_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:54:48.410622+00:00",
+        "value": 73.84998654217382,
+        "unit": "%",
+        "sensor_id": "1_humidity_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:51:20.644926+00:00",
+        "value": 72.60292900730956,
+        "unit": "%",
+        "sensor_id": "1_humidity_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:48:50.925923+00:00",
+        "value": 71.26088685816828,
+        "unit": "%",
+        "sensor_id": "1_humidity_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:47:55.493866+00:00",
+        "value": 69.8483112878288,
+        "unit": "%",
+        "sensor_id": "1_humidity_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:47:46.653318+00:00",
+        "value": 71.49740275646779,
+        "unit": "%",
+        "sensor_id": "1_humidity_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:47:42.790950+00:00",
+        "value": 69.8735496481421,
+        "unit": "%",
+        "sensor_id": "1_humidity_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:47:32.941262+00:00",
+        "value": 71.6610088632362,
+        "unit": "%",
+        "sensor_id": "1_humidity_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:47:23.346004+00:00",
+        "value": 72.05959715640772,
+        "unit": "%",
+        "sensor_id": "1_humidity_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:46:20.487667+00:00",
+        "value": 71.59232287944975,
+        "unit": "%",
+        "sensor_id": "1_humidity_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:43:26.161680+00:00",
+        "value": 71.72438819788997,
+        "unit": "%",
+        "sensor_id": "1_humidity_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:43:22.479942+00:00",
+        "value": 72.13599842309826,
+        "unit": "%",
+        "sensor_id": "1_humidity_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:41:20.286358+00:00",
+        "value": 73.29119400623514,
+        "unit": "%",
+        "sensor_id": "1_humidity_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:37:17.612097+00:00",
+        "value": 74.6392996929625,
+        "unit": "%",
+        "sensor_id": "1_humidity_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:36:20.210770+00:00",
+        "value": 73.5296378043954,
+        "unit": "%",
+        "sensor_id": "1_humidity_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:36:20.091297+00:00",
+        "value": 74.38710716641253,
+        "unit": "%",
+        "sensor_id": "1_humidity_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:36:11.827662+00:00",
+        "value": 61.4548997385598,
+        "unit": "%",
+        "sensor_id": "1_humidity_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:31:11.419870+00:00",
+        "value": 61.950909790016965,
+        "unit": "%",
+        "sensor_id": "1_humidity_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:26:11.246350+00:00",
+        "value": 63.24785246839916,
+        "unit": "%",
+        "sensor_id": "1_humidity_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:21:11.150250+00:00",
+        "value": 63.8554824043562,
+        "unit": "%",
+        "sensor_id": "1_humidity_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:21:11.072490+00:00",
+        "value": 62.948757577184544,
+        "unit": "%",
+        "sensor_id": "1_humidity_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:18:22.066739+00:00",
+        "value": 40.0,
+        "unit": "%",
+        "sensor_id": "1_humidity_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:18:21.993833+00:00",
+        "value": 40.0,
+        "unit": "%",
+        "sensor_id": "1_humidity_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:14:23.808987+00:00",
+        "value": 73.89756081653418,
+        "unit": "%",
+        "sensor_id": "1_humidity_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:14:23.715655+00:00",
+        "value": 76.03225598369788,
+        "unit": "%",
+        "sensor_id": "1_humidity_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:09:59.105062+00:00",
+        "value": 57.773582511485735,
+        "unit": "%",
+        "sensor_id": "1_humidity_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:09:58.978720+00:00",
+        "value": 56.371492972203036,
+        "unit": "%",
+        "sensor_id": "1_humidity_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T08:59:43.433803+00:00",
+        "value": 69.66938563174706,
+        "unit": "%",
+        "sensor_id": "1_humidity_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T08:59:43.208595+00:00",
+        "value": 70.41116008959962,
+        "unit": "%",
+        "sensor_id": "1_humidity_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T08:58:20.968363+00:00",
+        "value": 47.11354453783044,
+        "unit": "%",
+        "sensor_id": "1_humidity_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T08:58:20.888330+00:00",
+        "value": 47.73810243767627,
+        "unit": "%",
+        "sensor_id": "1_humidity_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T08:53:35.891063+00:00",
+        "value": 40.0,
+        "unit": "%",
+        "sensor_id": "1_humidity_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T08:48:35.713300+00:00",
+        "value": 40.0,
+        "unit": "%",
+        "sensor_id": "1_humidity_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T08:48:35.630017+00:00",
+        "value": 41.36860517146044,
+        "unit": "%",
+        "sensor_id": "1_humidity_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T08:46:43.130557+00:00",
+        "value": 91.80074645685178,
+        "unit": "%",
+        "sensor_id": "1_humidity_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T08:46:12.785888+00:00",
+        "value": 93.80259400410723,
+        "unit": "%",
+        "sensor_id": "1_humidity_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T08:46:12.718330+00:00",
+        "value": 92.73769996390342,
+        "unit": "%",
+        "sensor_id": "1_humidity_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      }
+    ],
+    "temperature": [
+      {
+        "timestamp": "2025-05-13T17:29:36.162372+00:00",
+        "value": 17.867186075328938,
+        "unit": "°C",
+        "sensor_id": "1_temperature_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T17:29:32.589703+00:00",
+        "value": 17.610694770325786,
+        "unit": "°C",
+        "sensor_id": "1_temperature_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T17:29:06.115715+00:00",
+        "value": 17.855590687751665,
+        "unit": "°C",
+        "sensor_id": "1_temperature_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T17:28:12.521021+00:00",
+        "value": 17.75633240539901,
+        "unit": "°C",
+        "sensor_id": "1_temperature_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T17:28:12.446792+00:00",
+        "value": 17.628182896023777,
+        "unit": "°C",
+        "sensor_id": "1_temperature_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:57:52.302537+00:00",
+        "value": 24.7034525653555,
+        "unit": "°C",
+        "sensor_id": "1_temperature_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:56:20.738426+00:00",
+        "value": 24.58631650203648,
+        "unit": "°C",
+        "sensor_id": "1_temperature_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:55:30.675220+00:00",
+        "value": 24.822371914192576,
+        "unit": "°C",
+        "sensor_id": "1_temperature_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:54:48.401562+00:00",
+        "value": 24.699633742620456,
+        "unit": "°C",
+        "sensor_id": "1_temperature_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:51:20.638869+00:00",
+        "value": 24.113035622473554,
+        "unit": "°C",
+        "sensor_id": "1_temperature_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:48:50.902753+00:00",
+        "value": 23.992277806640793,
+        "unit": "°C",
+        "sensor_id": "1_temperature_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:47:55.486812+00:00",
+        "value": 23.53548513183615,
+        "unit": "°C",
+        "sensor_id": "1_temperature_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:47:46.625917+00:00",
+        "value": 23.450345130534174,
+        "unit": "°C",
+        "sensor_id": "1_temperature_1",
+        "location_id": "location_1_2",
+        "status": "alert"
+      },
+      {
+        "timestamp": "2025-05-13T09:47:42.785622+00:00",
+        "value": 23.203994777810166,
+        "unit": "°C",
+        "sensor_id": "1_temperature_1",
+        "location_id": "location_1_2",
+        "status": "alert"
+      },
+      {
+        "timestamp": "2025-05-13T09:47:32.922974+00:00",
+        "value": 23.133283529321147,
+        "unit": "°C",
+        "sensor_id": "1_temperature_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:47:23.322261+00:00",
+        "value": 23.342950791507686,
+        "unit": "°C",
+        "sensor_id": "1_temperature_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:46:20.482161+00:00",
+        "value": 23.094443515553497,
+        "unit": "°C",
+        "sensor_id": "1_temperature_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:43:26.157895+00:00",
+        "value": 22.5131922272774,
+        "unit": "°C",
+        "sensor_id": "1_temperature_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:43:22.475007+00:00",
+        "value": 22.70766671820394,
+        "unit": "°C",
+        "sensor_id": "1_temperature_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:41:20.281695+00:00",
+        "value": 22.60685301708254,
+        "unit": "°C",
+        "sensor_id": "1_temperature_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:37:17.576144+00:00",
+        "value": 22.542494811776002,
+        "unit": "°C",
+        "sensor_id": "1_temperature_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:36:20.207437+00:00",
+        "value": 22.20417482750424,
+        "unit": "°C",
+        "sensor_id": "1_temperature_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:36:20.086796+00:00",
+        "value": 22.122972338367724,
+        "unit": "°C",
+        "sensor_id": "1_temperature_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:36:11.820769+00:00",
+        "value": 31.14977478292463,
+        "unit": "°C",
+        "sensor_id": "1_temperature_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:31:11.379525+00:00",
+        "value": 31.105086388926825,
+        "unit": "°C",
+        "sensor_id": "1_temperature_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:26:11.240359+00:00",
+        "value": 30.834409764360302,
+        "unit": "°C",
+        "sensor_id": "1_temperature_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:21:11.148057+00:00",
+        "value": 30.923917157042567,
+        "unit": "°C",
+        "sensor_id": "1_temperature_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:21:11.069542+00:00",
+        "value": 30.37052581264862,
+        "unit": "°C",
+        "sensor_id": "1_temperature_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:18:22.064530+00:00",
+        "value": 31.621088233262185,
+        "unit": "°C",
+        "sensor_id": "1_temperature_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:18:21.990670+00:00",
+        "value": 30.98045559497252,
+        "unit": "°C",
+        "sensor_id": "1_temperature_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:14:23.806122+00:00",
+        "value": 33.547357753944674,
+        "unit": "°C",
+        "sensor_id": "1_temperature_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:14:23.710856+00:00",
+        "value": 32.927171825522656,
+        "unit": "°C",
+        "sensor_id": "1_temperature_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:09:59.100589+00:00",
+        "value": 16.840097358600907,
+        "unit": "°C",
+        "sensor_id": "1_temperature_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:09:58.974266+00:00",
+        "value": 16.365516770872112,
+        "unit": "°C",
+        "sensor_id": "1_temperature_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T08:59:43.429743+00:00",
+        "value": 29.505413654878733,
+        "unit": "°C",
+        "sensor_id": "1_temperature_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T08:59:43.199613+00:00",
+        "value": 29.75811208070572,
+        "unit": "°C",
+        "sensor_id": "1_temperature_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T08:58:20.966083+00:00",
+        "value": 33.19598241523019,
+        "unit": "°C",
+        "sensor_id": "1_temperature_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T08:58:20.885265+00:00",
+        "value": 33.05858166886939,
+        "unit": "°C",
+        "sensor_id": "1_temperature_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T08:53:35.885518+00:00",
+        "value": 17.365295487687483,
+        "unit": "°C",
+        "sensor_id": "1_temperature_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T08:48:35.710968+00:00",
+        "value": 17.042567918759136,
+        "unit": "°C",
+        "sensor_id": "1_temperature_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T08:48:35.621383+00:00",
+        "value": 16.633606940500457,
+        "unit": "°C",
+        "sensor_id": "1_temperature_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T08:46:43.126270+00:00",
+        "value": 29.0791969065958,
+        "unit": "°C",
+        "sensor_id": "1_temperature_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T08:46:12.783952+00:00",
+        "value": 28.763961741673008,
+        "unit": "°C",
+        "sensor_id": "1_temperature_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T08:46:12.714516+00:00",
+        "value": 28.505580003020622,
+        "unit": "°C",
+        "sensor_id": "1_temperature_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      }
+    ]
+  }
+}

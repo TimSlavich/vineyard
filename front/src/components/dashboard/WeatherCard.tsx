@@ -3,12 +3,35 @@ import Card from '../ui/Card';
 import { WeatherData } from '../../types';
 import { translateWeatherCondition, translateShortDay } from '../../utils/translations';
 import { getWeatherIcon } from '../../utils/weatherIcons';
+import { getUserData } from '../../utils/storage';
+import { Loader2 } from 'lucide-react';
 
 interface WeatherCardProps {
   data: WeatherData;
 }
 
 const WeatherCard: React.FC<WeatherCardProps> = ({ data }) => {
+  // Проверяем роль пользователя
+  const userRole = getUserData()?.role || '';
+  const isNewUser = userRole === 'new_user';
+
+  // Если пользователь new_user, показываем сообщение вместо погодных данных
+  if (isNewUser) {
+    return (
+      <Card title="Погодні умови" className="h-full">
+        <div className="flex flex-col items-center justify-center py-12">
+          <Loader2 className="w-12 h-12 text-primary animate-spin mb-4" />
+          <p className="text-lg text-gray-600 text-center font-medium font-roboto">
+            Очікування даних з датчиків...
+          </p>
+          <p className="text-sm text-gray-500 text-center mt-2 font-roboto">
+            Зв'яжіться з технічною підтримкою для налаштування доступу до даних
+          </p>
+        </div>
+      </Card>
+    );
+  }
+
   // Визначаємо іконку та тип погоди на основі температури
   const weatherIconAndCondition = useMemo(() => {
     const temp = data.current.temperature;

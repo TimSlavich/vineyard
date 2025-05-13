@@ -11,14 +11,20 @@ const MAX_ALERTS = 50;  // Максимальное количество сох�
 // Загрузка уведомлений из localStorage или использование моковых данных
 const loadAlertsFromStorage = (): Alert[] => {
     try {
-        // Получаем ID пользователя для создания уникального ключа
+        // Получаем данные пользователя
         const userData = getUserData();
         const userId = userData?.id || 'guest';
+        const userRole = userData?.role || '';
         const storageKey = `${ALERTS_STORAGE_KEY}_${userId}`;
 
         const storedAlerts = localStorage.getItem(storageKey);
         if (storedAlerts) {
             return JSON.parse(storedAlerts);
+        }
+
+        // Для пользователей с ролью new_user не возвращаем моковые данные
+        if (userRole === 'new_user') {
+            return [];
         }
     } catch (error) {
         console.error('Помилка при завантаженні сповіщень:', error);
@@ -117,6 +123,14 @@ export const useAlerts = (): [Alert[], (id: string) => void, () => void] => {
 
 // Функция для добавления нового уведомления
 export const addAlert = (alert: Omit<Alert, 'id' | 'timestamp' | 'read'>): void => {
+    // Проверяем роль пользователя
+    const userData = getUserData();
+    if (userData?.role === 'new_user') {
+        // Для new_user не добавляем оповещения
+        console.debug('Оповещение скрыто для пользователя с ролью new_user');
+        return;
+    }
+
     const newAlert: Alert = {
         id: `alert-${Date.now()}`,
         timestamp: new Date().toISOString(),
@@ -200,6 +214,14 @@ export const convertSensorAlertToAlert = (sensorAlert: SensorAlert): Alert => {
 // Инициализация подписки на WebSocket-оповещения от датчиков
 export const initSensorAlertSubscription = () => {
     const unsubscribe = websocketService.subscribe<SensorAlert>('sensor_alert', (sensorAlert) => {
+        // Проверяем роль пользователя
+        const userData = getUserData();
+        if (userData?.role === 'new_user') {
+            // Для new_user не добавляем оповещения
+            console.debug('Оповещение скрыто для пользователя с ролью new_user');
+            return;
+        }
+
         // Проверяем, есть ли уже оповещения от этого датчика с тем же типом алерта
         const sensorIdStr = sensorAlert.id.toString();
         const existingAlerts = globalAlerts.filter(alert => {
