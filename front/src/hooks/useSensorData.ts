@@ -317,16 +317,6 @@ const useSensorData = () => {
         return () => clearInterval(connectionCheckInterval);
     }, [checkConnection]);
 
-    // Обработчик для тестовых оповещений
-    const handleTestAlert = useCallback((data: any) => {
-        // Создаем объект оповещения
-        addAlert({
-            title: 'Тестове оповіщення',
-            message: 'Система оповіщень працює нормально',
-            type: 'info',
-            sensorId: 'test-system-notification',
-        });
-    }, []);
 
     // Обработчик для завершенных запросов
     const handleRequestCompleted = useCallback((receivedData: any) => {
@@ -334,7 +324,6 @@ const useSensorData = () => {
         if (receivedData &&
             receivedData.message &&
             receivedData.message.includes('Тестовое оповещение')) {
-            handleTestAlert(receivedData);
             return;
         }
 
@@ -343,7 +332,7 @@ const useSensorData = () => {
             (receivedData && receivedData.data && receivedData.data.status === 'success')) {
             setConnectionError(null);
         }
-    }, [handleTestAlert]);
+    }, []);
 
     // Запрос данных с сервера
     useEffect(() => {

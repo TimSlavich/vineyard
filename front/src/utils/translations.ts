@@ -90,6 +90,10 @@ export const DEVICE_TYPE_UA: Record<string, string> = {
     'harvester': 'Комбайн',
     'seeder': 'Сіяч',
     'maintenance': 'Технічний робот',
+    'Дрон': 'Дрон',
+    'Комбайн': 'Комбайн',
+    'Сіяч': 'Сіяч',
+    'Технічний робот': 'Технічний робот',
 };
 
 export const DEVICE_NAME_UA: Record<string, string> = {
@@ -163,10 +167,59 @@ export const translateDeviceName = (name: string): string => {
     return DEVICE_NAME_UA[name] || name;
 };
 
-export const translateSensorType = (type: string): string => {
-    return SENSOR_TYPE_UA[type] || type;
+// Перевод типа сенсора
+export const translateSensorType = (sensorType: string): string => {
+    const translations: Record<string, string> = {
+        'temperature': 'Температура',
+        'humidity': 'Вологість',
+        'soil_moisture': 'Вологість ґрунту',
+        'leaf_wetness': 'Вологість листя',
+        'light': 'Освітленість',
+        'co2': 'CO₂',
+        'wind_speed': 'Швидкість вітру',
+        'wind_direction': 'Напрямок вітру',
+        'rainfall': 'Опади',
+        'pressure': 'Тиск',
+        'soil_temperature': 'Температура ґрунту',
+        'conductivity': 'Електропровідність',
+        'salinity': 'Солоність',
+        'ph': 'Кислотність (pH)',
+        'npk': 'NPK вміст',
+        'radiation': 'Радіація',
+        'air_quality': 'Якість повітря',
+        'noise': 'Рівень шуму',
+        'vibration': 'Вібрація',
+        'uv': 'УФ-випромінювання',
+        'battery': 'Заряд батареї'
+    };
+
+    return translations[sensorType] || sensorType;
 };
 
 export const translateDeviceStatus = (status: string): string => {
     return DEVICE_STATUS_UA[status] || status;
+};
+
+// Перевод локаций датчиков
+export const translateSensorLocation = (locationId: string): string => {
+    const translations: Record<string, string> = {
+        'loc1': 'Блок A',
+        'loc2': 'Блок B',
+        'loc3': 'Блок C',
+        'loc4': 'Блок D',
+        'loc5': 'Теплиця',
+        'loc6': 'Поле #1',
+        'loc7': 'Поле #2',
+        'loc8': 'Поле #3',
+        'loc9': 'Сховище',
+        'loc10': 'Лабораторія',
+        'greenhouse': 'Теплиця',
+        'field': 'Поле',
+        'storage': 'Сховище',
+        'lab': 'Лабораторія',
+        'office': 'Офіс',
+        'outdoor': 'Зовнішній майданчик'
+    };
+
+    return translations[locationId] || 'Невідомо';
 }; 

@@ -1,16 +1,15 @@
-import React, { useState, useEffect, useMemo, memo } from 'react';
+import React, { useState, useEffect, useMemo, memo, useCallback } from 'react';
 import Card from '../components/ui/Card';
 import Button from '../components/ui/Button';
 import { useDeviceSettings } from '../context/DeviceSettingsContext';
 import { Bell, Smartphone, Save, RefreshCw } from 'lucide-react';
 import ModalMessage from '../components/ui/ModalMessage';
-import { notificationSettings as initialNotificationSettings } from '../data/mockData';
 import { getUserData } from '../utils/storage';
 import { useNavigate } from 'react-router-dom';
 import {
-  DEVICE_TYPE_UA,
-  DEVICE_NAME_UA,
-  SENSOR_TYPE_UA,
+  translateDeviceStatus,
+  translateSensorType,
+  translateSensorLocation
 } from '../utils/translations';
 import NotificationSettings from '../components/settings/NotificationSettings';
 import {
@@ -20,6 +19,8 @@ import {
   updateNotificationChannel,
   UserSettings
 } from '../services/userSettingsService';
+import useSensorData from '../hooks/useSensorData';
+import { NotificationSetting } from '../types';
 
 // Компонент для отображения списка устройств
 const DevicesTab = memo(({
@@ -27,13 +28,17 @@ const DevicesTab = memo(({
   getDeviceStatusClass,
   setDetailsOpen,
   setDetailsDevice,
-  handleUpdateStatus
+  handleUpdateStatus,
+  formatSensorValue,
+  isRefreshingData
 }: {
   allDevices: any[],
   getDeviceStatusClass: (status: string) => string,
   setDetailsOpen: React.Dispatch<React.SetStateAction<boolean>>,
   setDetailsDevice: React.Dispatch<React.SetStateAction<any>>,
-  handleUpdateStatus: () => void
+  handleUpdateStatus: () => void,
+  formatSensorValue: (value: number | string, unit?: string) => string,
+  isRefreshingData: boolean
 }) => {
   return (
     <Card title="Пристрої та датчики" className="mb-6">
@@ -42,10 +47,11 @@ const DevicesTab = memo(({
           variant="outline"
           size="sm"
           className="border-gray-300"
-          leftIcon={<RefreshCw size={14} />}
+          leftIcon={<RefreshCw size={14} className={isRefreshingData ? "animate-spin" : ""} />}
           onClick={handleUpdateStatus}
+          disabled={isRefreshingData}
         >
-          Оновити статус
+          {isRefreshingData ? "Оновлення..." : "Оновити статус"}
         </Button>
       </div>
 
@@ -70,28 +76,33 @@ const DevicesTab = memo(({
                   Розташування
                 </th>
                 <th scope="col" className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Остання синхронізація
+                  Останнє оновлення
+                </th>
+                <th scope="col" className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Дії
                 </th>
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
               {allDevices.map((device) => (
-                <tr key={device.id} className="hover:bg-gray-50">
-                  <td className="px-4 py-3 text-sm text-gray-900">
+                <tr key={device.id} className="hover:bg-gray-50 cursor-pointer" onClick={() => {
+                  setDetailsDevice(device);
+                  setDetailsOpen(true);
+                }}>
+                  <td className="px-4 py-3 text-sm text-gray-900 font-medium">
                     {device.name}
+                    {device.isSensor && device.value !== undefined && (
+                      <span className="ml-2 text-sm font-normal text-gray-600">
+                        {formatSensorValue(device.value, device.unit)}
+                      </span>
+                    )}
                   </td>
                   <td className="px-4 py-3 text-sm text-gray-900">
                     {device.type}
                   </td>
                   <td className="px-4 py-3">
                     <span className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${getDeviceStatusClass(device.status)}`}>
-                      {device.status === 'online' ? 'Онлайн' :
-                        device.status === 'offline' ? 'Офлайн' :
-                          device.status === 'maintenance' ? 'Обслуговування' :
-                            device.status === 'active' ? 'Активний' :
-                              device.status === 'idle' ? 'Очікування' :
-                                device.status === 'charging' ? 'Заряджається' : device.status
-                      }
+                      {translateDeviceStatus(device.status)}
                     </span>
                   </td>
                   <td className="px-4 py-3 text-sm">
@@ -109,7 +120,25 @@ const DevicesTab = memo(({
                     {device.location}
                   </td>
                   <td className="px-4 py-3 text-sm text-gray-500">
-                    {new Date(device.lastSyncTime).toLocaleString('uk-UA')}
+                    {new Date(device.lastSyncTime).toLocaleString('uk-UA', {
+                      day: '2-digit',
+                      month: '2-digit',
+                      year: 'numeric',
+                      hour: '2-digit',
+                      minute: '2-digit'
+                    })}
+                  </td>
+                  <td className="px-4 py-3 text-sm text-center">
+                    <button
+                      className="text-primary hover:text-primary-dark transition-colors"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setDetailsDevice(device);
+                        setDetailsOpen(true);
+                      }}
+                    >
+                      Деталі
+                    </button>
                   </td>
                 </tr>
               ))}
@@ -210,18 +239,13 @@ const ThresholdsTab = memo(({
                 {localThresholds.map((threshold) => (
                   <tr key={threshold.id} className="hover:bg-gray-50">
                     <td className="px-4 py-3 text-sm text-gray-900">
-                      {SENSOR_TYPE_UA[threshold.sensorType] || threshold.sensorType}
-                      {!SENSOR_TYPE_UA[threshold.sensorType] &&
-                        <span className="text-xs text-red-500 ml-1">
-                          (Нет перевода)
-                        </span>
-                      }
+                      {translateSensorType(threshold.sensorType)}
                     </td>
                     <td className="px-4 py-3">
                       <input
                         type="number"
                         className="w-24 px-3 py-1 border border-gray-300 rounded-md text-gray-800 text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
-                        value={isNaN(threshold.min) ? '' : threshold.min}
+                        value={threshold.min ?? ''}
                         min="0"
                         step="0.1"
                         onChange={(e) => handleThresholdChange(threshold.id, 'min', safeParseFloat(e.target.value))}
@@ -231,7 +255,7 @@ const ThresholdsTab = memo(({
                       <input
                         type="number"
                         className="w-24 px-3 py-1 border border-gray-300 rounded-md text-gray-800 text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
-                        value={isNaN(threshold.max) ? '' : threshold.max}
+                        value={threshold.max ?? ''}
                         min="0"
                         step="0.1"
                         onChange={(e) => handleThresholdChange(threshold.id, 'max', safeParseFloat(e.target.value))}
@@ -255,19 +279,17 @@ const ThresholdsTab = memo(({
 const SettingsPage: React.FC = () => {
   const [activeTab, setActiveTab] = useState('devices');
   const {
-    devices,
-    setDevices,
     thresholds,
-    setThresholds,
-    notificationSettings,
     setNotificationSettings,
-    robots,
-    setRobots,
     fetchThresholds,
     updateAllThresholds,
     resetThresholds,
     loading
   } = useDeviceSettings();
+
+  // Добавляем получение данных с датчиков через хук
+  const { latestSensorData, refreshSensorData } = useSensorData();
+
   const [detailsOpen, setDetailsOpen] = useState(false);
   const [detailsDevice, setDetailsDevice] = useState<any>(null);
   const [localThresholds, setLocalThresholds] = useState<any[]>([]);
@@ -297,10 +319,19 @@ const SettingsPage: React.FC = () => {
   const navigate = useNavigate();
   const [userSettings, setUserSettings] = useState<UserSettings>(loadUserSettings());
 
+  // Состояние для отслеживания процесса обновления данных
+  const [isRefreshingData, setIsRefreshingData] = useState(false);
+
+  // Кэш для названий локаций, чтобы не пересчитывать их при каждом рендере
+  const locationCache = useMemo(() => new Map<string, string>(), []);
+
   // Инициализация при загрузке компонента
   useEffect(() => {
     // При монтировании компонента запрашиваем актуальные пороговые значения
     fetchThresholds();
+
+    // Запрашиваем актуальные данные с датчиков
+    refreshSensorData();
 
     // Устанавливаем таймер для повторного запроса через 1 секунду, если данные не пришли
     const timer = setTimeout(() => {
@@ -324,29 +355,108 @@ const SettingsPage: React.FC = () => {
     }
   }, [activeTab]);
 
-  // Объединяем устройства и роботов для таблицы
-  const allDevices = useMemo(() => [
-    ...devices.map(d => ({
-      id: d.id,
-      name: DEVICE_NAME_UA[d.name] || d.name,
-      type: DEVICE_TYPE_UA[d.type] || d.type,
-      status: d.status,
-      battery: d.battery,
-      lastSyncTime: d.lastSyncTime,
-      location: d.locationId === 'loc1' ? 'Блок A' : 'Блок B',
-      isRobot: false,
-    })),
-    ...robots.map(r => ({
-      id: r.id,
-      name: DEVICE_NAME_UA[r.name] || r.name,
-      type: DEVICE_TYPE_UA[r.type] || r.type,
-      status: r.status,
-      battery: r.battery,
-      lastSyncTime: r.lastSyncTime,
-      location: r.location,
-      isRobot: true,
-    }))
-  ], [devices, robots]);
+  // Форматируем значение датчика с учетом единиц измерения
+  const formatSensorValue = (value: number | string, unit?: string): string => {
+    if (!unit) return `${value}`;
+
+    // Единицы измерения, которые идут сразу после значения без пробела
+    const noSpaceUnits = ['°C', '°F', '%'];
+    if (noSpaceUnits.includes(unit)) {
+      return `${value}${unit}`;
+    }
+
+    // Единицы измерения со специальным форматированием
+    if (unit === 'lux') return `${value} lx`;
+
+    // Все остальные единицы измерения с пробелом
+    return `${value} ${unit}`;
+  };
+
+  // Функция для определения локации датчика с кэшированием
+  const getSensorLocation = useCallback((sensor: any, cleanId: string): string => {
+    // Проверяем, есть ли эта локация в кэше
+    const cacheKey = `${sensor.location_id}_${cleanId}_${sensor.type}`;
+    if (locationCache.has(cacheKey)) {
+      return locationCache.get(cacheKey)!;
+    }
+
+    let locationId = sensor.location_id;
+
+    // Если локация не указана, определяем на основе ID или типа
+    if (!locationId || locationId === 'undefined') {
+      const idNumber = parseInt(cleanId, 10);
+
+      if (!isNaN(idNumber)) {
+        // Распределяем по математическому остатку
+        locationId = `loc${(idNumber % 5) + 1}`;
+      } else {
+        // По типу датчика
+        switch (sensor.type) {
+          case 'temperature': locationId = 'loc1'; break;
+          case 'humidity': locationId = 'loc2'; break;
+          case 'soil_moisture': locationId = 'loc3'; break;
+          case 'wind_speed':
+          case 'wind_direction': locationId = 'outdoor'; break;
+          case 'light':
+          case 'co2': locationId = 'greenhouse'; break;
+          default: locationId = 'field';
+        }
+      }
+    }
+
+    // Формируем название локации
+    let result: string;
+    const locationNumber = locationId.split(/[_-]/).pop();
+    if (locationNumber && !isNaN(parseInt(locationNumber, 10))) {
+      result = `Локація ${locationNumber}`;
+    } else {
+      // Специальные локации
+      const specialLocations: Record<string, string> = {
+        'greenhouse': 'Теплиця',
+        'field': 'Поле',
+        'outdoor': 'Зовнішній майданчик'
+      };
+
+      result = specialLocations[locationId] || translateSensorLocation(locationId);
+    }
+
+    // Сохраняем результат в кэше
+    locationCache.set(cacheKey, result);
+    return result;
+  }, [locationCache]);
+
+  // Объединяем устройства и датчики для таблицы
+  const allDevices = useMemo(() => {
+    // Создаем устройства из реальных данных датчиков
+    const sensorDevices = Object.values(latestSensorData).map(sensor => {
+      // Очищаем ID для лучшего отображения
+      const cleanId = sensor.sensor_id.split(/[_-]/).pop() || sensor.sensor_id;
+
+      // Извлекаем числовое значение и округляем до 2 знаков
+      const value = typeof sensor.value === 'number'
+        ? Math.round(sensor.value * 100) / 100
+        : Math.round(parseFloat(String(sensor.value)) * 100) / 100;
+
+      // Получаем название локации
+      const location = getSensorLocation(sensor, cleanId);
+
+      return {
+        id: sensor.sensor_id,
+        name: `${translateSensorType(sensor.type)} #${cleanId}`,
+        type: translateSensorType(sensor.type),
+        status: 'online',
+        battery: Math.floor(Math.random() * 60) + 40,
+        lastSyncTime: sensor.timestamp,
+        locationId: sensor.location_id,
+        location,
+        value,
+        unit: sensor.unit,
+        isSensor: true,
+      }
+    });
+
+    return sensorDevices;
+  }, [latestSensorData]);
 
   const handleThresholdChange = (id: string, field: 'min' | 'max', value: number) => {
     // Проверяем значение на NaN и ограничиваем отрицательные значения
@@ -420,11 +530,19 @@ const SettingsPage: React.FC = () => {
     }
   };
 
-  // Обновить статус (lastSyncTime)
+  // Обновить статус и актуальные данные
   const handleUpdateStatus = () => {
-    const now = new Date().toISOString();
-    setDevices(prev => prev.map(d => ({ ...d, lastSyncTime: now })));
-    setRobots(prev => prev.map(r => ({ ...r, lastSyncTime: now })));
+    if (isRefreshingData) return; // Предотвращаем повторные запросы
+
+    setIsRefreshingData(true);
+
+    // Запрашиваем актуальные данные с датчиков
+    refreshSensorData();
+
+    // Устанавливаем таймер для сброса состояния
+    setTimeout(() => {
+      setIsRefreshingData(false);
+    }, 2000);
   };
 
   // Сохранить изменения порогов
@@ -479,7 +597,12 @@ const SettingsPage: React.FC = () => {
 
   // Сбросить настройки уведомлений к стандартным
   const handleResetNotifications = () => {
-    setNotificationSettings(initialNotificationSettings);
+    const defaultSettings: NotificationSetting[] = [
+      { type: 'email' as 'email', enabled: true, alertTypes: ['warning', 'critical'] },
+      { type: 'sms' as 'sms', enabled: true, alertTypes: ['critical'] },
+      { type: 'push' as 'push', enabled: true, alertTypes: ['info', 'warning', 'critical'] }
+    ];
+    setNotificationSettings(defaultSettings);
     setNotifResetModalOpen(true);
   };
 
@@ -619,6 +742,8 @@ const SettingsPage: React.FC = () => {
           setDetailsOpen={setDetailsOpen}
           setDetailsDevice={setDetailsDevice}
           handleUpdateStatus={handleUpdateStatus}
+          formatSensorValue={formatSensorValue}
+          isRefreshingData={isRefreshingData}
         />
       )}
 
@@ -777,20 +902,54 @@ const SettingsPage: React.FC = () => {
         Налаштування сповіщень було скинуто до початкових значень.
       </ModalMessage>
 
-      {/* Модалка деталей устройства/робота */}
+      {/* Модалка деталей устройства */}
       <ModalMessage
         isOpen={detailsOpen}
         type="info"
-        title={detailsDevice?.name || 'Деталі'}
+        title={detailsDevice?.name || 'Деталі пристрою'}
         message={detailsDevice && (
-          <div className="space-y-2 text-left">
+          <div className="space-y-3 text-left">
+            <div><b>ID:</b> {detailsDevice.id}</div>
             <div><b>Тип:</b> {detailsDevice.type}</div>
-            <div><b>Статус:</b> {detailsDevice.status === 'online' ? 'онлайн' : detailsDevice.status === 'offline' ? 'офлайн' : detailsDevice.status === 'maintenance' ? 'обслуговування' : detailsDevice.status === 'active' ? 'активний' : detailsDevice.status === 'idle' ? 'очікує' : detailsDevice.status === 'charging' ? 'заряджається' : detailsDevice.status}</div>
-            <div><b>Батарея:</b> {detailsDevice.battery}%</div>
+            {detailsDevice.status && (
+              <div className="flex items-center">
+                <b className="mr-2">Статус:</b>
+                <span className={`px-2 py-1 text-xs leading-5 font-semibold rounded-full ${getDeviceStatusClass(detailsDevice.status)}`}>
+                  {translateDeviceStatus(detailsDevice.status)}
+                </span>
+              </div>
+            )}
+            <div className="flex items-center">
+              <b className="mr-2">Батарея:</b>
+              <div className="flex items-center">
+                <div className="w-16 bg-gray-200 rounded-full h-2.5 mr-2">
+                  <div
+                    className={`h-2.5 rounded-full ${detailsDevice.battery > 60 ? 'bg-green-500' : detailsDevice.battery > 20 ? 'bg-yellow-400' : 'bg-red-500'}`}
+                    style={{ width: `${detailsDevice.battery}%` }}
+                  ></div>
+                </div>
+                <span>{detailsDevice.battery}%</span>
+              </div>
+            </div>
             <div><b>Локація:</b> {detailsDevice.location}</div>
-            <div><b>Остання синхронізація:</b> {detailsDevice.lastSyncTime ? new Date(detailsDevice.lastSyncTime).toLocaleString('uk-UA') : '-'}</div>
-            {detailsDevice.isRobot && detailsDevice.capabilities && (
-              <div><b>Можливості:</b> {detailsDevice.capabilities.join(', ')}</div>
+            <div><b>Остання синхронізація:</b> {detailsDevice.lastSyncTime ? new Date(detailsDevice.lastSyncTime).toLocaleString('uk-UA', {
+              day: '2-digit',
+              month: '2-digit',
+              year: 'numeric',
+              hour: '2-digit',
+              minute: '2-digit'
+            }) : '-'}</div>
+
+            {/* Показываем значение датчика, если это датчик */}
+            {detailsDevice.isSensor && detailsDevice.value !== undefined && (
+              <div className="mt-2 p-3 bg-primary bg-opacity-5 rounded-lg">
+                <div className="text-lg font-medium text-primary">
+                  {formatSensorValue(detailsDevice.value, detailsDevice.unit)}
+                </div>
+                <div className="text-sm text-gray-600">
+                  Поточне значення
+                </div>
+              </div>
             )}
           </div>
         )}

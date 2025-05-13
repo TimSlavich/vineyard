@@ -1,7 +1,16 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { devices as initialDevices, notificationSettings as initialNotificationSettings } from '../data/mockData';
 import { Device, Threshold, NotificationSetting, RobotStatus } from '../types';
 import { deviceApi, thresholdApi, robotApi } from '../services/api';
+
+// Настройки уведомлений по умолчанию
+const defaultNotificationSettings: NotificationSetting[] = [
+    { type: 'email', enabled: true, alertTypes: ['warning', 'critical'] },
+    { type: 'sms', enabled: true, alertTypes: ['critical'] },
+    { type: 'push', enabled: true, alertTypes: ['info', 'warning', 'critical'] }
+];
+
+// Устройства по умолчанию (пустой массив)
+const defaultDevices: Device[] = [];
 
 interface DeviceSettingsContextType {
     devices: Device[];
@@ -40,9 +49,9 @@ interface DeviceSettingsContextType {
 const DeviceSettingsContext = createContext<DeviceSettingsContextType | undefined>(undefined);
 
 export const DeviceSettingsProvider = ({ children }: { children: React.ReactNode }) => {
-    const [devices, setDevices] = useState<Device[]>(initialDevices);
+    const [devices, setDevices] = useState<Device[]>(defaultDevices);
     const [thresholds, setThresholds] = useState<Threshold[]>([]);
-    const [notificationSettings, setNotificationSettings] = useState<NotificationSetting[]>(initialNotificationSettings);
+    const [notificationSettings, setNotificationSettings] = useState<NotificationSetting[]>(defaultNotificationSettings);
 
     // Состояния загрузки
     const [loading, setLoading] = useState({
@@ -72,65 +81,7 @@ export const DeviceSettingsProvider = ({ children }: { children: React.ReactNode
     };
 
     // Инициализация роботов
-    const [robots, setRobots] = useState<RobotStatus[]>([
-        {
-            id: 'drone-1',
-            name: 'Дрон-разведчик 1',
-            type: 'drone',
-            category: 'air',
-            status: 'active',
-            battery: 75,
-            location: 'Блок A',
-            currentTask: 'Мониторинг посевов',
-            capabilities: ['Мониторинг', 'Фотографирование', 'Опрыскивание'],
-            lastSyncTime: randomDate()
-        },
-        {
-            id: 'drone-2',
-            name: 'Дрон-опрыскиватель 1',
-            type: 'drone',
-            category: 'air',
-            status: 'maintenance',
-            battery: 90,
-            location: 'Станция зарядки',
-            capabilities: ['Опрыскивание', 'Посев', 'Мониторинг'],
-            lastSyncTime: randomDate()
-        },
-        {
-            id: 'robot-1',
-            name: 'Робот-комбайн 1',
-            type: 'harvester',
-            category: 'ground',
-            status: 'idle',
-            battery: 90,
-            location: 'Станция зарядки',
-            capabilities: ['Начать сбор', 'Обрезка', 'Режим транспортировки', 'Выборочный сбор'],
-            lastSyncTime: randomDate()
-        },
-        {
-            id: 'robot-2',
-            name: 'Робот-сеялка 1',
-            type: 'seeder',
-            category: 'ground',
-            status: 'idle',
-            battery: 45,
-            location: 'Технический отсек',
-            capabilities: ['Посев', 'Анализ почвы', 'Удаление сорняков'],
-            lastSyncTime: randomDate()
-        },
-        {
-            id: 'robot-3',
-            name: 'Робот-техник 1',
-            type: 'maintenance',
-            category: 'ground',
-            status: 'active',
-            battery: 68,
-            location: 'Блок C',
-            currentTask: 'Формирование виноградных лоз',
-            capabilities: ['Обрезка', 'Формирование лозы', 'Режим ремонта'],
-            lastSyncTime: randomDate()
-        }
-    ]);
+    const [robots, setRobots] = useState<RobotStatus[]>([]);
 
     // Получение устройств
     const fetchDevices = async () => {
@@ -418,6 +369,7 @@ export const DeviceSettingsProvider = ({ children }: { children: React.ReactNode
     // Автоматическая загрузка пороговых значений при инициализации
     useEffect(() => {
         fetchThresholds();
+        fetchDevices(); // Добавляем загрузку устройств при инициализации
     }, []);
 
     // Автоматическая подписка на обновление порогов от сервера
