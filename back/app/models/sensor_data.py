@@ -19,6 +19,15 @@ class SensorType(str, Enum):
     CO2 = "co2"
 
 
+class AlertType(str, Enum):
+    """Типы оповещений"""
+
+    HIGH = "high"  # Значение выше максимального порога
+    LOW = "low"  # Значение ниже минимального порога
+    NORMAL = "normal"  # Возврат к нормальному значению
+    SYSTEM = "system"  # Системное сообщение
+
+
 class SensorData(Model):
     """Модель данных с датчиков"""
 
@@ -63,3 +72,31 @@ class SensorAlertThreshold(Model):
 
     def __str__(self) -> str:
         return f"{self.sensor_type}: {self.min_value} - {self.max_value} {self.unit}"
+
+
+class SensorAlert(Model):
+    """Модель оповещений о превышении пороговых значений"""
+
+    id = fields.IntField(pk=True)
+    sensor_id = fields.CharField(max_length=255, index=True)
+    sensor_type = fields.CharEnumField(SensorType, index=True)
+    alert_type = fields.CharEnumField(AlertType, index=True)
+    value = fields.FloatField()
+    threshold_value = fields.FloatField()  # Пороговое значение, которое было превышено
+    unit = fields.CharField(max_length=50)
+    location_id = fields.CharField(max_length=255, index=True)
+    device_id = fields.CharField(max_length=255, null=True)
+    message = fields.TextField()  # Текст сообщения
+    timestamp = fields.DatetimeField(auto_now_add=True, index=True)
+    is_active = fields.BooleanField(
+        default=True
+    )  # Активно ли оповещение или было снято
+    resolved_at = fields.DatetimeField(null=True)  # Когда оповещение было снято
+    user_id = fields.IntField(index=True, null=True)  # Связь с пользователем
+
+    class Meta:
+        table = "sensor_alerts"
+        ordering = ["-timestamp"]
+
+    def __str__(self) -> str:
+        return f"{self.sensor_id} ({self.sensor_type}): {self.alert_type} alert at {self.timestamp}"

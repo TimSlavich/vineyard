@@ -649,11 +649,171 @@ async def websocket_endpoint(
                             },
                         )
                         await manager.send_personal_message(error_message, websocket)
+
+                # Обработка запроса на получение оповещений
+                elif msg_data.get("target") == "get_alerts":
+                    logger.info(f"Запрошены оповещения пользователем {user_id}")
+
+                    try:
+                        from app.models.sensor_data import SensorAlert
+                        from app.services.sensor import get_alerts_for_user
+
+                        if not user_id:
+                            raise ValueError("ID пользователя не указан")
+
+                        # Получаем активные оповещения
+                        alerts = await get_alerts_for_user(
+                            user_id=user_id,
+                            limit=50,  # Ограничиваем количество
+                            is_active=True,  # Только активные
+                        )
+
+                        # Подготавливаем данные для отправки
+                        alerts_data = []
+                        for alert in alerts:
+                            alerts_data.append(
+                                {
+                                    "id": alert.id,
+                                    "sensor_id": alert.sensor_id,
+                                    "sensor_type": alert.sensor_type.value,
+                                    "alert_type": alert.alert_type.value,
+                                    "value": alert.value,
+                                    "threshold_value": alert.threshold_value,
+                                    "unit": alert.unit,
+                                    "location_id": alert.location_id,
+                                    "device_id": alert.device_id,
+                                    "message": alert.message,
+                                    "timestamp": alert.timestamp.isoformat(),
+                                    "is_active": alert.is_active,
+                                    "user_id": alert.user_id,
+                                }
+                            )
+
+                        # Отправляем оповещения клиенту
+                        for alert_data in alerts_data:
+                            alert_message = WebSocketMessage(
+                                type="sensor_alert", data=alert_data
+                            )
+                            await manager.send_personal_message(
+                                alert_message, websocket
+                            )
+
+                        # Отправляем подтверждение
+                        confirm_message = WebSocketMessage(
+                            type="request_completed",
+                            data={
+                                "status": "success",
+                                "message": f"Получено {len(alerts_data)} оповещений",
+                                "count": len(alerts_data),
+                                "user_id": user_id,
+                                "timestamp": datetime.utcnow().isoformat(),
+                            },
+                        )
+                        await manager.send_personal_message(confirm_message, websocket)
+
+                    except Exception as e:
+                        logger.error(f"Ошибка при получении оповещений: {e}")
+                        error_message = WebSocketMessage(
+                            type="system",
+                            data={
+                                "status": "error",
+                                "message": f"Ошибка при получении оповещений: {str(e)}",
+                                "timestamp": datetime.utcnow().isoformat(),
+                            },
+                        )
+                        await manager.send_personal_message(error_message, websocket)
+
+                # Обработка запроса на разрешение (закрытие) оповещения
+                elif msg_data.get("target") == "resolve_alert":
+                    logger.info(
+                        f"Запрошено закрытие оповещения пользователем {user_id}"
+                    )
+
+                    try:
+                        from app.models.sensor_data import SensorAlert
+                        from app.services.sensor import resolve_alert
+
+                        alert_id = msg_data.get("alert_id")
+                        if not alert_id:
+                            raise ValueError("ID оповещения не указан")
+
+                        # Разрешаем оповещение
+                        alert = await resolve_alert(alert_id)
+
+                        if alert:
+                            # Отправляем обновленное состояние оповещения
+                            alert_message = WebSocketMessage(
+                                type="sensor_alert",
+                                data={
+                                    "id": alert.id,
+                                    "sensor_id": alert.sensor_id,
+                                    "sensor_type": alert.sensor_type.value,
+                                    "alert_type": alert.alert_type.value,
+                                    "value": alert.value,
+                                    "threshold_value": alert.threshold_value,
+                                    "unit": alert.unit,
+                                    "location_id": alert.location_id,
+                                    "device_id": alert.device_id,
+                                    "message": alert.message,
+                                    "timestamp": alert.timestamp.isoformat(),
+                                    "is_active": alert.is_active,
+                                    "resolved_at": (
+                                        alert.resolved_at.isoformat()
+                                        if alert.resolved_at
+                                        else None
+                                    ),
+                                    "user_id": alert.user_id,
+                                },
+                            )
+                            await manager.send_personal_message(
+                                alert_message, websocket
+                            )
+
+                            # Отправляем подтверждение
+                            confirm_message = WebSocketMessage(
+                                type="request_completed",
+                                data={
+                                    "status": "success",
+                                    "message": f"Оповещение с ID {alert_id} закрыто",
+                                    "alert_id": alert_id,
+                                    "user_id": user_id,
+                                    "timestamp": datetime.utcnow().isoformat(),
+                                },
+                            )
+                            await manager.send_personal_message(
+                                confirm_message, websocket
+                            )
+                        else:
+                            # Оповещение не найдено
+                            error_message = WebSocketMessage(
+                                type="system",
+                                data={
+                                    "status": "error",
+                                    "message": f"Оповещение с ID {alert_id} не найдено",
+                                    "timestamp": datetime.utcnow().isoformat(),
+                                },
+                            )
+                            await manager.send_personal_message(
+                                error_message, websocket
+                            )
+
+                    except Exception as e:
+                        logger.error(f"Ошибка при закрытии оповещения: {e}")
+                        error_message = WebSocketMessage(
+                            type="system",
+                            data={
+                                "status": "error",
+                                "message": f"Ошибка при закрытии оповещения: {str(e)}",
+                                "timestamp": datetime.utcnow().isoformat(),
+                            },
+                        )
+                        await manager.send_personal_message(error_message, websocket)
+
                 else:
                     # Игнорируем все остальные типы request_data
                     pass
 
-            else:
+            elif msg_type == "echo":
                 # Эхо-ответ на неизвестные типы сообщений
                 echo_message = WebSocketMessage(
                     type="echo",

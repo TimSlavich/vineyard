@@ -3,7 +3,7 @@ import { SensorData } from '../../types';
 import Card from './Card';
 import { ArrowUp, ArrowDown, Thermometer, Droplets, CloudRain, Sun, Wind, Leaf, Wind as WindIcon, Ruler, Cloudy, MoreVertical } from 'lucide-react';
 import SensorModal from './SensorModal';
-import websocketService from '../../services/websocketService';
+import { formatSensorValue } from '../../utils/numberUtils';
 
 interface SensorCardProps {
   data: SensorData;
@@ -158,6 +158,22 @@ const SensorCard = ({ data, previousData = [] }: SensorCardProps) => {
 
   const { trend, trendValue } = calculateTrend();
 
+  // Форматирование значения в зависимости от типа датчика
+  const formatValue = (type: string, value: number): string => {
+    // Для температурных значений используем только один знак после запятой
+    if (type === 'temperature' || type === 'soil_temperature') {
+      return formatSensorValue(value, 1);
+    }
+
+    // Для pH и других точных измерений можно использовать 2 знака
+    if (type === 'ph') {
+      return formatSensorValue(value, 2);
+    }
+
+    // Для остальных типов датчиков используем целые числа
+    return formatSensorValue(Math.round(value), 0);
+  };
+
   return (
     <>
       <Card
@@ -182,7 +198,7 @@ const SensorCard = ({ data, previousData = [] }: SensorCardProps) => {
         <div className="flex flex-col mb-4">
           <div className="flex items-baseline">
             <span className="text-3xl font-semibold font-inter text-gray-800">
-              {Number(data.value.toFixed(2))}
+              {formatValue(data.type, data.value)}
             </span>
             <span className="ml-1 text-gray-500 font-roboto">
               {data.unit}

@@ -180,7 +180,7 @@ export const DeviceSettingsProvider = ({ children }: { children: React.ReactNode
                     setTimeout(() => {
                         unsubscribe();
                         setLoading(prev => ({ ...prev, thresholds: false }));
-                    }, 10000);
+                    }, 3000);
                 } else {
                     // Если нет соединения, используем старые данные или заглушки
                     setErrors(prev => ({
@@ -300,7 +300,10 @@ export const DeviceSettingsProvider = ({ children }: { children: React.ReactNode
                     });
 
                     // Таймаут для предотвращения бесконечного ожидания
-                    setTimeout(unsubscribe, 10000);
+                    setTimeout(() => {
+                        unsubscribe();
+                        setLoading(prev => ({ ...prev, thresholds: false }));
+                    }, 3000);
                 } else {
                     throw new Error('WebSocket не подключен. Невозможно сохранить пороговые значения.');
                 }
@@ -387,7 +390,7 @@ export const DeviceSettingsProvider = ({ children }: { children: React.ReactNode
                     setTimeout(() => {
                         unsubscribe();
                         setLoading(prev => ({ ...prev, thresholds: false }));
-                    }, 10000);
+                    }, 3000);
                 } else {
                     throw new Error('WebSocket не подключен. Невозможно сбросить пороговые значения.');
                 }

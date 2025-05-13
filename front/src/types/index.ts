@@ -97,3 +97,20 @@ export interface RobotStatus {
   capabilities: string[];
   lastSyncTime: string;
 }
+
+export interface SensorAlert {
+  id: number;
+  sensor_id: string;
+  sensor_type: string;
+  alert_type: 'high' | 'low' | 'normal' | 'system';
+  value: number;
+  threshold_value: number;
+  unit: string;
+  location_id: string;
+  device_id?: string;
+  message: string;
+  timestamp: string;
+  is_active: boolean;
+  resolved_at?: string;
+  user_id?: number;
+}

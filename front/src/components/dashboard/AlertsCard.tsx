@@ -33,9 +33,9 @@ const AlertsCard: React.FC = () => {
     >
       <div className="space-y-2">
         {recentAlerts.length > 0 ? (
-          recentAlerts.map(alert => (
+          recentAlerts.map((alert, index) => (
             <AlertItem
-              key={alert.id}
+              key={`dashboard-${alert.id}-${index}`}
               alert={alert}
               onClick={() => markAsRead(alert.id)}
             />

@@ -1,7 +1,7 @@
 import { isAuthenticated, getItem, getUserData, setItem } from '../utils/storage';
 import { BaseApi } from './api/baseApi';
 
-type WebSocketMessageType = 'sensor_data' | 'notification' | 'system' | 'request_data' | 'request_completed' | 'welcome' | 'echo' | 'pong' | 'subscribed' | 'unsubscribed' | 'test_alert' | 'thresholds_data';
+type WebSocketMessageType = 'sensor_data' | 'notification' | 'system' | 'request_data' | 'request_completed' | 'welcome' | 'echo' | 'pong' | 'subscribed' | 'unsubscribed' | 'test_alert' | 'thresholds_data' | 'sensor_alert';
 
 interface WebSocketMessage {
     type: WebSocketMessageType;
@@ -41,7 +41,8 @@ class WebSocketService {
         'subscribed': [],
         'unsubscribed': [],
         'test_alert': [],
-        'thresholds_data': []
+        'thresholds_data': [],
+        'sensor_alert': []
     };
 
     /**
@@ -103,7 +104,7 @@ class WebSocketService {
     public async ensureValidToken(): Promise<string | null> {
         if (this.tokenRefreshInProgress) {
             // Ждем завершения текущего процесса обновления токена
-            await new Promise(resolve => setTimeout(resolve, 500));
+            await new Promise(resolve => setTimeout(resolve, 200));
             return getItem<string>('accessToken');
         }
 
@@ -264,7 +265,8 @@ class WebSocketService {
             subscribed: [],
             unsubscribed: [],
             test_alert: [],
-            thresholds_data: []
+            thresholds_data: [],
+            sensor_alert: []
         };
     }
 
@@ -554,6 +556,34 @@ class WebSocketService {
             type: 'request_data',
             data: {
                 target: 'get_thresholds',
+                timestamp: new Date().toISOString()
+            }
+        });
+    }
+
+    /**
+     * Запрашивает активные оповещения с сервера
+     */
+    public requestAlerts(): void {
+        this.send({
+            type: 'request_data',
+            data: {
+                target: 'get_alerts',
+                timestamp: new Date().toISOString()
+            }
+        });
+    }
+
+    /**
+     * Отправляет запрос на разрешение (закрытие) оповещения
+     * @param alertId ID оповещения, которое нужно закрыть
+     */
+    public resolveAlert(alertId: number): void {
+        this.send({
+            type: 'request_data',
+            data: {
+                target: 'resolve_alert',
+                alert_id: alertId,
                 timestamp: new Date().toISOString()
             }
         });

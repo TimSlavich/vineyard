@@ -302,12 +302,12 @@ const SettingsPage: React.FC = () => {
     // При монтировании компонента запрашиваем актуальные пороговые значения
     fetchThresholds();
 
-    // Устанавливаем таймер для повторного запроса через 2 секунды, если данные не пришли
+    // Устанавливаем таймер для повторного запроса через 1 секунду, если данные не пришли
     const timer = setTimeout(() => {
       if (thresholds.length === 0 && !loading.thresholds) {
         fetchThresholds();
       }
-    }, 2000);
+    }, 1000);
 
     return () => clearTimeout(timer);
   }, []);

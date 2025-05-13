@@ -96,8 +96,8 @@ const NotificationCenter = ({ className = '' }: NotificationCenterProps) => {
                     <div className="max-h-96 overflow-y-auto">
                         {recentAlerts.length > 0 ? (
                             <div className="py-2">
-                                {recentAlerts.map(alert => (
-                                    <div key={alert.id} className="px-4">
+                                {recentAlerts.map((alert, index) => (
+                                    <div key={`notification-${alert.id}-${index}`} className="px-4">
                                         <AlertItem
                                             alert={alert}
                                             onClick={() => handleMarkAsRead(alert.id)}

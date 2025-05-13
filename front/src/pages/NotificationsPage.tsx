@@ -3,6 +3,7 @@ import AlertItem from '../components/ui/AlertItem';
 import { Bell, Filter } from 'lucide-react';
 import { useAlerts, filterAlertsByType, clearAllAlerts } from '../services/notificationService';
 import Button from '../components/ui/Button';
+import websocketService from '../services/websocketService';
 
 type FilterType = 'all' | 'unread' | 'critical' | 'warning' | 'info';
 
@@ -10,6 +11,19 @@ const NotificationsPage: React.FC = () => {
     // Прокрутка страницы вверх при загрузке компонента
     useEffect(() => {
         window.scrollTo(0, 0);
+    }, []);
+
+    // Запрос оповещений при загрузке страницы
+    useEffect(() => {
+        // Добавляем небольшую задержку, чтобы не отправлять одновременные запросы
+        const timeoutId = setTimeout(() => {
+            if (websocketService.isConnected()) {
+                // Запрашиваем активные оповещения с сервера
+                websocketService.requestAlerts();
+            }
+        }, 100);
+
+        return () => clearTimeout(timeoutId);
     }, []);
 
     const [alerts, markAsRead, markAllAsRead] = useAlerts();
@@ -153,9 +167,9 @@ const NotificationsPage: React.FC = () => {
                     <div className="p-6">
                         {filteredAlerts.length > 0 ? (
                             <div className="space-y-3">
-                                {filteredAlerts.map(alert => (
+                                {filteredAlerts.map((alert, index) => (
                                     <AlertItem
-                                        key={alert.id}
+                                        key={`notification-page-${alert.id}-${index}`}
                                         alert={alert}
                                         onClick={() => markAsRead(alert.id)}
                                     />

@@ -4,6 +4,8 @@ from enum import Enum
 
 from pydantic import BaseModel, Field, validator, field_validator
 
+from app.models.sensor_data import SensorType, AlertType
+
 
 class SensorTypeEnum(str, Enum):
     """Enumeration of sensor types."""
@@ -35,33 +37,17 @@ class SensorDataBase(BaseModel):
 
 # Schema for creating sensor data
 class SensorDataCreate(BaseModel):
-    """
-    Schema for creating new sensor data.
-    """
+    """Схема для создания данных датчика"""
 
     sensor_id: str
-    type: SensorTypeEnum
+    type: SensorType
     value: float
     unit: str
     location_id: str
     device_id: Optional[str] = None
-    status: Optional[str] = None
-    metadata: Optional[Dict[str, Any]] = None
-    user_id: Optional[int] = None  # Добавляем опциональное поле user_id
-
-    class Config:
-        """Configuration for the schema."""
-
-        from_attributes = True
-
-    @field_validator("value")
-    def check_value_range(cls, v: float) -> float:
-        """
-        Validator to ensure sensor value is reasonable.
-        """
-        if v < -1000 or v > 1000000:
-            raise ValueError("Sensor value out of expected range (-1000 to 1000000)")
-        return v
+    user_id: Optional[int] = None
+    status: Optional[str] = "normal"
+    metadata: Optional[Dict[str, Any]] = {}
 
 
 # Schema for updating sensor data
@@ -75,17 +61,20 @@ class SensorDataUpdate(BaseModel):
 
 
 # Schema for sensor data response
-class SensorDataResponse(SensorDataBase):
-    """Schema for sensor data response."""
+class SensorDataResponse(BaseModel):
+    """Схема ответа с данными датчика"""
 
     id: int
-    timestamp: datetime
+    sensor_id: str
+    type: str
+    value: float
+    unit: str
+    location_id: str
+    device_id: Optional[str] = None
     status: str
-
-    class Config:
-        """Pydantic model configuration."""
-
-        from_attributes = True
+    timestamp: datetime
+    metadata: Optional[Dict[str, Any]] = {}
+    user_id: Optional[int] = None
 
 
 # Schema for batch sensor data creation
@@ -155,3 +144,49 @@ class SensorDataQueryParams(BaseModel):
         """Pydantic model configuration."""
 
         extra = "ignore"
+
+
+class ThresholdResponse(BaseModel):
+    """Схема ответа с пороговыми значениями"""
+
+    id: str
+    sensor_type: str
+    min_value: float
+    max_value: float
+    unit: str
+    is_active: bool
+
+
+class SensorAlertCreate(BaseModel):
+    """Схема для создания оповещений"""
+
+    sensor_id: str
+    sensor_type: SensorType
+    alert_type: AlertType
+    value: float
+    threshold_value: float
+    unit: str
+    location_id: str
+    device_id: Optional[str] = None
+    message: str
+    user_id: Optional[int] = None
+    is_active: bool = True
+
+
+class SensorAlertResponse(BaseModel):
+    """Схема ответа с оповещениями"""
+
+    id: int
+    sensor_id: str
+    sensor_type: str
+    alert_type: str
+    value: float
+    threshold_value: float
+    unit: str
+    location_id: str
+    device_id: Optional[str] = None
+    message: str
+    timestamp: datetime
+    is_active: bool
+    resolved_at: Optional[datetime] = None
+    user_id: Optional[int] = None

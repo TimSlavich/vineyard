@@ -281,4 +281,39 @@ export const formatDuration = (durationInSeconds: number, locale: string = 'uk-U
     } catch (error) {
         return 'Invalid duration';
     }
+};
+
+/**
+ * Форматирует относительное время коротко для отображения в уведомлениях 
+ * (например "5 хв" вместо "5 хвилин тому")
+ * 
+ * @param timestamp - ISO строка даты и времени
+ * @param localeUkr - использовать украинскую локализацию (по умолчанию true)
+ * @returns Форматированная строка "5 хв" и т.п.
+ */
+export const formatRelativeTimeShort = (timestamp: string, localeUkr = true): string => {
+    const date = new Date(timestamp);
+    const now = new Date();
+    const diffMs = now.getTime() - date.getTime();
+    const diffMins = Math.round(diffMs / 60000); // Округляем минуты, а не обрезаем
+    const diffHours = Math.floor(diffMins / 60);
+    const diffDays = Math.floor(diffHours / 24);
+
+    if (localeUkr) {
+        if (diffMins < 60) {
+            return `${diffMins} хв`;
+        } else if (diffHours < 24) {
+            return `${diffHours} год`;
+        } else {
+            return `${diffDays} д`;
+        }
+    } else {
+        if (diffMins < 60) {
+            return `${diffMins}m`;
+        } else if (diffHours < 24) {
+            return `${diffHours}h`;
+        } else {
+            return `${diffDays}d`;
+        }
+    }
 }; 
