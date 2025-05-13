@@ -15,11 +15,8 @@ export class DiagnosticApi extends BaseApi {
      */
     async runDiagnostic(sensorData: Record<string, any> = {}): Promise<ApiResponse<DiagnosticResult[]>> {
         try {
-            console.log('Запуск диагностики системы с сервера');
-
             // Проверяем если в системе есть реальные датчики
             if (Object.keys(sensorData).length > 0) {
-                console.log('Доступные датчики:', sensorData);
                 // Используем generateDiagnosticResults с реальными данными о датчиках
                 return this.generateDiagnosticResults(sensorData);
             }
@@ -59,13 +56,11 @@ export class DiagnosticApi extends BaseApi {
      * @returns сгенерированные результаты диагностики
      */
     private generateDiagnosticResults(sensorData: Record<string, any>): ApiResponse<DiagnosticResult[]> {
-        console.log('Генерация результатов диагностики на основе данных:', sensorData);
         const results: DiagnosticResult[] = [];
         const now = new Date().toISOString();
 
         // Проверяем, есть ли какие-либо датчики
         const hasSensors = Object.keys(sensorData).length > 0;
-        console.log('Есть датчики:', hasSensors, 'Количество:', Object.keys(sensorData).length);
 
         // Добавляем диагностику сервера базы данных
         results.push({
@@ -86,12 +81,9 @@ export class DiagnosticApi extends BaseApi {
             sensorsByType[sensor.type].push(sensor);
         });
 
-        console.log('Датчики по типам:', Object.keys(sensorsByType));
-
         // Для датчиков температуры
         if (sensorsByType['temperature'] && sensorsByType['temperature'].length > 0) {
             const tempSensors = sensorsByType['temperature'];
-            console.log('Датчики температуры:', tempSensors.length);
             const offlineCount = tempSensors.filter(s => s.status === 'offline').length;
 
             results.push({
@@ -115,12 +107,10 @@ export class DiagnosticApi extends BaseApi {
         // Для датчиков влажности воздуха
         if (sensorsByType['humidity'] && sensorsByType['humidity'].length > 0) {
             const humSensors = sensorsByType['humidity'];
-            console.log('Датчики влажности воздуха:', humSensors.length);
 
             // Выбираем датчик для калибровки - первый датчик влажности
             const sensorToCalibrate = humSensors[0];
             const sensorId = sensorToCalibrate.sensor_id.split('_').pop();
-            console.log('Выбран датчик для калибровки:', sensorId);
 
             results.push({
                 component: 'Датчики вологості повітря',
@@ -141,12 +131,10 @@ export class DiagnosticApi extends BaseApi {
         // Для датчиков влажности почвы
         if (sensorsByType['soil_moisture'] && sensorsByType['soil_moisture'].length > 0) {
             const soilSensors = sensorsByType['soil_moisture'];
-            console.log('Датчики влажности почвы:', soilSensors.length);
 
             // Выбираем датчик для калибровки - первый датчик влажности почвы
             const sensorToCalibrate = soilSensors[0];
             const sensorId = sensorToCalibrate.sensor_id.split('_').pop();
-            console.log('Выбран датчик для калибровки:', sensorId);
 
             results.push({
                 component: 'Датчики вологості ґрунту',
@@ -188,7 +176,6 @@ export class DiagnosticApi extends BaseApi {
             timestamp: now
         });
 
-        console.log('Сгенерированные результаты диагностики:', results);
         return {
             success: true,
             data: results
@@ -203,13 +190,11 @@ export class DiagnosticApi extends BaseApi {
     async getRecommendations(results?: DiagnosticResult[]): Promise<ApiResponse<string[]>> {
         try {
             // Сразу генерируем рекомендации на основе результатов
-            console.log('Генерация рекомендаций на основе результатов');
             return this.generateRecommendations(results || []);
         } catch (error) {
             console.error('Error getting recommendations:', error);
 
             // В случае ошибки генерируем рекомендации на основе результатов
-            console.log('Ошибка при получении рекомендаций, генерируем на основе результатов');
             return this.generateRecommendations(results || []);
         }
     }
@@ -247,7 +232,6 @@ export class DiagnosticApi extends BaseApi {
             }
         });
 
-        console.log('Сгенерированные рекомендации:', recommendations);
         return {
             success: true,
             data: recommendations

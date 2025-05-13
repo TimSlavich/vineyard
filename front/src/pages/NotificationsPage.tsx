@@ -4,6 +4,7 @@ import { Bell, Filter } from 'lucide-react';
 import { useAlerts, filterAlertsByType, clearAllAlerts } from '../services/notificationService';
 import Button from '../components/ui/Button';
 import websocketService from '../services/websocketService';
+import ModalMessage from '../components/ui/ModalMessage';
 
 type FilterType = 'all' | 'unread' | 'critical' | 'warning' | 'info';
 
@@ -30,6 +31,8 @@ const NotificationsPage: React.FC = () => {
     const [activeFilter, setActiveFilter] = useState<FilterType>('all');
     const [isFilterMenuOpen, setIsFilterMenuOpen] = useState(false);
     const filterMenuRef = useRef<HTMLDivElement>(null);
+    // Добавляем состояние для модального окна подтверждения удаления
+    const [clearConfirmOpen, setClearConfirmOpen] = useState(false);
 
     // Фильтр уведомлений по активному фильтру
     const filteredAlerts = filterAlertsByType(activeFilter);
@@ -55,6 +58,12 @@ const NotificationsPage: React.FC = () => {
             document.removeEventListener('mousedown', handleClickOutside);
         };
     }, [isFilterMenuOpen]);
+
+    // Обработчик очистки всех уведомлений
+    const handleClearAll = () => {
+        clearAllAlerts();
+        setClearConfirmOpen(false);
+    };
 
     return (
         <div className="min-h-screen bg-gray-50 pt-16">
@@ -87,11 +96,7 @@ const NotificationsPage: React.FC = () => {
                                 <Button
                                     variant="outline"
                                     size="sm"
-                                    onClick={() => {
-                                        if (window.confirm('Ви впевнені, що хочете видалити всі сповіщення?')) {
-                                            clearAllAlerts();
-                                        }
-                                    }}
+                                    onClick={() => setClearConfirmOpen(true)}
                                     className="border-error text-error hover:bg-error hover:text-white"
                                 >
                                     Очистити всі
@@ -194,6 +199,16 @@ const NotificationsPage: React.FC = () => {
                     </div>
                 </div>
             </div>
+
+            {/* Модальное окно подтверждения удаления всех уведомлений */}
+            <ModalMessage
+                isOpen={clearConfirmOpen}
+                type="confirm"
+                title="Видалення сповіщень"
+                message="Ви впевнені, що хочете видалити всі сповіщення?"
+                onClose={() => setClearConfirmOpen(false)}
+                onConfirm={handleClearAll}
+            />
         </div>
     );
 };

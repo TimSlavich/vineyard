@@ -25,7 +25,11 @@ class Settings(BaseSettings):
     DB_PATH: str = "db.sqlite3"
 
     # Настройки CORS
-    CORS_ORIGINS: List[Union[str, AnyHttpUrl]] = []
+    CORS_ORIGINS: List[Union[str, AnyHttpUrl]] = [
+        "http://localhost:5173",
+        "http://localhost:3000",
+        "http://127.0.0.1:5173",
+    ]
 
     # Логирование
     LOG_LEVEL: str = "DEBUG"

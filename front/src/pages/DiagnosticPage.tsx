@@ -41,7 +41,6 @@ const DiagnosticPage: React.FC = () => {
         try {
             localStorage.removeItem('diagnostic_results');
             localStorage.removeItem('diagnostic_recommendations');
-            console.log("Диагностический кэш очищен");
             setResults([]);
             setRecommendations([]);
             setError(null);

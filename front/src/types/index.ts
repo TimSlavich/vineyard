@@ -95,7 +95,9 @@ export interface RobotStatus {
   location: string;
   currentTask?: string;
   capabilities: string[];
-  lastSyncTime: string;
+  lastSyncTime?: string;
+  lastActive?: string;
+  lastMaintenance?: string;
 }
 
 export interface SensorAlert {

@@ -4,16 +4,22 @@ import { Link } from 'react-router-dom';
 import Card from '../components/ui/Card';
 import reportApi, { ReportParams, Report, ReportTemplate, ReportType, ReportFormat } from '../services/api/reportApi';
 import useSensorData from '../hooks/useSensorData';
+import { formatReportDate } from '../utils/dateUtils';
 
 const ReportsPage: React.FC = () => {
     const [isGenerating, setIsGenerating] = useState(false);
     const [progress, setProgress] = useState(0);
-    const [reportParams, setReportParams] = useState<ReportParams>({
-        type: 'daily',
-        format: 'pdf',
-        category: 'all',
-        dateFrom: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0], // 7 дней назад
-        dateTo: new Date().toISOString().split('T')[0] // сегодня
+    const [reportParams, setReportParams] = useState<ReportParams>(() => {
+        const today = new Date();
+        const todayStr = today.toISOString().split('T')[0];
+
+        return {
+            type: 'daily',
+            format: 'pdf',
+            category: 'all',
+            dateFrom: todayStr, // сегодня для daily report
+            dateTo: todayStr    // сегодня для daily report
+        };
     });
     const [generatedReports, setGeneratedReports] = useState<Report[]>([]);
     const [templates, setTemplates] = useState<ReportTemplate[]>([]);
@@ -28,11 +34,16 @@ const ReportsPage: React.FC = () => {
     // Получаем данные о сенсорах
     const { latestSensorData, isConnected } = useSensorData();
 
+    // Добавляем состояние для открытого отчета
+    const [previewReport, setPreviewReport] = useState<Report | null>(null);
+    const [isPreviewOpen, setIsPreviewOpen] = useState(false);
+    const [previewContent, setPreviewContent] = useState<any>(null);
+    const [isPreviewLoading, setIsPreviewLoading] = useState(false);
+
     // Сохраняем данные о сенсорах в localStorage для использования в отчетах
     useEffect(() => {
         if (isConnected && Object.keys(latestSensorData).length > 0) {
             localStorage.setItem('cached_sensor_data', JSON.stringify(latestSensorData));
-            console.log('Данные сенсоров кэшированы в localStorage для отчетов:', Object.keys(latestSensorData).length);
         }
     }, [latestSensorData, isConnected]);
 
@@ -127,10 +138,44 @@ const ReportsPage: React.FC = () => {
 
     const handleParamChange = (e: React.ChangeEvent<HTMLSelectElement | HTMLInputElement>) => {
         const { name, value } = e.target;
-        setReportParams(prev => ({
-            ...prev,
-            [name]: value
-        }));
+        setReportParams(prev => {
+            const updatedParams = {
+                ...prev,
+                [name]: value
+            };
+
+            // Если изменился тип отчета, автоматически обновляем даты
+            if (name === 'type') {
+                const today = new Date();
+
+                switch (value) {
+                    case 'daily':
+                        // Для дневного отчета - текущий день
+                        updatedParams.dateFrom = today.toISOString().split('T')[0];
+                        updatedParams.dateTo = today.toISOString().split('T')[0];
+                        break;
+                    case 'weekly':
+                        // Для недельного отчета - последние 7 дней
+                        const weekAgo = new Date();
+                        weekAgo.setDate(today.getDate() - 6); // -6 чтобы включить текущий день
+                        updatedParams.dateFrom = weekAgo.toISOString().split('T')[0];
+                        updatedParams.dateTo = today.toISOString().split('T')[0];
+                        break;
+                    case 'monthly':
+                        // Для месячного отчета - последние 30 дней
+                        const monthAgo = new Date();
+                        monthAgo.setDate(today.getDate() - 29); // -29 чтобы включить текущий день
+                        updatedParams.dateFrom = monthAgo.toISOString().split('T')[0];
+                        updatedParams.dateTo = today.toISOString().split('T')[0];
+                        break;
+                    case 'custom':
+                        // Для произвольного отчета оставляем текущие даты
+                        break;
+                }
+            }
+
+            return updatedParams;
+        });
     };
 
     // Функция сохранения текущих параметров как шаблона
@@ -199,7 +244,8 @@ const ReportsPage: React.FC = () => {
                         'wind_speed': 'Швидкість вітру',
                         'wind_direction': 'Напрямок вітру',
                         'rainfall': 'Опади',
-                        'co2': 'Рівень CO₂'
+                        'co2': 'Рівень CO₂',
+                        'soil_temperature': 'Температура ґрунту'
                     };
 
                     categories.push({
@@ -211,6 +257,257 @@ const ReportsPage: React.FC = () => {
         }
 
         return categories;
+    };
+
+    // Функция для открытия предпросмотра отчета
+    const handlePreviewReport = async (report: Report) => {
+        setPreviewReport(report);
+        setIsPreviewOpen(true);
+        setIsPreviewLoading(true);
+
+        try {
+            // Получаем содержимое отчета для предпросмотра
+            const response = await reportApi.downloadReport(report.id, 'json');
+            if (response.success && response.data) {
+                try {
+                    // Загружаем JSON контент для предпросмотра
+                    const response2 = await fetch(response.data);
+                    const jsonData = await response2.json();
+                    setPreviewContent(jsonData);
+                } catch (error) {
+                    console.error('Ошибка при парсинге данных отчета:', error);
+                    setPreviewContent(null);
+                }
+            } else {
+                setPreviewContent(null);
+                setError('Не вдалося завантажити попередній перегляд звіту');
+            }
+        } catch (err) {
+            console.error('Ошибка при загрузке предпросмотра отчета:', err);
+            setPreviewContent(null);
+            setError('Помилка при завантаженні попереднього перегляду звіту');
+        } finally {
+            setIsPreviewLoading(false);
+        }
+    };
+
+    // Функция для закрытия предпросмотра
+    const handleClosePreview = () => {
+        setIsPreviewOpen(false);
+        setPreviewReport(null);
+        setPreviewContent(null);
+    };
+
+    // Функция для скачивания отчета
+    const handleDownloadReport = async (report: Report, format?: ReportFormat) => {
+        try {
+            setIsLoading(true);
+            const response = await reportApi.downloadReport(report.id, format || report.format);
+            if (response.success && response.data) {
+                // Открываем URL в новой вкладке вместо создания и клика по ссылке
+                window.open(response.data, '_blank');
+            } else {
+                setError('Помилка при завантаженні звіту');
+            }
+        } catch (err) {
+            console.error('Ошибка при скачивании отчета:', err);
+            setError('Помилка при завантаженні звіту');
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    // Функция для форматирования ключей отчета
+    const formatReportKey = (key: string): string => {
+        // Словарь для перевода ключей на украинский
+        const keyTranslations: Record<string, string> = {
+            // Метаданные
+            "type": "Тип",
+            "generated_at": "Дата створення",
+            "generated_by": "Створено користувачем",
+
+            // Параметры
+            "parameters": "Параметри",
+            "початкова_дата": "Початкова дата",
+            "кінцева_дата": "Кінцева дата",
+            "тип_датчика": "Тип датчика",
+            "розташування": "Розташування",
+
+            // Сводка
+            "summary": "Зведення",
+            "загальна_кількість_записів": "Загальна кількість записів",
+            "типи_датчиків": "Типи датчиків",
+            "діапазон_дат": "Діапазон дат",
+            "початок": "Початок",
+            "кінець": "Кінець",
+
+            // Статистика
+            "statistics": "Статистика",
+            "мінімум": "Мінімум",
+            "максимум": "Максимум",
+            "середнє": "Середнє",
+            "кількість": "Кількість",
+            "одиниця": "Одиниця",
+
+            // Данные датчиков
+            "температура": "Температура",
+            "вологість повітря": "Вологість повітря",
+            "вологість ґрунту": "Вологість ґрунту",
+            "опади": "Опади",
+            "напрямок вітру": "Напрямок вітру",
+
+            // Поля данных
+            "timestamp": "Часова мітка",
+            "value": "Значення",
+            "unit": "Одиниця виміру",
+            "sensor_id": "ID датчика",
+            "location_id": "ID розташування",
+            "status": "Статус",
+
+            // Общие поля
+            "data": "Дані",
+            "date": "Дата",
+            "нормальний": "Нормальний"
+        };
+
+        return keyTranslations[key] || key;
+    };
+
+    // Компонент для отображения данных отчета
+    const ReportPreview: React.FC<{ report: any }> = ({ report }) => {
+        if (!report) return null;
+
+        const renderValue = (value: any): React.ReactNode => {
+            if (value === null || value === undefined) {
+                return <span className="text-gray-400">-</span>;
+            }
+
+            // Форматируем даты, если это строка и похожа на дату
+            if (typeof value === 'string' &&
+                (value.includes('-') || value.includes('/') || value.includes('T') || value.includes('Z'))) {
+                // Проверяем, это дата или нет
+                const possibleDate = new Date(value);
+                if (!isNaN(possibleDate.getTime())) {
+                    return <span>{formatReportDate(value)}</span>;
+                }
+            }
+
+            if (typeof value === 'object') {
+                if (Array.isArray(value)) {
+                    return (
+                        <ul className="list-disc list-inside">
+                            {value.map((item, index) => (
+                                <li key={index}>{renderValue(item)}</li>
+                            ))}
+                        </ul>
+                    );
+                }
+
+                return (
+                    <div className="border border-gray-200 rounded p-2 mt-2 mb-2">
+                        {Object.entries(value).map(([key, val]) => (
+                            <div key={key} className="mb-1">
+                                <span className="font-medium">{formatReportKey(key)}: </span>
+                                {renderValue(val)}
+                            </div>
+                        ))}
+                    </div>
+                );
+            }
+
+            return <span>{value}</span>;
+        };
+
+        const renderSection = (title: string, data: any) => {
+            if (!data) return null;
+
+            return (
+                <div className="mb-4">
+                    <h3 className="text-xl font-medium mb-2">{formatReportKey(title)}</h3>
+                    <div className="pl-4">
+                        {Object.entries(data).map(([key, value]) => (
+                            <div key={key} className="mb-2">
+                                <div className="font-medium">{formatReportKey(key)}:</div>
+                                <div className="pl-4">{renderValue(value)}</div>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            );
+        };
+
+        const renderDataSection = (data: any) => {
+            if (!data) return null;
+
+            const isNestedData = Object.values(data).some(value =>
+                typeof value === 'object' && Array.isArray(value)
+            );
+
+            if (isNestedData) {
+                return (
+                    <div className="mb-4">
+                        <h3 className="text-xl font-medium mb-2">{formatReportKey('data')}</h3>
+                        {Object.entries(data).map(([key, values]) => (
+                            <div key={key} className="mb-4">
+                                <h4 className="text-lg font-medium mb-2">{formatReportKey(key)}</h4>
+                                {Array.isArray(values) && (
+                                    <div className="overflow-x-auto">
+                                        <table className="min-w-full border border-gray-300">
+                                            <thead>
+                                                <tr className="bg-gray-100">
+                                                    {values.length > 0 && Object.keys(values[0]).map(header => (
+                                                        <th key={header} className="px-4 py-2 border border-gray-300">
+                                                            {formatReportKey(header)}
+                                                        </th>
+                                                    ))}
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {values.slice(0, 20).map((row, rowIndex) => (
+                                                    <tr key={rowIndex} className={rowIndex % 2 === 0 ? 'bg-gray-50' : ''}>
+                                                        {Object.values(row).map((cell, cellIndex) => (
+                                                            <td key={cellIndex} className="px-4 py-2 border border-gray-300">
+                                                                {typeof cell === 'object'
+                                                                    ? (cell === null
+                                                                        ? '-'
+                                                                        : String(JSON.stringify(cell)))
+                                                                    : String(cell)}
+                                                            </td>
+                                                        ))}
+                                                    </tr>
+                                                ))}
+                                            </tbody>
+                                        </table>
+                                        {Array.isArray(values) && values.length > 20 && (
+                                            <div className="text-sm text-gray-500 mt-2">
+                                                Показано перші 20 із {values.length} записів
+                                            </div>
+                                        )}
+                                    </div>
+                                )}
+                            </div>
+                        ))}
+                    </div>
+                );
+            }
+
+            return renderSection('data', data);
+        };
+
+        return (
+            <div className="bg-white p-6 rounded-lg">
+                <h2 className="text-2xl font-bold mb-4">{report.type || 'Звіт'}</h2>
+                <div className="mb-4">
+                    <div><span className="font-medium">Дата створення:</span> {report.generated_at}</div>
+                    <div><span className="font-medium">Створено користувачем:</span> {report.generated_by}</div>
+                </div>
+
+                {renderSection('parameters', report.parameters)}
+                {renderSection('summary', report.summary)}
+                {renderSection('statistics', report.statistics)}
+                {renderDataSection(report.data)}
+            </div>
+        );
     };
 
     return (
@@ -366,10 +663,10 @@ const ReportsPage: React.FC = () => {
                             </div>
                         ) : generatedReports.length > 0 ? (
                             <div className="space-y-4">
-                                {generatedReports.map((report, index) => (
+                                {generatedReports.map((report) => (
                                     <div key={report.id} className="p-4 border border-gray-200 rounded-md hover:bg-gray-50">
-                                        <div className="flex justify-between items-center">
-                                            <div className="flex items-center">
+                                        <div className="flex flex-wrap justify-between items-center">
+                                            <div className="flex items-center mb-2 md:mb-0">
                                                 <FileText className="mr-3 text-primary" size={20} />
                                                 <div>
                                                     <h3 className="font-medium">{report.name}</h3>
@@ -378,35 +675,25 @@ const ReportsPage: React.FC = () => {
                                                     </p>
                                                 </div>
                                             </div>
-                                            <button
-                                                className="p-2 text-gray-600 hover:text-primary"
-                                                title="Завантажити звіт"
-                                                onClick={async () => {
-                                                    try {
-                                                        setIsLoading(true);
-                                                        const response = await reportApi.downloadReport(report.id, report.format);
-                                                        if (response.success && response.data) {
-                                                            // Создаем ссылку и имитируем клик для скачивания
-                                                            const link = document.createElement('a');
-                                                            link.href = response.data;
-                                                            link.download = report.name + '.' + report.format;
-                                                            link.target = '_blank';
-                                                            document.body.appendChild(link);
-                                                            link.click();
-                                                            document.body.removeChild(link);
-                                                        } else {
-                                                            setError('Помилка при завантаженні звіту');
-                                                        }
-                                                    } catch (err) {
-                                                        console.error('Ошибка при скачивании отчета:', err);
-                                                        setError('Помилка при завантаженні звіту');
-                                                    } finally {
-                                                        setIsLoading(false);
-                                                    }
-                                                }}
-                                            >
-                                                <Download size={18} />
-                                            </button>
+                                            <div className="flex space-x-2">
+                                                <button
+                                                    className="p-2 text-gray-600 hover:text-primary"
+                                                    title="Попередній перегляд звіту"
+                                                    onClick={() => handlePreviewReport(report)}
+                                                >
+                                                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                                        <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"></path>
+                                                        <circle cx="12" cy="12" r="3"></circle>
+                                                    </svg>
+                                                </button>
+                                                <button
+                                                    className="p-2 text-gray-600 hover:text-primary"
+                                                    title="Завантажити звіт"
+                                                    onClick={() => handleDownloadReport(report)}
+                                                >
+                                                    <Download size={18} />
+                                                </button>
+                                            </div>
                                         </div>
                                     </div>
                                 ))}
@@ -478,6 +765,46 @@ const ReportsPage: React.FC = () => {
                     </p>
                 )}
             </Card>
+
+            {/* Модальное окно предпросмотра отчета */}
+            {isPreviewOpen && (
+                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                    <div className="bg-white rounded-lg max-w-4xl w-full max-h-[90vh] overflow-auto">
+                        <div className="sticky top-0 bg-white p-4 border-b border-gray-200 flex justify-between items-center z-10">
+                            <h2 className="text-xl font-bold">{previewReport?.name}</h2>
+                            <div className="flex space-x-2">
+                                <button
+                                    className="px-3 py-1.5 bg-primary text-white rounded-md flex items-center text-sm"
+                                    onClick={() => previewReport && handleDownloadReport(previewReport, previewReport.format)}
+                                >
+                                    <Download size={14} className="mr-1" />
+                                    Завантажити {previewReport?.format.toUpperCase()}
+                                </button>
+                                <button
+                                    className="px-3 py-1.5 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50"
+                                    onClick={handleClosePreview}
+                                >
+                                    Закрити
+                                </button>
+                            </div>
+                        </div>
+
+                        <div className="p-6">
+                            {isPreviewLoading ? (
+                                <div className="flex items-center justify-center h-64">
+                                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+                                </div>
+                            ) : previewContent ? (
+                                <ReportPreview report={previewContent} />
+                            ) : (
+                                <div className="text-center text-gray-500">
+                                    Виберіть звіт для перегляду
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                </div>
+            )}
 
             {/* Модальное окно для создания шаблона */}
             {isCreatingTemplate && (

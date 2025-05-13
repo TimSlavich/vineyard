@@ -81,7 +81,73 @@ export const DeviceSettingsProvider = ({ children }: { children: React.ReactNode
     };
 
     // Инициализация роботов
-    const [robots, setRobots] = useState<RobotStatus[]>([]);
+    const [robots, setRobots] = useState<RobotStatus[]>([
+        {
+            id: 'drone-1',
+            name: 'Дрон-розвідник 1',
+            type: 'drone',
+            category: 'air',
+            status: 'idle',
+            battery: 85,
+            location: 'Блок A',
+            lastActive: randomDate(),
+            capabilities: ['Моніторинг посівів', 'Фотографування', 'Картографування'],
+            currentTask: '',
+            lastMaintenance: randomDate()
+        },
+        {
+            id: 'drone-2',
+            name: 'Дрон-дослідник 2',
+            type: 'drone',
+            category: 'air',
+            status: 'charging',
+            battery: 32,
+            location: 'Станція зарядки',
+            lastActive: randomDate(),
+            capabilities: ['Моніторинг', 'Зробити знімки', 'Аналіз ґрунту'],
+            currentTask: 'Заряджання батареї',
+            lastMaintenance: randomDate()
+        },
+        {
+            id: 'harvester-1',
+            name: 'Робот-комбайн 1',
+            type: 'harvester',
+            category: 'ground',
+            status: 'idle',
+            battery: 65,
+            location: 'Блок B',
+            lastActive: randomDate(),
+            capabilities: ['Підготовка до збору врожаю', 'Збір винограду', 'Транспортування'],
+            currentTask: '',
+            lastMaintenance: randomDate()
+        },
+        {
+            id: 'seeder-1',
+            name: 'Робот-сіяч 1',
+            type: 'seeder',
+            category: 'ground',
+            status: 'maintenance',
+            battery: 50,
+            location: 'Технічний відсік',
+            lastActive: randomDate(),
+            capabilities: ['Висівання рядами', 'Внесення добрив', 'Обробка ґрунту'],
+            currentTask: 'Профілактика системи висіву',
+            lastMaintenance: randomDate()
+        },
+        {
+            id: 'maintenance-1',
+            name: 'Робот-технік 1',
+            type: 'maintenance',
+            category: 'ground',
+            status: 'active',
+            battery: 72,
+            location: 'Блок C',
+            lastActive: randomDate(),
+            capabilities: ['Формування виноградних лоз', 'Обрізка', 'Діагностика'],
+            currentTask: 'Формування лоз',
+            lastMaintenance: randomDate()
+        }
+    ]);
 
     // Получение устройств
     const fetchDevices = async () => {

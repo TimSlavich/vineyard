@@ -316,4 +316,47 @@ export const formatRelativeTimeShort = (timestamp: string, localeUkr = true): st
             return `${diffDays}d`;
         }
     }
+};
+
+/**
+ * Форматирует дату из различных форматов в читаемый вид для отчетов
+ * @param dateString строка с датой в любом формате
+ * @returns отформатированная строка даты
+ */
+export const formatReportDate = (dateString: string | null | undefined): string => {
+    if (!dateString) return '-';
+
+    try {
+        // Проверяем, если это уже форматированная дата (ДД.ММ.ГГГГ ЧЧ:ММ)
+        if (/^\d{2}\.\d{2}\.\d{4} \d{2}:\d{2}$/.test(dateString)) {
+            return dateString;
+        }
+
+        // Пробуем разные форматы даты
+        let date: Date;
+        if (dateString.includes('T') || dateString.includes('Z') || dateString.includes('+')) {
+            // ISO формат
+            date = new Date(dateString);
+        } else {
+            // Обычный формат
+            date = new Date(dateString);
+        }
+
+        // Проверяем валидность даты
+        if (isNaN(date.getTime())) {
+            return dateString; // Возвращаем исходную строку если не удалось распарсить
+        }
+
+        // Форматируем в ДД.ММ.ГГГГ ЧЧ:ММ
+        return new Intl.DateTimeFormat('uk-UA', {
+            day: '2-digit',
+            month: '2-digit',
+            year: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
+        }).format(date);
+    } catch (error) {
+        console.error('Ошибка форматирования даты:', error);
+        return dateString;
+    }
 }; 

@@ -18,15 +18,10 @@ export class CalibrationApi extends BaseApi {
      * @returns статус калибровки
      */
     async startCalibration(sensorId: string, sensorType?: string): Promise<ApiResponse<CalibrationStatus>> {
-        console.log(`Запуск калибровки для датчика ${sensorId} на сервере`);
-
         try {
             const params = sensorType ? { sensor_type: sensorType } : {};
-            console.log(`Отправка запроса на калибровку датчика ${sensorId}`, params);
 
             const response = await this.post<CalibrationStatus>(`/calibration/${sensorId}/start`, params);
-
-            console.log(`Получен ответ на запрос калибровки:`, response);
 
             // Оборачиваем ответ в формат ApiResponse, если он не в этом формате
             if (response && typeof response === 'object' && 'sensor_id' in response) {
@@ -42,14 +37,12 @@ export class CalibrationApi extends BaseApi {
             }
 
             // Если получен неожиданный формат ответа, имитируем калибровку
-            console.log(`Неожиданный формат ответа, имитируем калибровку`);
             return this.simulateCalibration(sensorId);
         } catch (error) {
             console.error(`Error starting calibration for sensor ${sensorId}:`, error);
 
             // Если ошибка связана с авторизацией, имитируем калибровку
             if (error instanceof Error && error.message.includes('авторизац')) {
-                console.log(`Ошибка авторизации, имитируем калибровку для датчика ${sensorId}`);
                 return this.simulateCalibration(sensorId);
             }
 
@@ -64,12 +57,8 @@ export class CalibrationApi extends BaseApi {
      * @returns текущий статус калибровки
      */
     async getCalibrationStatus(sensorId: string): Promise<ApiResponse<CalibrationStatus>> {
-        console.log(`Запрос статуса калибровки для датчика ${sensorId} с сервера`);
-
         try {
-            console.log(`Запрос статуса калибровки для датчика ${sensorId}`);
             const response = await this.get<CalibrationStatus>(`/calibration/${sensorId}/status`);
-            console.log(`Получен ответ статуса калибровки:`, response);
 
             // Оборачиваем ответ в формат ApiResponse, если он не в этом формате
             if (response && typeof response === 'object' && 'sensor_id' in response) {
@@ -97,15 +86,12 @@ export class CalibrationApi extends BaseApi {
                 return typedResponse;
             }
 
-            // Если получен неожиданный формат ответа, используем имитацию
-            console.log(`Неожиданный формат ответа, используем имитацию статуса калибровки`);
             return this.simulateCalibrationStatus(sensorId);
         } catch (error) {
             console.error(`Error getting calibration status for sensor ${sensorId}:`, error);
 
             // Если ошибка связана с авторизацией, имитируем статус калибровки
             if (error instanceof Error && error.message.includes('авторизац')) {
-                console.log(`Ошибка авторизации, имитируем статус калибровки для датчика ${sensorId}`);
                 return this.simulateCalibrationStatus(sensorId);
             }
 
@@ -119,12 +105,8 @@ export class CalibrationApi extends BaseApi {
      * @returns список калибровок
      */
     async getAllCalibrations(): Promise<ApiResponse<CalibrationStatus[]>> {
-        console.log(`Запрос списка всех калибровок с сервера`);
-
         try {
-            console.log(`Запрос списка всех калибровок`);
             const response = await this.get<CalibrationStatus[]>('/calibration');
-            console.log(`Получен ответ списка калибровок:`, response);
 
             // Оборачиваем ответ в формат ApiResponse, если он не в этом формате
             if (Array.isArray(response)) {
@@ -141,19 +123,14 @@ export class CalibrationApi extends BaseApi {
 
             // Если получен ответ с ошибкой авторизации, используем имитацию
             if (response && typeof response === 'object' && 'detail' in response) {
-                console.log(`Ответ содержит ошибку:`, response);
                 // Используем локальные данные о калибровках
                 return this.getLocalCalibrations();
             }
 
-            // Если получен неожиданный формат ответа, используем имитацию
-            console.log(`Неожиданный формат ответа, используем локальные данные о калибровках`);
             return this.getLocalCalibrations();
         } catch (error) {
             console.error('Error getting all calibrations:', error);
 
-            // Имитируем ответ с данными из localStorage
-            console.log(`Ошибка запроса, возвращаем список локальных калибровок`);
             return this.getLocalCalibrations();
         }
     }
@@ -164,12 +141,8 @@ export class CalibrationApi extends BaseApi {
      * @returns результат операции
      */
     async resetCalibration(sensorId: string): Promise<ApiResponse<{ success: boolean; message: string }>> {
-        console.log(`Запрос на сброс калибровки для датчика ${sensorId} на сервере`);
-
         try {
-            console.log(`Запрос на сброс калибровки для датчика ${sensorId}`);
             const response = await this.post<any>(`/calibration/${sensorId}/reset`, {});
-            console.log(`Получен ответ сброса калибровки:`, response);
 
             // Оборачиваем ответ в формат ApiResponse, если он не в этом формате
             if (response && typeof response === 'object' && 'success' in response) {
@@ -196,8 +169,6 @@ export class CalibrationApi extends BaseApi {
                 return response as ApiResponse<{ success: boolean; message: string }>;
             }
 
-            // Если получен неожиданный формат ответа, имитируем сброс калибровки
-            console.log(`Неожиданный формат ответа, имитируем сброс калибровки`);
             this.removeFromLocalCompletedCalibrations(sensorId);
             return {
                 success: true,
@@ -211,7 +182,6 @@ export class CalibrationApi extends BaseApi {
 
             // Если ошибка авторизации, имитируем сброс калибровки локально
             if (error instanceof Error && error.message.includes('авторизац')) {
-                console.log(`Ошибка авторизации, имитируем сброс калибровки для датчика ${sensorId}`);
                 this.removeFromLocalCompletedCalibrations(sensorId);
             }
 
@@ -382,8 +352,6 @@ export class CalibrationApi extends BaseApi {
 
         const updatedList = completedCalibrations.filter((id: string) => id !== sensorId);
         localStorage.setItem(completedCalibrationsKey, JSON.stringify(updatedList));
-
-        console.log(`Датчик ${sensorId} удален из списка завершенных калибровок`);
     }
 
     /**

@@ -1,8 +1,9 @@
 import { BaseApi, ApiResponse } from './baseApi';
+import { getItem } from '../../utils/storage';
 
 export type ReportType = 'daily' | 'weekly' | 'monthly' | 'custom';
 export type ReportFormat = 'pdf' | 'xlsx' | 'csv' | 'json';
-export type ReportCategory = 'all' | 'temperature' | 'soil_moisture' | 'humidity' | 'fertilizer';
+export type ReportCategory = 'all' | 'temperature' | 'soil_moisture' | 'humidity' | 'fertilizer' | 'soil_temperature';
 
 export interface ReportParams {
     type: ReportType;
@@ -59,6 +60,10 @@ export class ReportApi extends BaseApi {
      */
     async generateReport(params: ReportParams): Promise<ApiResponse<Report>> {
         try {
+            // Используем текущую дату и время для даты создания отчета
+            const currentDate = new Date();
+            const formattedDate = currentDate.toLocaleString('uk-UA');
+
             // Преобразуем параметры фронтенда в формат для API
             const apiParams = {
                 report_type: this.mapReportTypeToApi(params.type),
@@ -78,7 +83,7 @@ export class ReportApi extends BaseApi {
                     const report: Report = {
                         id: response.data.report_id || new Date().toISOString(),
                         name: response.data.name || this.generateReportName(params),
-                        date: new Date().toLocaleString('uk-UA'),
+                        date: formattedDate, // Используем текущую дату и время
                         size: response.data.size || this.generateReportSize(response.data),
                         type: params.type,
                         format: params.format,
@@ -133,30 +138,56 @@ export class ReportApi extends BaseApi {
             }
 
             try {
-                const response = await this.get<ApiResponse<{ download_url: string }>>(`/reports/${reportId}/download`, params);
+                // Для JSON формата используем обычный GET-запрос, чтобы получить данные
+                if (format === 'json') {
+                    // Здесь важно использовать this.get, который автоматически добавляет авторизационный токен
+                    const response = await this.get<any>(`/reports/${reportId}/download.${format}`, {});
+                    if (response) {
+                        // Сохраняем данные в localStorage для предпросмотра
+                        localStorage.setItem(`report_content_${reportId}`, JSON.stringify(response));
 
-                if (response.success && response.data && response.data.download_url) {
-                    return {
-                        success: true,
-                        data: response.data.download_url
-                    };
+                        // Возвращаем сгенерированный URL
+                        const jsonBlob = new Blob([JSON.stringify(response, null, 2)], {
+                            type: 'application/json'
+                        });
+                        const url = URL.createObjectURL(jsonBlob);
+                        return { success: true, data: url };
+                    }
                 }
 
-                throw new Error('Помилка при завантаженні звіту');
-            } catch (error) {
-                // Проверяем, есть ли сохраненный контент отчета
-                const reportContentKey = `report_content_${reportId}`;
-                const reportContent = localStorage.getItem(reportContentKey);
-
-                if (reportContent) {
-                    // Генерируем отчет на основе сохраненных данных
-                    return this.generateDataUrl(reportId, format || 'pdf', JSON.parse(reportContent));
+                // Для других форматов используем другой подход:
+                // 1. Получаем токен авторизации
+                const token = this.getAuthToken();
+                if (!token) {
+                    throw new Error('Отсутствует токен авторизации');
                 }
 
-                // Если нет сохраненного содержимого, возвращаем ссылку на моковый отчет
+                // 2. Создаем запрос с авторизацией для скачивания файла
+                const response = await fetch(`${this.baseUrl}/reports/${reportId}/download.${format || 'pdf'}`, {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error(`Ошибка HTTP: ${response.status}`);
+                }
+
+                // 3. Получаем бинарные данные
+                const blob = await response.blob();
+                const url = URL.createObjectURL(blob);
+
                 return {
                     success: true,
-                    data: `${window.location.origin}/mock-reports/${reportId}.${format || 'pdf'}`
+                    data: url
+                };
+            } catch (error) {
+                console.error('Ошибка при скачивании отчета:', error);
+                return {
+                    success: false,
+                    data: '',
+                    error: `Помилка при завантаженні звіту: ${error}`
                 };
             }
         } catch (error) {
@@ -169,222 +200,16 @@ export class ReportApi extends BaseApi {
     }
 
     /**
-     * Генерирует Data URL для отчета с данными
-     * @param reportId ID отчета
-     * @param format Формат отчета
-     * @param content Содержимое отчета
-     * @returns URL отчета
+     * Получает токен авторизации из localStorage
+     * @returns Токен авторизации или null, если не найден
      */
-    private generateDataUrl(reportId: string, format: string, content: any): ApiResponse<string> {
-        const contentType = this.getContentTypeByFormat(format as ReportFormat);
-
+    private getAuthToken(): string | null {
         try {
-            // Преобразуем данные в соответствующий формат
-            let data: string;
-
-            switch (format) {
-                case 'json':
-                    // Для JSON просто форматируем данные
-                    data = JSON.stringify(content, null, 2);
-                    break;
-
-                case 'csv':
-                    // Для CSV конвертируем данные в CSV формат
-                    data = this.convertToCSV(content);
-                    break;
-
-                case 'xlsx':
-                    // Для Excel возвращаем данные, которые можно будет скачать как CSV и открыть в Excel
-                    data = this.convertToCSV(content);
-                    break;
-
-                case 'pdf':
-                default:
-                    // Для PDF и других форматов возвращаем HTML-представление данных
-                    data = this.convertToHTML(content);
-                    break;
-            }
-
-            // Кодируем данные в Base64 для Data URL
-            const encodedData = btoa(unescape(encodeURIComponent(data)));
-
-            // Формируем Data URL с типом контента
-            const dataUrl = `data:${contentType};base64,${encodedData}`;
-
-            return {
-                success: true,
-                data: dataUrl
-            };
+            // Используем утилиту getItem из utils/storage.ts
+            return getItem<string>('accessToken');
         } catch (error) {
-            return {
-                success: false,
-                data: '',
-                error: 'Помилка при генерації звіту'
-            };
-        }
-    }
-
-    /**
-     * Конвертирует данные отчета в CSV формат
-     * @param content Содержимое отчета
-     * @returns Строка в формате CSV
-     */
-    private convertToCSV(content: any): string {
-        try {
-            // Заголовок CSV
-            const header = [
-                'ID датчика',
-                'Тип',
-                'Значение',
-                'Единица измерения',
-                'Время измерения',
-                'Статус'
-            ].join(';');
-
-            // Строки с данными датчиков
-            const rows = content.data.map((sensor: any) => [
-                sensor.sensor_id || '',
-                sensor.type || '',
-                sensor.value || '',
-                sensor.unit || '',
-                sensor.timestamp || '',
-                sensor.status || ''
-            ].join(';'));
-
-            // Итоговые данные
-            const summary = [
-                '------------',
-                'Сводная информация',
-                '------------'
-            ];
-
-            // Добавляем средние значения
-            const avgRows = Object.entries(content.summary.avg_values).map(([type, value]) =>
-                `Среднее значение (${type});${value};;;;;;`
-            );
-
-            // Добавляем минимальные значения
-            const minRows = Object.entries(content.summary.min_values).map(([type, value]) =>
-                `Минимальное значение (${type});${value};;;;;;`
-            );
-
-            // Добавляем максимальные значения
-            const maxRows = Object.entries(content.summary.max_values).map(([type, value]) =>
-                `Максимальное значение (${type});${value};;;;;;`
-            );
-
-            // Объединяем все части CSV
-            return [
-                'Отчет:;' + content.title,
-                'Дата создания:;' + new Date(content.date_generated).toLocaleString('uk-UA'),
-                'Период:;' + new Date(content.date_range.from).toLocaleDateString('uk-UA') + ' - ' + new Date(content.date_range.to).toLocaleDateString('uk-UA'),
-                'Количество датчиков:;' + content.summary.total_sensors,
-                '',
-                header,
-                ...rows,
-                '',
-                ...summary,
-                ...avgRows,
-                ...minRows,
-                ...maxRows
-            ].join('\n');
-        } catch (error) {
-            return 'Ошибка при создании отчета CSV';
-        }
-    }
-
-    /**
-     * Конвертирует данные отчета в HTML формат
-     * @param content Содержимое отчета
-     * @returns Строка в формате HTML
-     */
-    private convertToHTML(content: any): string {
-        try {
-            // Создаем HTML таблицу с данными
-            const sensorsTable = `
-                <table border="1" cellpadding="5" cellspacing="0" style="border-collapse: collapse; width: 100%;">
-                    <thead>
-                        <tr style="background-color: #f0f0f0;">
-                            <th>ID датчика</th>
-                            <th>Тип</th>
-                            <th>Значение</th>
-                            <th>Единица измерения</th>
-                            <th>Время измерения</th>
-                            <th>Статус</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        ${content.data.map((sensor: any) => `
-                            <tr>
-                                <td>${sensor.sensor_id || ''}</td>
-                                <td>${sensor.type || ''}</td>
-                                <td>${sensor.value || ''}</td>
-                                <td>${sensor.unit || ''}</td>
-                                <td>${sensor.timestamp ? new Date(sensor.timestamp).toLocaleString('uk-UA') : ''}</td>
-                                <td>${sensor.status || ''}</td>
-                            </tr>
-                        `).join('')}
-                    </tbody>
-                </table>
-            `;
-
-            // Создаем таблицу со сводными данными
-            const summaryTable = `
-                <h3>Сводная информация</h3>
-                <table border="1" cellpadding="5" cellspacing="0" style="border-collapse: collapse; width: 50%;">
-                    <thead>
-                        <tr style="background-color: #f0f0f0;">
-                            <th>Тип датчика</th>
-                            <th>Среднее значение</th>
-                            <th>Минимальное значение</th>
-                            <th>Максимальное значение</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        ${Object.keys(content.summary.avg_values).map(type => `
-                            <tr>
-                                <td>${type}</td>
-                                <td>${content.summary.avg_values[type] || '-'}</td>
-                                <td>${content.summary.min_values[type] || '-'}</td>
-                                <td>${content.summary.max_values[type] || '-'}</td>
-                            </tr>
-                        `).join('')}
-                    </tbody>
-                </table>
-            `;
-
-            // Составляем полный HTML документ
-            return `
-                <!DOCTYPE html>
-                <html>
-                <head>
-                    <meta charset="UTF-8">
-                    <title>${content.title}</title>
-                    <style>
-                        body { font-family: Arial, sans-serif; margin: 20px; }
-                        h1 { color: #333; }
-                        .meta { margin-bottom: 20px; color: #666; }
-                        table { margin-bottom: 30px; }
-                        th { text-align: left; }
-                    </style>
-                </head>
-                <body>
-                    <h1>${content.title}</h1>
-                    <div class="meta">
-                        <p><strong>Дата создания:</strong> ${new Date(content.date_generated).toLocaleString('uk-UA')}</p>
-                        <p><strong>Период:</strong> ${new Date(content.date_range.from).toLocaleDateString('uk-UA')} - ${new Date(content.date_range.to).toLocaleDateString('uk-UA')}</p>
-                        <p><strong>Количество датчиков:</strong> ${content.summary.total_sensors}</p>
-                    </div>
-                    
-                    <h3>Данные датчиков</h3>
-                    ${sensorsTable}
-                    
-                    ${summaryTable}
-                </body>
-                </html>
-            `;
-        } catch (error) {
-            return '<html><body><h1>Ошибка при создании отчета</h1></body></html>';
+            console.error('Ошибка при получении токена авторизации:', error);
+            return null;
         }
     }
 
@@ -418,7 +243,8 @@ export class ReportApi extends BaseApi {
             'temperature': 'температура',
             'soil_moisture': 'вологість_ґрунту',
             'humidity': 'вологість_повітря',
-            'fertilizer': 'внесення_добрив'
+            'fertilizer': 'внесення_добрив',
+            'soil_temperature': 'температура_ґрунту'
         };
 
         return `Звіт_${categoryTranslation[params.category]}_${dateStr}`;
@@ -528,6 +354,10 @@ export class ReportApi extends BaseApi {
      * @returns Отчет
      */
     private generateLocalReport(params: ReportParams): ApiResponse<Report> {
+        // Используем текущую дату и время
+        const currentDate = new Date();
+        const formattedDate = currentDate.toLocaleString('uk-UA');
+
         // Генерация имени отчета
         const reportName = this.generateReportName(params);
 
@@ -551,7 +381,7 @@ export class ReportApi extends BaseApi {
             data: {
                 id: reportId,
                 name: reportName,
-                date: new Date().toLocaleString('uk-UA'),
+                date: formattedDate,
                 size: size,
                 type: params.type,
                 format: params.format,

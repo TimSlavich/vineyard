@@ -1562,7 +1562,19 @@ files = [
 [package.extras]
 dev = ["black (>=19.3b0) ; python_version >= \"3.6\"", "pytest (>=4.6.2)"]
 
+[[package]]
+name = "xlsxwriter"
+version = "3.2.3"
+description = "A Python module for creating Excel XLSX files."
+optional = false
+python-versions = ">=3.6"
+groups = ["main"]
+files = [
+    {file = "XlsxWriter-3.2.3-py3-none-any.whl", hash = "sha256:593f8296e8a91790c6d0378ab08b064f34a642b3feb787cf6738236bd0a4860d"},
+    {file = "xlsxwriter-3.2.3.tar.gz", hash = "sha256:ad6fd41bdcf1b885876b1f6b7087560aecc9ae5a9cc2ba97dcac7ab2e210d3d5"},
+]
+
 [metadata]
 lock-version = "2.1"
 python-versions = "^3.9"
-content-hash = "941e388223d0b25585bbd64c49d8a9203f9cbcf675bab1acc1c84e760cf77ed2"
+content-hash = "b28fafc888360e019641a2db0b45ae53beda6bdb431e1d1257fa606a51298b50"

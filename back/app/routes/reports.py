@@ -21,11 +21,11 @@ from reportlab.lib.enums import TA_CENTER
 from loguru import logger
 from fastapi import APIRouter, Depends, Query, HTTPException, status, Body, Response
 from fastapi.responses import JSONResponse
+import os
+import re
 
 from app.deps.auth import get_current_user
 from app.models.user import User
-
-
 
 
 # Типы отчетов
@@ -48,9 +48,596 @@ class ReportFormat(str, Enum):
 # Create reports router
 router = APIRouter()
 
+# Базовая директория для хранения отчетов
+REPORTS_BASE_DIR = "reports"
+
+# Создаем базовую директорию при импорте модуля
+if not os.path.exists(REPORTS_BASE_DIR):
+    os.makedirs(REPORTS_BASE_DIR)
 
 # Хранилище отчетов (в реальном приложении использовалась бы база данных)
 _generated_reports = {}
+
+
+# Вспомогательные функции для генерации отчетов
+def convert_to_csv(content: Dict[str, Any]) -> str:
+    """Конвертирует данные отчета в CSV формат"""
+    try:
+        output = io.StringIO()
+        writer = csv.writer(output, delimiter=";")
+
+        # Заголовок отчета
+        writer.writerow(["Звіт", "Дата формування"])
+        writer.writerow([content.get("type", ""), content.get("generated_at", "")])
+        writer.writerow([])
+
+        # Параметры отчета
+        writer.writerow(["Параметри звіту"])
+        if "parameters" in content:
+            for key, value in content["parameters"].items():
+                writer.writerow([key, value])
+        writer.writerow([])
+
+        # Данные
+        if "data" in content:
+            # Для данных датчиков
+            if isinstance(content["data"], dict):
+                for sensor_type, records in content["data"].items():
+                    writer.writerow([f"Тип датчика: {sensor_type}"])
+                    if records and isinstance(records, list) and records:
+                        # Заголовки
+                        headers = list(records[0].keys())
+                        writer.writerow(headers)
+
+                        # Данные
+                        for record in records:
+                            row_data = []
+                            for h in headers:
+                                value = record.get(h, "")
+                                # Форматируем даты
+                                if isinstance(value, str) and (
+                                    "T" in value
+                                    or "+" in value
+                                    or value.count("-") >= 2
+                                ):
+                                    try:
+                                        value = format_date(value)
+                                    except:
+                                        pass
+                                row_data.append(str(value))
+                            writer.writerow(row_data)
+                        writer.writerow([])
+
+            # Для списка записей
+            elif isinstance(content["data"], list) and content["data"]:
+                # Заголовки
+                headers = list(content["data"][0].keys())
+                writer.writerow(headers)
+
+                # Данные
+                for record in content["data"]:
+                    row_data = []
+                    for h in headers:
+                        value = record.get(h, "")
+                        # Форматируем даты
+                        if isinstance(value, str) and (
+                            "T" in value or "+" in value or value.count("-") >= 2
+                        ):
+                            try:
+                                value = format_date(value)
+                            except:
+                                pass
+                        row_data.append(str(value))
+                    writer.writerow(row_data)
+
+        # Статистика
+        if "statistics" in content:
+            writer.writerow([])
+            writer.writerow(["Статистика"])
+            for sensor_type, stats in content["statistics"].items():
+                writer.writerow([f"Тип датчика: {sensor_type}"])
+                for key, value in stats.items():
+                    writer.writerow([key, value])
+                writer.writerow([])
+
+        return output.getvalue()
+    except Exception as e:
+        logger.error(f"Помилка при створенні CSV: {e}")
+        return "Помилка при створенні звіту CSV"
+
+
+def create_excel(content: Dict[str, Any]) -> bytes:
+    """Создает Excel файл из данных отчета"""
+    try:
+        output = io.BytesIO()
+        workbook = xlsxwriter.Workbook(output)
+
+        # Стили
+        title_format = workbook.add_format(
+            {"bold": True, "font_size": 14, "align": "center"}
+        )
+        header_format = workbook.add_format(
+            {"bold": True, "bg_color": "#D9E1F2", "border": 1}
+        )
+        cell_format = workbook.add_format({"border": 1})
+        section_format = workbook.add_format(
+            {"bold": True, "font_size": 12, "bg_color": "#E2EFDA"}
+        )
+
+        # Основной лист
+        worksheet = workbook.add_worksheet("Звіт")
+        worksheet.set_column(0, 0, 30)
+        worksheet.set_column(1, 10, 20)
+
+        # Заголовок
+        row = 0
+        worksheet.merge_range(
+            row, 0, row, 5, f"Звіт: {content.get('type', '')}", title_format
+        )
+        row += 1
+        worksheet.write(row, 0, "Дата формування:", header_format)
+        worksheet.write(row, 1, content.get("generated_at", ""), cell_format)
+        row += 2
+
+        # Параметры
+        if "parameters" in content:
+            worksheet.merge_range(row, 0, row, 5, "Параметри звіту", section_format)
+            row += 1
+            for key, value in content["parameters"].items():
+                worksheet.write(row, 0, key, header_format)
+                worksheet.write(
+                    row, 1, str(value) if value is not None else "", cell_format
+                )
+                row += 1
+            row += 1
+
+        # Данные
+        if "data" in content:
+            # Для данных датчиков
+            if isinstance(content["data"], dict):
+                for sensor_type, records in content["data"].items():
+                    worksheet.merge_range(
+                        row, 0, row, 5, f"Тип датчика: {sensor_type}", section_format
+                    )
+                    row += 1
+
+                    if records and isinstance(records, list) and records:
+                        # Заголовки
+                        headers = list(records[0].keys())
+                        for col, header in enumerate(headers):
+                            worksheet.write(row, col, header, header_format)
+                        row += 1
+
+                        # Данные
+                        for record in records:
+                            for col, header in enumerate(headers):
+                                value = record.get(header, "")
+                                # Форматируем даты, если это похоже на ISO дату
+                                if isinstance(value, str) and (
+                                    "T" in value
+                                    or "+" in value
+                                    or value.count("-") >= 2
+                                ):
+                                    try:
+                                        value = format_date(value)
+                                    except:
+                                        pass  # Если не удалось отформатировать, оставляем как есть
+                                worksheet.write(row, col, value, cell_format)
+                            row += 1
+                        row += 1
+
+            # Для списка записей
+            elif isinstance(content["data"], list) and content["data"]:
+                worksheet.merge_range(row, 0, row, 5, "Дані", section_format)
+                row += 1
+
+                # Заголовки
+                headers = list(content["data"][0].keys())
+                for col, header in enumerate(headers):
+                    worksheet.write(row, col, header, header_format)
+                row += 1
+
+                # Данные
+                for record in content["data"]:
+                    for col, header in enumerate(headers):
+                        value = record.get(header, "")
+                        # Форматируем даты, если это похоже на ISO дату
+                        if isinstance(value, str) and (
+                            "T" in value or "+" in value or value.count("-") >= 2
+                        ):
+                            try:
+                                value = format_date(value)
+                            except:
+                                pass  # Если не удалось отформатировать, оставляем как есть
+                        worksheet.write(row, col, value, cell_format)
+                    row += 1
+                row += 1
+
+        # Статистика
+        if "statistics" in content:
+            worksheet.merge_range(row, 0, row, 5, "Статистика", section_format)
+            row += 1
+            for sensor_type, stats in content["statistics"].items():
+                worksheet.write(row, 0, f"Тип датчика: {sensor_type}", header_format)
+                row += 1
+                for key, value in stats.items():
+                    worksheet.write(row, 0, key, header_format)
+                    worksheet.write(row, 1, value, cell_format)
+                    row += 1
+                row += 1
+
+        workbook.close()
+        return output.getvalue()
+
+    except Exception as e:
+        logger.error(f"Помилка при створенні Excel: {e}")
+        # Возвращаем простой CSV в случае ошибки
+        return convert_to_csv(content).encode("utf-8")
+
+
+def create_pdf(content: Dict[str, Any]) -> bytes:
+    """Создает PDF файл из данных отчета"""
+    try:
+        buffer = io.BytesIO()
+
+        # Создаем документ
+        doc = SimpleDocTemplate(
+            buffer,
+            pagesize=A4,
+            rightMargin=30,
+            leftMargin=30,
+            topMargin=30,
+            bottomMargin=30,
+        )
+        elements = []
+
+        # Стили
+        styles = getSampleStyleSheet()
+        title_style = styles["Heading1"]
+        heading2_style = styles["Heading2"]
+        normal_style = styles["Normal"]
+
+        # Убираем попытку регистрации кириллического шрифта и используем стандартные
+        # Так как она вызывает проблемы с кодировкой на различных системах
+
+        # Используем UTF-8 в метаданных
+        title = f"Звіт: {content.get('type', '')}".encode("utf-8").decode("utf-8")
+        generated_at = f"Дата формування: {content.get('generated_at', '')}".encode(
+            "utf-8"
+        ).decode("utf-8")
+        generated_by = (
+            f"Сформовано користувачем: {content.get('generated_by', '')}".encode(
+                "utf-8"
+            ).decode("utf-8")
+        )
+
+        # Заголовок отчета с безопасным текстом
+        elements.append(Paragraph(title, title_style))
+        elements.append(Paragraph(generated_at, normal_style))
+        elements.append(Paragraph(generated_by, normal_style))
+        elements.append(Spacer(1, 20))
+
+        # Параметры отчета
+        if "parameters" in content:
+            elements.append(Paragraph("Параметри звіту", heading2_style))
+            data = []
+            data.append(["Параметр", "Значення"])
+            for key, value in content["parameters"].items():
+                # Форматируем даты, если значение похоже на дату
+                if (
+                    value
+                    and isinstance(value, str)
+                    and ("T" in value or "+" in value or value.count("-") >= 2)
+                ):
+                    try:
+                        value = format_date(value)
+                    except:
+                        pass
+                data.append([key, str(value) if value is not None else ""])
+
+            table = Table(data, colWidths=[200, 300])
+            table.setStyle(
+                TableStyle(
+                    [
+                        ("BACKGROUND", (0, 0), (-1, 0), colors.grey),
+                        ("TEXTCOLOR", (0, 0), (-1, 0), colors.whitesmoke),
+                        ("ALIGN", (0, 0), (-1, -1), "CENTER"),
+                        ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
+                        ("BOTTOMPADDING", (0, 0), (-1, 0), 12),
+                        ("GRID", (0, 0), (-1, -1), 1, colors.black),
+                    ]
+                )
+            )
+            elements.append(table)
+            elements.append(Spacer(1, 20))
+
+        # Статистика
+        if "statistics" in content:
+            elements.append(Paragraph("Статистика", heading2_style))
+            for sensor_type, stats in content["statistics"].items():
+                elements.append(Paragraph(f"Тип: {sensor_type}", heading2_style))
+
+                data = []
+                data.append(["Показник", "Значення"])
+                for key, value in stats.items():
+                    data.append([key, str(value)])
+
+                table = Table(data, colWidths=[200, 300])
+                table.setStyle(
+                    TableStyle(
+                        [
+                            ("BACKGROUND", (0, 0), (-1, 0), colors.grey),
+                            ("TEXTCOLOR", (0, 0), (-1, 0), colors.whitesmoke),
+                            ("ALIGN", (0, 0), (-1, -1), "CENTER"),
+                            ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
+                            ("BOTTOMPADDING", (0, 0), (-1, 0), 12),
+                            ("GRID", (0, 0), (-1, -1), 1, colors.black),
+                        ]
+                    )
+                )
+                elements.append(table)
+                elements.append(Spacer(1, 20))
+
+        # Данные
+        if "data" in content:
+            elements.append(Paragraph("Дані", heading2_style))
+
+            # Для данных датчиков
+            if isinstance(content["data"], dict):
+                for sensor_type, records in content["data"].items():
+                    elements.append(Paragraph(f"Тип: {sensor_type}", heading2_style))
+
+                    if records and isinstance(records, list) and records:
+                        # Заголовки из первой записи
+                        headers = list(records[0].keys())
+
+                        # Формируем таблицу
+                        data = [headers]  # Заголовок
+                        for record in records[:50]:  # Ограничиваем количество строк
+                            row = []
+                            for h in headers:
+                                value = record.get(h, "")
+                                # Форматируем даты
+                                if isinstance(value, str) and (
+                                    "T" in value
+                                    or "+" in value
+                                    or value.count("-") >= 2
+                                ):
+                                    try:
+                                        value = format_date(value)
+                                    except:
+                                        pass
+                                row.append(str(value))
+                            data.append(row)
+
+                        # Настраиваем таблицу
+                        col_widths = [min(120, 500 / len(headers)) for _ in headers]
+                        table = Table(data, colWidths=col_widths)
+                        table.setStyle(
+                            TableStyle(
+                                [
+                                    ("BACKGROUND", (0, 0), (-1, 0), colors.grey),
+                                    ("TEXTCOLOR", (0, 0), (-1, 0), colors.whitesmoke),
+                                    ("ALIGN", (0, 0), (-1, -1), "CENTER"),
+                                    ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
+                                    ("BOTTOMPADDING", (0, 0), (-1, 0), 12),
+                                    ("GRID", (0, 0), (-1, -1), 1, colors.black),
+                                ]
+                            )
+                        )
+                        elements.append(table)
+
+                        if len(records) > 50:
+                            elements.append(
+                                Paragraph(
+                                    f"Показано перших 50 з {len(records)} записів",
+                                    normal_style,
+                                )
+                            )
+
+                        elements.append(Spacer(1, 20))
+
+            # Создаем PDF
+            doc.build(elements)
+            return buffer.getvalue()
+
+    except Exception as e:
+        logger.error(f"Помилка при створенні PDF: {e}")
+        # В случае ошибки возвращаем простой HTML
+        return convert_to_html(content).encode("utf-8")
+
+
+def convert_to_html(content: Dict[str, Any]) -> str:
+    """Конвертирует данные отчета в HTML формат"""
+    try:
+        html = """
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <meta charset="UTF-8">
+            <title>Звіт</title>
+            <style>
+                body { font-family: Arial, sans-serif; margin: 20px; }
+                h1, h2, h3 { color: #333; }
+                table { border-collapse: collapse; width: 100%; margin-bottom: 20px; }
+                table, th, td { border: 1px solid #ddd; }
+                th, td { padding: 8px; text-align: left; }
+                th { background-color: #f2f2f2; }
+                .section { margin-bottom: 30px; }
+            </style>
+        </head>
+        <body>
+        """
+
+        # Заголовок отчета
+        html += f"<h1>Звіт: {content.get('type', '')}</h1>"
+        html += f"<p>Дата формування: {content.get('generated_at', '')}</p>"
+        html += f"<p>Сформовано користувачем: {content.get('generated_by', '')}</p>"
+
+        # Параметры отчета
+        if "parameters" in content:
+            html += "<div class='section'>"
+            html += "<h2>Параметри звіту</h2>"
+            html += "<table>"
+            html += "<tr><th>Параметр</th><th>Значення</th></tr>"
+            for key, value in content["parameters"].items():
+                html += f"<tr><td>{key}</td><td>{value}</td></tr>"
+            html += "</table>"
+            html += "</div>"
+
+        # Сводная информация
+        if "summary" in content:
+            html += "<div class='section'>"
+            html += "<h2>Зведена інформація</h2>"
+            html += "<table>"
+            for key, value in content["summary"].items():
+                if not isinstance(value, dict):
+                    html += f"<tr><td>{key}</td><td>{value}</td></tr>"
+            html += "</table>"
+            html += "</div>"
+
+        # Статистика
+        if "statistics" in content:
+            html += "<div class='section'>"
+            html += "<h2>Статистика за типами датчиків</h2>"
+            for sensor_type, stats in content["statistics"].items():
+                html += f"<h3>Тип датчика: {sensor_type}</h3>"
+                html += "<table>"
+                html += "<tr><th>Показник</th><th>Значення</th></tr>"
+                for key, value in stats.items():
+                    html += f"<tr><td>{key}</td><td>{value}</td></tr>"
+                html += "</table>"
+            html += "</div>"
+
+        # Данные
+        if "data" in content:
+            html += "<div class='section'>"
+            html += "<h2>Дані</h2>"
+
+            # Для данных датчиков
+            if isinstance(content["data"], dict):
+                for sensor_type, records in content["data"].items():
+                    html += f"<h3>Тип датчика: {sensor_type}</h3>"
+                    if records and isinstance(records, list) and records:
+                        # Таблица с данными
+                        html += "<table>"
+                        # Заголовки
+                        html += "<tr>"
+                        for key in records[0].keys():
+                            html += f"<th>{key}</th>"
+                        html += "</tr>"
+
+                        # Данные
+                        for record in records:
+                            html += "<tr>"
+                            for key, value in record.items():
+                                # Форматируем даты
+                                if isinstance(value, str) and (
+                                    "T" in value
+                                    or "+" in value
+                                    or value.count("-") >= 2
+                                ):
+                                    try:
+                                        value = format_date(value)
+                                    except:
+                                        pass
+                                html += f"<td>{value}</td>"
+                            html += "</tr>"
+                        html += "</table>"
+
+            # Для списка записей
+            elif isinstance(content["data"], list) and content["data"]:
+                # Таблица с данными
+                html += "<table>"
+                # Заголовки
+                html += "<tr>"
+                for key in content["data"][0].keys():
+                    html += f"<th>{key}</th>"
+                html += "</tr>"
+
+                # Данные
+                for record in content["data"]:
+                    html += "<tr>"
+                    for key, value in record.items():
+                        # Форматируем даты
+                        if isinstance(value, str) and (
+                            "T" in value or "+" in value or value.count("-") >= 2
+                        ):
+                            try:
+                                value = format_date(value)
+                            except:
+                                pass
+                        html += f"<td>{value}</td>"
+                    html += "</tr>"
+                html += "</table>"
+
+            html += "</div>"
+
+        html += """
+        </body>
+        </html>
+        """
+
+        return html
+    except Exception as e:
+        logger.error(f"Помилка при створенні HTML: {e}")
+        return "<html><body><h1>Помилка при формуванні HTML звіту</h1></body></html>"
+
+
+def format_date(date_str: str) -> str:
+    """Форматирует строку даты в более читабельный формат"""
+    if not date_str:
+        return ""
+
+    # Проверяем, не является ли строка уже форматированной
+    if re.match(r"\d{2}\.\d{2}\.\d{4} \d{2}:\d{2}", date_str):
+        return date_str
+
+    try:
+        # Для дат в ISO формате с временной зоной
+        if "T" in date_str or "+" in date_str or "Z" in date_str:
+            # Очищаем строку от часового пояса
+            clean_date_str = date_str.split("+")[0] if "+" in date_str else date_str
+            clean_date_str = clean_date_str.replace("Z", "")
+
+            # Убираем миллисекунды
+            if "." in clean_date_str:
+                clean_date_str = clean_date_str.split(".")[0]
+
+            try:
+                date_obj = datetime.fromisoformat(clean_date_str)
+            except ValueError:
+                # Запасной вариант для ISO-подобных форматов
+                date_format = (
+                    "%Y-%m-%dT%H:%M:%S"
+                    if "T" in clean_date_str
+                    else "%Y-%m-%d %H:%M:%S"
+                )
+                date_obj = datetime.strptime(clean_date_str, date_format)
+        else:
+            # Пробуем стандартные форматы
+            formats = [
+                "%Y-%m-%d %H:%M:%S",
+                "%Y-%m-%d",
+                "%d/%m/%Y",
+                "%m/%d/%Y",
+                "%d.%m.%Y",
+            ]
+            for fmt in formats:
+                try:
+                    date_obj = datetime.strptime(date_str, fmt)
+                    break
+                except ValueError:
+                    continue
+            else:
+                return date_str  # Если ни один формат не подошел
+
+        # Форматируем дату в читабельный вид
+        return date_obj.strftime("%d.%m.%Y %H:%M")
+
+    except Exception as e:
+        logger.error(f"Ошибка форматирования даты {date_str}: {e}")
+        return date_str
 
 
 @router.get("", response_model=List[Dict[str, Any]])
@@ -196,15 +783,28 @@ async def download_report(
     current_user: User = Depends(get_current_user),
 ):
     """Скачивание отчета (эндпоинт для фронтенда)"""
-    # Ищем отчет в сохраненных
+    # Ищем отчет в сохраненных отчетах текущего пользователя
     report = None
-    for user_id, reports in _generated_reports.items():
-        for r in reports:
+    if current_user.id in _generated_reports:
+        for r in _generated_reports[current_user.id]:
             if r["id"] == report_id:
                 report = r
                 break
-        if report:
-            break
+
+    # Если отчет не найден для текущего пользователя и пользователь не админ,
+    # проверяем все отчеты (для обратной совместимости)
+    if not report:
+        for user_id, reports in _generated_reports.items():
+            for r in reports:
+                if r["id"] == report_id:
+                    # Проверяем, принадлежит ли отчет пользователю или пользователь админ
+                    if user_id == current_user.id or getattr(
+                        current_user, "is_superuser", False
+                    ):
+                        report = r
+                        break
+            if report:
+                break
 
     if not report:
         # Для демонстрации вернем заглушку
@@ -248,24 +848,43 @@ async def generate_report(
         parameters["start_date"] = start_date
         parameters["end_date"] = end_date
 
-    # Генерация отчета в зависимости от типа
-    report_generators = {
-        ReportType.SENSOR_DATA: generate_sensor_data_report,
-        ReportType.FERTILIZER_APPLICATIONS: generate_fertilizer_report,
-        ReportType.DEVICE_ACTIVITY: generate_device_activity_report,
-        ReportType.SYSTEM_ACTIVITY: generate_system_activity_report,
-        ReportType.CUSTOM: generate_custom_report,
-    }
-
-    generator = report_generators.get(report_type)
-    if not generator:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail=f"Неподдерживаемый тип отчета: {report_type}",
-        )
+    # Импортируем сервис отчетов
+    from app.services.report_service import ReportService
 
     try:
-        report_data = await generator(parameters, current_user)
+        # Генерация отчета с использованием нового сервиса
+        if report_type == ReportType.SENSOR_DATA:
+            report_data = await ReportService.generate_sensor_report(
+                user_id=current_user.id,
+                start_date=parameters.get("start_date"),
+                end_date=parameters.get("end_date"),
+                sensor_type=parameters.get("sensor_type"),
+                location_id=parameters.get("location_id"),
+            )
+        elif report_type == ReportType.FERTILIZER_APPLICATIONS:
+            report_data = await ReportService.generate_fertilizer_report(
+                user_id=current_user.id,
+                start_date=parameters.get("start_date"),
+                end_date=parameters.get("end_date"),
+                fertilizer_type=parameters.get("fertilizer_type"),
+                location_id=parameters.get("location_id"),
+            )
+        elif report_type == ReportType.DEVICE_ACTIVITY:
+            report_data = await ReportService.generate_device_report(
+                user_id=current_user.id,
+                start_date=parameters.get("start_date"),
+                end_date=parameters.get("end_date"),
+                device_type=parameters.get("device_type"),
+                device_id=parameters.get("device_id"),
+            )
+        elif report_type == ReportType.SYSTEM_ACTIVITY:
+            # Пока используем существующую реализацию
+            report_data = await generate_system_activity_report(
+                parameters, current_user
+            )
+        elif report_type == ReportType.CUSTOM:
+            # Пока используем существующую реализацию
+            report_data = await generate_custom_report(parameters, current_user)
 
         # Создаем отчет для фронтенда
         report_format = parameters.get("format", "pdf")
@@ -289,7 +908,17 @@ async def generate_report(
         # Рассчитываем размер отчета
         size = f"{(len(json.dumps(report_data)) / 1024 / 10):.2f} MB"
 
-        # Сохраняем отчет
+        # Сохраняем отчет в файловой системе
+        # Создаем директорию для отчетов, если она не существует
+        reports_dir = "reports"
+        if not os.path.exists(reports_dir):
+            os.makedirs(reports_dir)
+
+        # Сохраняем данные отчета в файл
+        with open(f"{reports_dir}/{report_id}.json", "w", encoding="utf-8") as f:
+            json.dump(report_data, f, ensure_ascii=False, indent=2)
+
+        # Сохраняем в хранилище отчетов с привязкой к пользователю
         frontend_report = {
             "id": report_id,
             "name": report_name,
@@ -298,16 +927,19 @@ async def generate_report(
             "type": parameters.get("type", "daily"),
             "format": report_format,
             "file_url": f"/api/reports/{report_id}/download.{report_format}",
+            "user_id": current_user.id,  # Добавляем ID пользователя для привязки
+            "created_by": current_user.username,  # Добавляем имя создателя
             "content": report_data,  # Сохраняем содержимое для скачивания
         }
 
-        # Сохраняем в хранилище отчетов
+        # Инициализируем список отчетов для пользователя, если его еще нет
         if current_user.id not in _generated_reports:
             _generated_reports[current_user.id] = []
 
+        # Добавляем отчет в список пользователя
         _generated_reports[current_user.id].insert(0, frontend_report)
 
-        # Ограничиваем количество сохраненных отчетов
+        # Ограничиваем количество сохраненных отчетов (только 20 последних)
         if len(_generated_reports[current_user.id]) > 20:
             _generated_reports[current_user.id] = _generated_reports[current_user.id][
                 :20
@@ -338,34 +970,81 @@ async def serve_report_file(
     format: ReportFormat,
     current_user: User = Depends(get_current_user),
 ):
-    """Отдает файл отчета для скачивания"""
-    # Ищем отчет в сохраненных
-    report = None
-    for user_id, reports in _generated_reports.items():
-        for r in reports:
-            if r["id"] == report_id:
-                report = r
-                break
-        if report:
-            break
+    """Отдает файл отчета в указанном формате"""
 
-    if not report:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"Отчет не найден: {report_id}",
+    # Проверяем, принадлежит ли отчет пользователю
+    report_belongs_to_user = False
+    report_data = None
+
+    # Сначала ищем среди отчетов текущего пользователя
+    if current_user.id in _generated_reports:
+        for report in _generated_reports[current_user.id]:
+            if report["id"] == report_id:
+                report_belongs_to_user = True
+                if "content" in report:
+                    report_data = report["content"]
+                break
+
+    # Если не нашли или пользователь админ, ищем среди всех отчетов
+    if not report_belongs_to_user or getattr(current_user, "is_superuser", False):
+        for user_id, reports in _generated_reports.items():
+            for report in reports:
+                if report["id"] == report_id:
+                    # Админ может просматривать все отчеты, обычный пользователь - только свои
+                    if user_id == current_user.id or getattr(
+                        current_user, "is_superuser", False
+                    ):
+                        report_belongs_to_user = True
+                        if "content" in report:
+                            report_data = report["content"]
+                        break
+            if report_data:
+                break
+
+    # Если нашли отчет в памяти, используем его
+    if report_data:
+        content = report_data
+    else:
+        # Иначе пытаемся загрузить из файла (для обратной совместимости)
+        try:
+            # Создаем директорию для отчетов, если она не существует
+            reports_dir = "reports"
+            if not os.path.exists(reports_dir):
+                os.makedirs(reports_dir)
+
+            with open(f"reports/{report_id}.json", "r", encoding="utf-8") as f:
+                content = json.load(f)
+        except FileNotFoundError:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Отчет не найден",
+            )
+
+    # Формируем безопасное имя файла (без кириллицы)
+    report_type = content.get("type", "unknown")
+    generated_date = datetime.now().strftime("%Y-%m-%d")
+
+    # Используем латиницу вместо кириллицы в имени файла
+    if report_type == "sensor_data":
+        report_name = f"sensor_data_report_{generated_date}"
+    elif report_type == "fertilizer_applications":
+        report_name = f"fertilizer_report_{generated_date}"
+    elif report_type == "device_activity":
+        report_name = f"device_activity_{generated_date}"
+    elif report_type == "system_activity":
+        report_name = f"system_activity_{generated_date}"
+    else:
+        report_name = f"report_{generated_date}"
+
+    # Возвращаем файл в нужном формате
+    if format == ReportFormat.JSON:
+        return Response(
+            content=json.dumps(content, ensure_ascii=False),
+            media_type="application/json",
+            headers={"Content-Disposition": f"attachment; filename={report_name}.json"},
         )
 
-    # Получаем содержимое отчета
-    content = report.get("content", {})
-    report_name = report.get("name", report_id)
-
-    # Генерируем файл в зависимости от формата
-    if format == ReportFormat.JSON:
-        # Для JSON просто возвращаем данные
-        return JSONResponse(content=content)
-
     elif format == ReportFormat.CSV:
-        # Для CSV конвертируем данные
         csv_content = convert_to_csv(content)
         return Response(
             content=csv_content,
@@ -374,7 +1053,6 @@ async def serve_report_file(
         )
 
     elif format == ReportFormat.EXCEL:
-        # Для Excel используем специальную функцию создания файла
         try:
             excel_content = create_excel(content)
             return Response(
@@ -420,889 +1098,48 @@ async def serve_report_file(
             )
 
 
-def convert_to_csv(content: Dict[str, Any]) -> str:
-    """Конвертирует данные отчета в CSV формат"""
+# Добавляем удаление отчета пользователя
+@router.delete("/{report_id}", response_model=Dict[str, Any])
+async def delete_report(
+    report_id: str,
+    current_user: User = Depends(get_current_user),
+):
+    """Удаление отчета пользователя"""
+    # Проверяем, есть ли у пользователя отчеты вообще
+    if current_user.id not in _generated_reports:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="У пользователя нет отчетов",
+        )
+
+    # Ищем отчет среди отчетов пользователя
+    report_index = -1
+    for i, report in enumerate(_generated_reports[current_user.id]):
+        if report["id"] == report_id:
+            report_index = i
+            break
+
+    if report_index == -1:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Отчет не найден у текущего пользователя",
+        )
+
+    # Удаляем отчет из списка пользователя
+    _generated_reports[current_user.id].pop(report_index)
+
+    # Пытаемся удалить файл отчета, если он существует
     try:
-        output = io.StringIO()
-        writer = csv.writer(output, delimiter=";")
-
-        # Заголовок отчета
-        writer.writerow(["Отчет", "Дата генерации"])
-        writer.writerow([content.get("type", ""), content.get("generated_at", "")])
-        writer.writerow([])
-
-        # Параметры отчета
-        writer.writerow(["Параметры отчета"])
-        if "parameters" in content:
-            for key, value in content["parameters"].items():
-                writer.writerow([key, value])
-        writer.writerow([])
-
-        # Данные
-        if "data" in content:
-            # Для данных датчиков
-            if isinstance(content["data"], dict):
-                for sensor_type, records in content["data"].items():
-                    writer.writerow([f"Тип датчика: {sensor_type}"])
-                    if records and isinstance(records, list) and records:
-                        # Заголовки
-                        headers = list(records[0].keys())
-                        writer.writerow(headers)
-
-                        # Данные
-                        for record in records:
-                            writer.writerow([str(record.get(h, "")) for h in headers])
-                        writer.writerow([])
-
-            # Для списка записей
-            elif isinstance(content["data"], list) and content["data"]:
-                # Заголовки
-                headers = list(content["data"][0].keys())
-                writer.writerow(headers)
-
-                # Данные
-                for record in content["data"]:
-                    writer.writerow([str(record.get(h, "")) for h in headers])
-
-        # Статистика
-        if "statistics" in content:
-            writer.writerow([])
-            writer.writerow(["Статистика"])
-            for sensor_type, stats in content["statistics"].items():
-                writer.writerow([f"Тип датчика: {sensor_type}"])
-                for key, value in stats.items():
-                    writer.writerow([key, value])
-                writer.writerow([])
-
-        return output.getvalue()
+        file_path = f"reports/{report_id}.json"
+        if os.path.exists(file_path):
+            os.remove(file_path)
     except Exception as e:
-        print(f"Error converting to CSV: {e}")
-        return "Error generating CSV report"
+        logger.error(f"Ошибка при удалении файла отчета: {e}")
 
+    return {"success": True, "message": "Отчет успешно удален", "report_id": report_id}
 
-def create_excel(content: Dict[str, Any]) -> bytes:
-    """Создает Excel файл из данных отчета"""
-    try:
-        output = io.BytesIO()
-        workbook = xlsxwriter.Workbook(output)
 
-        # Стили
-        title_format = workbook.add_format(
-            {"bold": True, "font_size": 14, "align": "center"}
-        )
-        header_format = workbook.add_format(
-            {"bold": True, "bg_color": "#D9E1F2", "border": 1}
-        )
-        cell_format = workbook.add_format({"border": 1})
-        section_format = workbook.add_format(
-            {"bold": True, "font_size": 12, "bg_color": "#E2EFDA"}
-        )
-
-        # Основной лист
-        worksheet = workbook.add_worksheet("Отчет")
-        worksheet.set_column(0, 0, 30)
-        worksheet.set_column(1, 10, 20)
-
-        # Заголовок
-        row = 0
-        worksheet.merge_range(
-            row, 0, row, 5, f"Отчет: {content.get('type', '')}", title_format
-        )
-        row += 1
-        worksheet.write(row, 0, "Дата генерации:", header_format)
-        worksheet.write(row, 1, content.get("generated_at", ""), cell_format)
-        row += 2
-
-        # Параметры
-        if "parameters" in content:
-            worksheet.merge_range(row, 0, row, 5, "Параметры отчета", section_format)
-            row += 1
-            for key, value in content["parameters"].items():
-                worksheet.write(row, 0, key, header_format)
-                worksheet.write(
-                    row, 1, str(value) if value is not None else "", cell_format
-                )
-                row += 1
-            row += 1
-
-        # Данные
-        if "data" in content:
-            # Для данных датчиков
-            if isinstance(content["data"], dict):
-                for sensor_type, records in content["data"].items():
-                    worksheet.merge_range(
-                        row, 0, row, 5, f"Тип датчика: {sensor_type}", section_format
-                    )
-                    row += 1
-
-                    if records and isinstance(records, list) and records:
-                        # Заголовки
-                        headers = list(records[0].keys())
-                        for col, header in enumerate(headers):
-                            worksheet.write(row, col, header, header_format)
-                        row += 1
-
-                        # Данные
-                        for record in records:
-                            for col, header in enumerate(headers):
-                                worksheet.write(
-                                    row, col, record.get(header, ""), cell_format
-                                )
-                            row += 1
-                        row += 1
-
-            # Для списка записей
-            elif isinstance(content["data"], list) and content["data"]:
-                worksheet.merge_range(row, 0, row, 5, "Данные", section_format)
-                row += 1
-
-                # Заголовки
-                headers = list(content["data"][0].keys())
-                for col, header in enumerate(headers):
-                    worksheet.write(row, col, header, header_format)
-                row += 1
-
-                # Данные
-                for record in content["data"]:
-                    for col, header in enumerate(headers):
-                        worksheet.write(row, col, record.get(header, ""), cell_format)
-                    row += 1
-                row += 1
-
-        # Статистика
-        if "statistics" in content:
-            worksheet.merge_range(row, 0, row, 5, "Статистика", section_format)
-            row += 1
-            for sensor_type, stats in content["statistics"].items():
-                worksheet.write(row, 0, f"Тип датчика: {sensor_type}", header_format)
-                row += 1
-                for key, value in stats.items():
-                    worksheet.write(row, 0, key, header_format)
-                    worksheet.write(row, 1, value, cell_format)
-                    row += 1
-                row += 1
-
-        workbook.close()
-        return output.getvalue()
-
-    except Exception as e:
-        print(f"Error creating Excel: {e}")
-        # Возвращаем простой CSV в случае ошибки
-        return convert_to_csv(content).encode("utf-8")
-
-
-def create_pdf(content: Dict[str, Any]) -> bytes:
-    """Создает PDF файл из данных отчета"""
-    try:
-        buffer = io.BytesIO()
-
-        # Создаем документ
-        doc = SimpleDocTemplate(
-            buffer,
-            pagesize=A4,
-            rightMargin=30,
-            leftMargin=30,
-            topMargin=30,
-            bottomMargin=30,
-        )
-        elements = []
-
-        # Стили
-        styles = getSampleStyleSheet()
-        title_style = styles["Heading1"]
-        heading2_style = styles["Heading2"]
-        normal_style = styles["Normal"]
-
-        # Пытаемся зарегистрировать кириллический шрифт
-        try:
-            pdfmetrics.registerFont(TTFont("Arial", "Arial.ttf"))
-            title_style = ParagraphStyle(
-                "CustomTitle",
-                parent=styles["Heading1"],
-                fontName="Arial",
-                alignment=TA_CENTER,
-                fontSize=16,
-            )
-            heading2_style = ParagraphStyle(
-                "CustomHeading2",
-                parent=styles["Heading2"],
-                fontName="Arial",
-                fontSize=14,
-            )
-            normal_style = ParagraphStyle(
-                "CustomNormal", parent=styles["Normal"], fontName="Arial", fontSize=10
-            )
-        except:
-            pass
-
-        # Заголовок отчета
-        elements.append(Paragraph(f"Отчет: {content.get('type', '')}", title_style))
-        elements.append(
-            Paragraph(
-                f"Дата генерации: {content.get('generated_at', '')}", normal_style
-            )
-        )
-        elements.append(
-            Paragraph(
-                f"Сгенерирован пользователем: {content.get('generated_by', '')}",
-                normal_style,
-            )
-        )
-        elements.append(Spacer(1, 20))
-
-        # Параметры отчета
-        if "parameters" in content:
-            elements.append(Paragraph("Параметры отчета", heading2_style))
-            data = []
-            data.append(["Параметр", "Значение"])
-            for key, value in content["parameters"].items():
-                data.append([key, str(value) if value is not None else ""])
-
-            table = Table(data, colWidths=[200, 300])
-            table.setStyle(
-                TableStyle(
-                    [
-                        ("BACKGROUND", (0, 0), (-1, 0), colors.grey),
-                        ("TEXTCOLOR", (0, 0), (-1, 0), colors.whitesmoke),
-                        ("ALIGN", (0, 0), (-1, -1), "CENTER"),
-                        ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
-                        ("BOTTOMPADDING", (0, 0), (-1, 0), 12),
-                        ("GRID", (0, 0), (-1, -1), 1, colors.black),
-                    ]
-                )
-            )
-            elements.append(table)
-            elements.append(Spacer(1, 20))
-
-        # Статистика
-        if "statistics" in content:
-            elements.append(Paragraph("Статистика по типам датчиков", heading2_style))
-            for sensor_type, stats in content["statistics"].items():
-                elements.append(
-                    Paragraph(f"Тип датчика: {sensor_type}", heading2_style)
-                )
-
-                data = []
-                data.append(["Показатель", "Значение"])
-                for key, value in stats.items():
-                    data.append([key, str(value)])
-
-                table = Table(data, colWidths=[200, 300])
-                table.setStyle(
-                    TableStyle(
-                        [
-                            ("BACKGROUND", (0, 0), (-1, 0), colors.grey),
-                            ("TEXTCOLOR", (0, 0), (-1, 0), colors.whitesmoke),
-                            ("ALIGN", (0, 0), (-1, -1), "CENTER"),
-                            ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
-                            ("BOTTOMPADDING", (0, 0), (-1, 0), 12),
-                            ("GRID", (0, 0), (-1, -1), 1, colors.black),
-                        ]
-                    )
-                )
-                elements.append(table)
-                elements.append(Spacer(1, 20))
-
-        # Данные
-        if "data" in content:
-            elements.append(Paragraph("Данные", heading2_style))
-
-            # Для данных датчиков
-            if isinstance(content["data"], dict):
-                for sensor_type, records in content["data"].items():
-                    elements.append(
-                        Paragraph(f"Тип датчика: {sensor_type}", heading2_style)
-                    )
-
-                    if records and isinstance(records, list) and records:
-                        # Заголовки из первой записи
-                        headers = list(records[0].keys())
-
-                        # Формируем таблицу
-                        data = [headers]  # Заголовок
-                        for record in records[:50]:  # Ограничиваем количество строк
-                            row = [str(record.get(h, "")) for h in headers]
-                            data.append(row)
-
-                        # Настраиваем таблицу
-                        col_widths = [min(120, 500 / len(headers)) for _ in headers]
-                        table = Table(data, colWidths=col_widths)
-                        table.setStyle(
-                            TableStyle(
-                                [
-                                    ("BACKGROUND", (0, 0), (-1, 0), colors.grey),
-                                    ("TEXTCOLOR", (0, 0), (-1, 0), colors.whitesmoke),
-                                    ("ALIGN", (0, 0), (-1, -1), "CENTER"),
-                                    ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
-                                    ("BOTTOMPADDING", (0, 0), (-1, 0), 12),
-                                    ("GRID", (0, 0), (-1, -1), 1, colors.black),
-                                ]
-                            )
-                        )
-                        elements.append(table)
-
-                        if len(records) > 50:
-                            elements.append(
-                                Paragraph(
-                                    f"Показаны первые 50 из {len(records)} записей",
-                                    normal_style,
-                                )
-                            )
-
-                        elements.append(Spacer(1, 20))
-
-            # Для списка записей
-            elif isinstance(content["data"], list) and content["data"]:
-                records = content["data"]
-
-                # Заголовки из первой записи
-                headers = list(records[0].keys())
-
-                # Формируем таблицу
-                data = [headers]  # Заголовок
-                for record in records[:50]:  # Ограничиваем количество строк
-                    row = [str(record.get(h, "")) for h in headers]
-                    data.append(row)
-
-                # Настраиваем таблицу
-                col_widths = [min(120, 500 / len(headers)) for _ in headers]
-                table = Table(data, colWidths=col_widths)
-                table.setStyle(
-                    TableStyle(
-                        [
-                            ("BACKGROUND", (0, 0), (-1, 0), colors.grey),
-                            ("TEXTCOLOR", (0, 0), (-1, 0), colors.whitesmoke),
-                            ("ALIGN", (0, 0), (-1, -1), "CENTER"),
-                            ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
-                            ("BOTTOMPADDING", (0, 0), (-1, 0), 12),
-                            ("GRID", (0, 0), (-1, -1), 1, colors.black),
-                        ]
-                    )
-                )
-                elements.append(table)
-
-                if len(records) > 50:
-                    elements.append(
-                        Paragraph(
-                            f"Показаны первые 50 из {len(records)} записей",
-                            normal_style,
-                        )
-                    )
-
-        # Создаем PDF
-        doc.build(elements)
-        return buffer.getvalue()
-
-    except Exception as e:
-        print(f"Error creating PDF: {e}")
-        # В случае ошибки возвращаем простой HTML
-        return convert_to_html(content).encode("utf-8")
-
-
-def convert_to_html(content: Dict[str, Any]) -> str:
-    """Конвертирует данные отчета в HTML формат"""
-    try:
-        html = """
-        <!DOCTYPE html>
-        <html>
-        <head>
-            <meta charset="UTF-8">
-            <title>Отчет</title>
-            <style>
-                body { font-family: Arial, sans-serif; margin: 20px; }
-                h1, h2, h3 { color: #333; }
-                table { border-collapse: collapse; width: 100%; margin-bottom: 20px; }
-                table, th, td { border: 1px solid #ddd; }
-                th, td { padding: 8px; text-align: left; }
-                th { background-color: #f2f2f2; }
-                .section { margin-bottom: 30px; }
-            </style>
-        </head>
-        <body>
-        """
-
-        # Заголовок отчета
-        html += f"<h1>Отчет: {content.get('type', '')}</h1>"
-        html += f"<p>Дата генерации: {content.get('generated_at', '')}</p>"
-        html += f"<p>Сгенерирован пользователем: {content.get('generated_by', '')}</p>"
-
-        # Параметры отчета
-        if "parameters" in content:
-            html += "<div class='section'>"
-            html += "<h2>Параметры отчета</h2>"
-            html += "<table>"
-            html += "<tr><th>Параметр</th><th>Значение</th></tr>"
-            for key, value in content["parameters"].items():
-                html += f"<tr><td>{key}</td><td>{value}</td></tr>"
-            html += "</table>"
-            html += "</div>"
-
-        # Сводная информация
-        if "summary" in content:
-            html += "<div class='section'>"
-            html += "<h2>Сводная информация</h2>"
-            html += "<table>"
-            for key, value in content["summary"].items():
-                if not isinstance(value, dict):
-                    html += f"<tr><td>{key}</td><td>{value}</td></tr>"
-            html += "</table>"
-            html += "</div>"
-
-        # Статистика
-        if "statistics" in content:
-            html += "<div class='section'>"
-            html += "<h2>Статистика по типам датчиков</h2>"
-            for sensor_type, stats in content["statistics"].items():
-                html += f"<h3>Тип датчика: {sensor_type}</h3>"
-                html += "<table>"
-                html += "<tr><th>Показатель</th><th>Значение</th></tr>"
-                for key, value in stats.items():
-                    html += f"<tr><td>{key}</td><td>{value}</td></tr>"
-                html += "</table>"
-            html += "</div>"
-
-        # Данные
-        if "data" in content:
-            html += "<div class='section'>"
-            html += "<h2>Данные</h2>"
-
-            # Для данных датчиков
-            if isinstance(content["data"], dict):
-                for sensor_type, records in content["data"].items():
-                    html += f"<h3>Тип датчика: {sensor_type}</h3>"
-                    if records and isinstance(records, list) and records:
-                        # Таблица с данными
-                        html += "<table>"
-                        # Заголовки
-                        html += "<tr>"
-                        for key in records[0].keys():
-                            html += f"<th>{key}</th>"
-                        html += "</tr>"
-
-                        # Данные
-                        for record in records:
-                            html += "<tr>"
-                            for key, value in record.items():
-                                html += f"<td>{value}</td>"
-                            html += "</tr>"
-                        html += "</table>"
-
-            # Для списка записей
-            elif isinstance(content["data"], list) and content["data"]:
-                # Таблица с данными
-                html += "<table>"
-                # Заголовки
-                html += "<tr>"
-                for key in content["data"][0].keys():
-                    html += f"<th>{key}</th>"
-                html += "</tr>"
-
-                # Данные
-                for record in content["data"]:
-                    html += "<tr>"
-                    for key, value in record.items():
-                        html += f"<td>{value}</td>"
-                    html += "</tr>"
-                html += "</table>"
-
-            html += "</div>"
-
-        html += """
-        </body>
-        </html>
-        """
-
-        return html
-    except Exception as e:
-        print(f"Error converting to HTML: {e}")
-        return "<html><body><h1>Error generating HTML report</h1></body></html>"
-
-
-async def generate_sensor_data_report(
-    parameters: Dict[str, Any], current_user: User
-) -> Dict[str, Any]:
-    """Генерация отчета по данным датчиков"""
-    start_date = parameters.get("start_date")
-    end_date = parameters.get("end_date")
-    sensor_type = parameters.get("sensor_type")
-    location_id = parameters.get("location_id")
-
-    # Создаем тестовые данные вместо запроса к базе
-    sensor_data = {
-        "temperature": [
-            {
-                "timestamp": (datetime.utcnow() - timedelta(hours=i))
-                .replace(tzinfo=None)
-                .isoformat(),
-                "value": 22.5 + (i % 5),
-                "unit": "°C",
-                "sensor_id": "temp-sensor-01",
-                "location_id": "vineyard-section-A",
-                "status": "normal",
-            }
-            for i in range(24)
-        ],
-        "humidity": [
-            {
-                "timestamp": (datetime.utcnow() - timedelta(hours=i))
-                .replace(tzinfo=None)
-                .isoformat(),
-                "value": 65.0 + (i % 10),
-                "unit": "%",
-                "sensor_id": "hum-sensor-01",
-                "location_id": "vineyard-section-A",
-                "status": "normal",
-            }
-            for i in range(24)
-        ],
-        "soil_moisture": [
-            {
-                "timestamp": (datetime.utcnow() - timedelta(hours=i))
-                .replace(tzinfo=None)
-                .isoformat(),
-                "value": 42.0 + (i % 7),
-                "unit": "%",
-                "sensor_id": "soil-moist-sensor-01",
-                "location_id": "vineyard-section-A",
-                "status": "normal",
-            }
-            for i in range(24)
-        ],
-    }
-
-    # Отфильтруем данные по параметрам
-    results_by_type = {}
-    for type_name, records in sensor_data.items():
-        if sensor_type and type_name != sensor_type:
-            continue
-
-        results_by_type[type_name] = []
-        for record in records:
-            # Фильтр по местоположению
-            if location_id and record["location_id"] != location_id:
-                continue
-
-            # Фильтр по дате начала
-            if start_date:
-                record_date = datetime.fromisoformat(record["timestamp"])
-                # Если start_date имеет timezone, а record_date нет, добавляем timezone к record_date
-                if start_date.tzinfo and not record_date.tzinfo:
-                    record_date = record_date.replace(tzinfo=start_date.tzinfo)
-                if record_date < start_date:
-                    continue
-
-            # Фильтр по дате окончания
-            if end_date:
-                record_date = datetime.fromisoformat(record["timestamp"])
-                # Если end_date имеет timezone, а record_date нет, добавляем timezone к record_date
-                if end_date.tzinfo and not record_date.tzinfo:
-                    record_date = record_date.replace(tzinfo=end_date.tzinfo)
-                if record_date > end_date:
-                    continue
-
-            results_by_type[type_name].append(record)
-
-    # Если пустой список, удаляем тип
-    for type_name in list(results_by_type.keys()):
-        if not results_by_type[type_name]:
-            del results_by_type[type_name]
-
-    # Расчет статистики для каждого типа датчиков
-    statistics = {}
-    for sensor_type, records in results_by_type.items():
-        if records:
-            values = [record["value"] for record in records]
-            statistics[sensor_type] = {
-                "min": min(values),
-                "max": max(values),
-                "avg": sum(values) / len(values),
-                "count": len(values),
-                "unit": records[0]["unit"],
-            }
-
-    # Подготовка отчета
-    return {
-        "type": ReportType.SENSOR_DATA,
-        "generated_at": datetime.utcnow().isoformat(),
-        "generated_by": current_user.username,
-        "parameters": {
-            "start_date": start_date.isoformat() if start_date else None,
-            "end_date": end_date.isoformat() if end_date else None,
-            "sensor_type": sensor_type,
-            "location_id": location_id,
-        },
-        "summary": {
-            "total_records": sum(len(records) for records in results_by_type.values()),
-            "sensor_types": list(results_by_type.keys()),
-            "date_range": {
-                "start": start_date.isoformat() if start_date else None,
-                "end": end_date.isoformat() if end_date else None,
-            },
-        },
-        "statistics": statistics,
-        "data": results_by_type,
-    }
-
-
-async def generate_fertilizer_report(
-    parameters: Dict[str, Any], current_user: User
-) -> Dict[str, Any]:
-    """Генерация отчета о внесении удобрений"""
-    start_date = parameters.get("start_date")
-    end_date = parameters.get("end_date")
-    fertilizer_type = parameters.get("fertilizer_type")
-    location_id = parameters.get("location_id")
-
-    # Создаем тестовые данные вместо запроса к базе данных
-    fertilizer_data = [
-        {
-            "id": 1,
-            "name": "Весеннее удобрение",
-            "fertilizer_type": "nitrogen",
-            "application_date": (datetime.utcnow() - timedelta(days=5))
-            .replace(tzinfo=None)
-            .isoformat(),
-            "application_method": "broadcast",
-            "amount": 15.5,
-            "unit": "кг/га",
-            "location_id": "vineyard-section-A",
-            "status": "completed",
-            "created_by_id": 1,
-        },
-        {
-            "id": 2,
-            "name": "Фосфорное удобрение",
-            "fertilizer_type": "phosphorus",
-            "application_date": (datetime.utcnow() - timedelta(days=10))
-            .replace(tzinfo=None)
-            .isoformat(),
-            "application_method": "drip",
-            "amount": 8.75,
-            "unit": "л/га",
-            "location_id": "vineyard-section-B",
-            "status": "completed",
-            "created_by_id": 1,
-        },
-        {
-            "id": 3,
-            "name": "Органическое удобрение",
-            "fertilizer_type": "organic",
-            "application_date": (datetime.utcnow() - timedelta(days=15))
-            .replace(tzinfo=None)
-            .isoformat(),
-            "application_method": "manual",
-            "amount": 200.0,
-            "unit": "кг/га",
-            "location_id": "vineyard-section-A",
-            "status": "completed",
-            "created_by_id": 1,
-        },
-        {
-            "id": 4,
-            "name": "Калийное удобрение",
-            "fertilizer_type": "potassium",
-            "application_date": (datetime.utcnow() - timedelta(days=3))
-            .replace(tzinfo=None)
-            .isoformat(),
-            "application_method": "foliar_spray",
-            "amount": 5.25,
-            "unit": "л/га",
-            "location_id": "vineyard-section-C",
-            "status": "completed",
-            "created_by_id": 1,
-        },
-    ]
-
-    # Отфильтруем данные по параметрам
-    applications = []
-    total_amount = 0
-    fertilizer_types = set()
-
-    for app in fertilizer_data:
-        # Фильтр по типу удобрения
-        if fertilizer_type and app["fertilizer_type"] != fertilizer_type:
-            continue
-
-        # Фильтр по местоположению
-        if location_id and app["location_id"] != location_id:
-            continue
-
-        # Фильтр по дате начала
-        if start_date:
-            app_date = datetime.fromisoformat(app["application_date"])
-            if start_date.tzinfo and not app_date.tzinfo:
-                app_date = app_date.replace(tzinfo=start_date.tzinfo)
-            if app_date < start_date:
-                continue
-
-        # Фильтр по дате окончания
-        if end_date:
-            app_date = datetime.fromisoformat(app["application_date"])
-            if end_date.tzinfo and not app_date.tzinfo:
-                app_date = app_date.replace(tzinfo=end_date.tzinfo)
-            if app_date > end_date:
-                continue
-
-        fertilizer_types.add(app["fertilizer_type"])
-        total_amount += app["amount"]
-        applications.append(app)
-
-    # Подготовка отчета
-    return {
-        "type": ReportType.FERTILIZER_APPLICATIONS,
-        "generated_at": datetime.utcnow().isoformat(),
-        "generated_by": current_user.username,
-        "parameters": {
-            "start_date": start_date.isoformat() if start_date else None,
-            "end_date": end_date.isoformat() if end_date else None,
-            "fertilizer_type": fertilizer_type,
-            "location_id": location_id,
-        },
-        "summary": {
-            "total_applications": len(applications),
-            "total_amount": total_amount,
-            "fertilizer_types": list(fertilizer_types),
-            "date_range": {
-                "start": start_date.isoformat() if start_date else None,
-                "end": end_date.isoformat() if end_date else None,
-            },
-        },
-        "data": applications,
-    }
-
-
-async def generate_device_activity_report(
-    parameters: Dict[str, Any], current_user: User
-) -> Dict[str, Any]:
-    """Генерация отчета об активности устройств"""
-    start_date = parameters.get("start_date")
-    end_date = parameters.get("end_date")
-    device_type = parameters.get("device_type")
-    device_id = parameters.get("device_id")
-
-    # Создаем тестовые данные активности устройств
-    device_activities = [
-        {
-            "id": 1,
-            "device_id": "sensor-hub-001",
-            "device_type": "sensor_hub",
-            "activity_type": "data_collection",
-            "timestamp": (datetime.utcnow() - timedelta(hours=2))
-            .replace(tzinfo=None)
-            .isoformat(),
-            "status": "success",
-            "details": {"sensors_read": 12, "data_points": 48},
-        },
-        {
-            "id": 2,
-            "device_id": "sensor-hub-002",
-            "device_type": "sensor_hub",
-            "activity_type": "data_collection",
-            "timestamp": (datetime.utcnow() - timedelta(hours=4))
-            .replace(tzinfo=None)
-            .isoformat(),
-            "status": "success",
-            "details": {"sensors_read": 8, "data_points": 32},
-        },
-        {
-            "id": 3,
-            "device_id": "irrigation-controller-001",
-            "device_type": "irrigation_controller",
-            "activity_type": "irrigation_cycle",
-            "timestamp": (datetime.utcnow() - timedelta(hours=6))
-            .replace(tzinfo=None)
-            .isoformat(),
-            "status": "success",
-            "details": {"duration_minutes": 30, "water_volume_liters": 1500},
-        },
-        {
-            "id": 4,
-            "device_id": "weather-station-001",
-            "device_type": "weather_station",
-            "activity_type": "data_collection",
-            "timestamp": (datetime.utcnow() - timedelta(hours=1))
-            .replace(tzinfo=None)
-            .isoformat(),
-            "status": "success",
-            "details": {
-                "parameters_measured": [
-                    "temperature",
-                    "humidity",
-                    "wind_speed",
-                    "rainfall",
-                ]
-            },
-        },
-        {
-            "id": 5,
-            "device_id": "sensor-hub-001",
-            "device_type": "sensor_hub",
-            "activity_type": "calibration",
-            "timestamp": (datetime.utcnow() - timedelta(hours=12))
-            .replace(tzinfo=None)
-            .isoformat(),
-            "status": "success",
-            "details": {"sensors_calibrated": 3},
-        },
-    ]
-
-    # Отфильтруем данные по параметрам
-    filtered_activities = []
-    device_ids = set()
-    device_types = set()
-
-    for activity in device_activities:
-        # Фильтр по типу устройства
-        if device_type and activity["device_type"] != device_type:
-            continue
-
-        # Фильтр по ID устройства
-        if device_id and activity["device_id"] != device_id:
-            continue
-
-        # Фильтр по дате начала
-        if start_date:
-            activity_date = datetime.fromisoformat(activity["timestamp"])
-            if start_date.tzinfo and not activity_date.tzinfo:
-                activity_date = activity_date.replace(tzinfo=start_date.tzinfo)
-            if activity_date < start_date:
-                continue
-
-        # Фильтр по дате окончания
-        if end_date:
-            activity_date = datetime.fromisoformat(activity["timestamp"])
-            if end_date.tzinfo and not activity_date.tzinfo:
-                activity_date = activity_date.replace(tzinfo=end_date.tzinfo)
-            if activity_date > end_date:
-                continue
-
-        device_ids.add(activity["device_id"])
-        device_types.add(activity["device_type"])
-        filtered_activities.append(activity)
-
-    return {
-        "type": ReportType.DEVICE_ACTIVITY,
-        "generated_at": datetime.utcnow().isoformat(),
-        "generated_by": current_user.username,
-        "parameters": {
-            "start_date": start_date.isoformat() if start_date else None,
-            "end_date": end_date.isoformat() if end_date else None,
-            "device_type": device_type,
-            "device_id": device_id,
-        },
-        "summary": {
-            "total_activities": len(filtered_activities),
-            "devices": list(device_ids),
-            "device_types": list(device_types),
-            "date_range": {
-                "start": start_date.isoformat() if start_date else None,
-                "end": end_date.isoformat() if end_date else None,
-            },
-        },
-        "data": filtered_activities,
-    }
-
-
+# Дополнительные функции для генерации отчетов
 async def generate_system_activity_report(
     parameters: Dict[str, Any], current_user: User
 ) -> Dict[str, Any]:
@@ -1319,9 +1156,11 @@ async def generate_system_activity_report(
             "user_id": 1,
             "username": "admin",
             "action_type": "login",
-            "timestamp": (datetime.utcnow() - timedelta(hours=1))
-            .replace(tzinfo=None)
-            .isoformat(),
+            "timestamp": format_date(
+                (datetime.utcnow() - timedelta(hours=1))
+                .replace(tzinfo=None)
+                .strftime("%Y-%m-%d %H:%M:%S")
+            ),
             "details": {"ip_address": "192.168.1.100", "user_agent": "Mozilla/5.0"},
             "status": "success",
         },
@@ -1332,7 +1171,7 @@ async def generate_system_activity_report(
             "action_type": "data_export",
             "timestamp": (datetime.utcnow() - timedelta(hours=3))
             .replace(tzinfo=None)
-            .isoformat(),
+            .strftime("%Y-%m-%d %H:%M:%S"),
             "details": {"export_type": "csv", "records_count": 250},
             "status": "success",
         },
@@ -1343,7 +1182,7 @@ async def generate_system_activity_report(
             "action_type": "settings_change",
             "timestamp": (datetime.utcnow() - timedelta(hours=5))
             .replace(tzinfo=None)
-            .isoformat(),
+            .strftime("%Y-%m-%d %H:%M:%S"),
             "details": {
                 "setting": "notification_threshold",
                 "old_value": 10,
@@ -1358,7 +1197,7 @@ async def generate_system_activity_report(
             "action_type": "fertilizer_application",
             "timestamp": (datetime.utcnow() - timedelta(hours=8))
             .replace(tzinfo=None)
-            .isoformat(),
+            .strftime("%Y-%m-%d %H:%M:%S"),
             "details": {"fertilizer_id": 2, "location": "vineyard-section-B"},
             "status": "success",
         },
@@ -1369,7 +1208,7 @@ async def generate_system_activity_report(
             "action_type": "report_generation",
             "timestamp": (datetime.utcnow() - timedelta(hours=10))
             .replace(tzinfo=None)
-            .isoformat(),
+            .strftime("%Y-%m-%d %H:%M:%S"),
             "details": {"report_type": "sensor_data", "format": "pdf"},
             "status": "success",
         },
@@ -1411,11 +1250,11 @@ async def generate_system_activity_report(
 
     return {
         "type": ReportType.SYSTEM_ACTIVITY,
-        "generated_at": datetime.utcnow().isoformat(),
+        "generated_at": format_date(datetime.utcnow().isoformat()),
         "generated_by": current_user.username,
         "parameters": {
-            "start_date": start_date.isoformat() if start_date else None,
-            "end_date": end_date.isoformat() if end_date else None,
+            "start_date": format_date(start_date.isoformat() if start_date else None),
+            "end_date": format_date(end_date.isoformat() if end_date else None),
             "user_id": user_id,
             "action_type": action_type,
         },
@@ -1424,8 +1263,8 @@ async def generate_system_activity_report(
             "users": list(users),
             "action_types": list(action_types),
             "date_range": {
-                "start": start_date.isoformat() if start_date else None,
-                "end": end_date.isoformat() if end_date else None,
+                "start": format_date(start_date.isoformat() if start_date else None),
+                "end": format_date(end_date.isoformat() if end_date else None),
             },
         },
         "data": filtered_activities,
@@ -1450,9 +1289,9 @@ async def generate_custom_report(
                 {
                     "date": (datetime.utcnow() - timedelta(hours=i))
                     .replace(tzinfo=None)
-                    .isoformat(),
+                    .strftime("%Y-%m-%d %H:%M:%S"),
                     "parameter": "temperature",
-                    "value": 22.5 + (i % 5),
+                    "value": round(22.5 + (i % 5), 1),
                     "unit": "°C",
                     "location": "Виноградник А",
                     "status": "normal",
@@ -1467,9 +1306,9 @@ async def generate_custom_report(
                 {
                     "date": (datetime.utcnow() - timedelta(hours=i))
                     .replace(tzinfo=None)
-                    .isoformat(),
+                    .strftime("%Y-%m-%d %H:%M:%S"),
                     "parameter": "humidity",
-                    "value": 65.0 + (i % 10),
+                    "value": round(65.0 + (i % 10), 1),
                     "unit": "%",
                     "location": "Виноградник А",
                     "status": "normal",
@@ -1484,7 +1323,7 @@ async def generate_custom_report(
                 {
                     "date": (datetime.utcnow() - timedelta(days=i * 5))
                     .replace(tzinfo=None)
-                    .isoformat(),
+                    .strftime("%Y-%m-%d %H:%M:%S"),
                     "parameter": "fertilizer",
                     "fertilizer_type": [
                         "nitrogen",
@@ -1492,7 +1331,7 @@ async def generate_custom_report(
                         "potassium",
                         "organic",
                     ][i % 4],
-                    "amount": 15.5 + (i * 2.5),
+                    "amount": round(15.5 + (i * 2.5), 1),
                     "unit": "кг/га",
                     "location": "Виноградник А",
                     "status": "completed",
@@ -1507,7 +1346,7 @@ async def generate_custom_report(
                 {
                     "date": (datetime.utcnow() - timedelta(hours=i * 4))
                     .replace(tzinfo=None)
-                    .isoformat(),
+                    .strftime("%Y-%m-%d %H:%M:%S"),
                     "parameter": "device_activity",
                     "device_id": f"device-{i+1}",
                     "device_type": [
@@ -1529,7 +1368,7 @@ async def generate_custom_report(
                 {
                     "date": (datetime.utcnow() - timedelta(days=i))
                     .replace(tzinfo=None)
-                    .isoformat(),
+                    .strftime("%Y-%m-%d %H:%M:%S"),
                     "parameter": "general",
                     "value": f"Значение {i+1}",
                     "location": "Виноградник А",
@@ -1558,22 +1397,26 @@ async def generate_custom_report(
             if item_date > end_date:
                 continue
 
+        # Форматируем даты в данных
+        if "date" in item and item["date"]:
+            item["date"] = format_date(item["date"])
+
         filtered_data.append(item)
 
     return {
         "type": ReportType.CUSTOM,
-        "generated_at": datetime.utcnow().isoformat(),
+        "generated_at": format_date(datetime.utcnow().isoformat()),
         "generated_by": current_user.username,
         "parameters": {
-            "start_date": start_date.isoformat() if start_date else None,
-            "end_date": end_date.isoformat() if end_date else None,
+            "start_date": format_date(start_date.isoformat() if start_date else None),
+            "end_date": format_date(end_date.isoformat() if end_date else None),
             "query": query,
         },
         "summary": {
             "total_entries": len(filtered_data),
             "date_range": {
-                "start": start_date.isoformat() if start_date else None,
-                "end": end_date.isoformat() if end_date else None,
+                "start": format_date(start_date.isoformat() if start_date else None),
+                "end": format_date(end_date.isoformat() if end_date else None),
             },
             "query": query,
         },

@@ -1,0 +1,251 @@
+{
+  "type": "sensor_data",
+  "generated_at": "2025-05-13T09:44:07.125355",
+  "generated_by": "demo_user",
+  "parameters": {
+    "start_date": "2025-05-07T00:00:00+00:00",
+    "end_date": "2025-05-13T23:59:59.999000+00:00",
+    "sensor_type": "co2",
+    "location_id": null
+  },
+  "summary": {
+    "total_records": 27,
+    "sensor_types": [
+      "co2"
+    ],
+    "date_range": {
+      "start": "2025-05-07T00:00:00+00:00",
+      "end": "2025-05-13T23:59:59.999000+00:00"
+    }
+  },
+  "statistics": {
+    "co2": {
+      "min": 326.0610451237209,
+      "max": 1122.1530798660935,
+      "avg": 631.2635643990931,
+      "median": 605.5378830158309,
+      "count": 27,
+      "unit": "ppm"
+    }
+  },
+  "data": {
+    "co2": [
+      {
+        "timestamp": "2025-05-13T09:43:26.193043+00:00",
+        "value": 763.2570141304714,
+        "unit": "ppm",
+        "sensor_id": "1_co2_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:43:22.526209+00:00",
+        "value": 741.2068826932564,
+        "unit": "ppm",
+        "sensor_id": "1_co2_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:41:20.359606+00:00",
+        "value": 771.6431847564427,
+        "unit": "ppm",
+        "sensor_id": "1_co2_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:37:17.671727+00:00",
+        "value": 795.2676751720571,
+        "unit": "ppm",
+        "sensor_id": "1_co2_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:36:20.240409+00:00",
+        "value": 774.1787333518698,
+        "unit": "ppm",
+        "sensor_id": "1_co2_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:36:20.119448+00:00",
+        "value": 755.8804850409078,
+        "unit": "ppm",
+        "sensor_id": "1_co2_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:36:11.867138+00:00",
+        "value": 690.3812082826746,
+        "unit": "ppm",
+        "sensor_id": "1_co2_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:31:11.668467+00:00",
+        "value": 641.6527348238578,
+        "unit": "ppm",
+        "sensor_id": "1_co2_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:26:11.290719+00:00",
+        "value": 599.4081676391352,
+        "unit": "ppm",
+        "sensor_id": "1_co2_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:21:11.172406+00:00",
+        "value": 590.6877523319442,
+        "unit": "ppm",
+        "sensor_id": "1_co2_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:21:11.091072+00:00",
+        "value": 571.1652868819963,
+        "unit": "ppm",
+        "sensor_id": "1_co2_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:18:22.087067+00:00",
+        "value": 583.712723486616,
+        "unit": "ppm",
+        "sensor_id": "1_co2_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:18:22.012739+00:00",
+        "value": 565.0752651989742,
+        "unit": "ppm",
+        "sensor_id": "1_co2_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:14:23.912460+00:00",
+        "value": 326.0610451237209,
+        "unit": "ppm",
+        "sensor_id": "1_co2_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:14:23.739899+00:00",
+        "value": 347.11168103738146,
+        "unit": "ppm",
+        "sensor_id": "1_co2_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:09:59.142185+00:00",
+        "value": 766.1955043094886,
+        "unit": "ppm",
+        "sensor_id": "1_co2_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T09:09:59.004207+00:00",
+        "value": 805.4597710520254,
+        "unit": "ppm",
+        "sensor_id": "1_co2_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T08:59:43.471652+00:00",
+        "value": 1091.1721626658443,
+        "unit": "ppm",
+        "sensor_id": "1_co2_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T08:59:43.277412+00:00",
+        "value": 1122.1530798660935,
+        "unit": "ppm",
+        "sensor_id": "1_co2_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T08:58:20.991414+00:00",
+        "value": 444.8957286089095,
+        "unit": "ppm",
+        "sensor_id": "1_co2_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T08:58:20.908971+00:00",
+        "value": 413.0153723792255,
+        "unit": "ppm",
+        "sensor_id": "1_co2_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T08:53:35.940342+00:00",
+        "value": 377.1234897096071,
+        "unit": "ppm",
+        "sensor_id": "1_co2_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T08:48:35.735877+00:00",
+        "value": 329.31835197246085,
+        "unit": "ppm",
+        "sensor_id": "1_co2_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T08:48:35.653377+00:00",
+        "value": 348.2798639727386,
+        "unit": "ppm",
+        "sensor_id": "1_co2_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T08:46:43.159650+00:00",
+        "value": 605.5378830158309,
+        "unit": "ppm",
+        "sensor_id": "1_co2_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T08:46:12.800147+00:00",
+        "value": 600.287482331712,
+        "unit": "ppm",
+        "sensor_id": "1_co2_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-13T08:46:12.738178+00:00",
+        "value": 623.987708940273,
+        "unit": "ppm",
+        "sensor_id": "1_co2_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      }
+    ]
+  }
+}

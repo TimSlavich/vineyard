@@ -124,10 +124,6 @@ export const useRobotControl = () => {
     const sendRobotCommand = useCallback(async (robotId: string, command: string) => {
         try {
             setIsLoading(true);
-
-            // Здесь будет запрос к API, пока используем эмуляцию
-            console.log(`Відправка команди "${command}" на робота ${robotId}`);
-
             // Эмулируем задержку и успешный ответ
             const timerId = setTimeout(() => {
                 try {

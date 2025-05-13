@@ -1,7 +1,8 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import Navbar from './Navbar';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { isAuthenticated, isLocalStorageAvailable } from '../../utils/storage';
+import { isAuthenticated, isLocalStorageAvailable, getUserData } from '../../utils/storage';
+import DemoBanner from '../ui/DemoBanner';
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -10,6 +11,7 @@ interface LayoutProps {
 const Layout = ({ children }: LayoutProps) => {
   const location = useLocation();
   const navigate = useNavigate();
+  const [isDemoUser, setIsDemoUser] = useState(false);
 
   // Определение типов страниц
   const pathname = location.pathname;
@@ -38,15 +40,23 @@ const Layout = ({ children }: LayoutProps) => {
     }
   };
 
-  // Проверка аутентификации при изменении пути
+  // Проверка аутентификации и типа пользователя при изменении пути
   useEffect(() => {
     try {
       const isLSAvailable = isLocalStorageAvailable();
       if (isLSAvailable) {
-        isAuthenticated();
+        const isAuth = isAuthenticated();
+        if (isAuth) {
+          const userData = getUserData();
+          // Проверяем, является ли пользователь демо-пользователем
+          setIsDemoUser(userData && userData.role === 'demo');
+        } else {
+          setIsDemoUser(false);
+        }
       }
     } catch (err) {
       // Ошибка при проверке аутентификации
+      setIsDemoUser(false);
     }
   }, [location.pathname]);
 
@@ -56,6 +66,11 @@ const Layout = ({ children }: LayoutProps) => {
   return (
     <div className="flex flex-col min-h-screen w-full">
       <Navbar />
+
+      {/* Демо-баннер отображается на всех страницах кроме публичных, если пользователь в демо-режиме */}
+      {isDemoUser && !isPublicPage && !isLoginPage &&
+        <DemoBanner className="sticky top-16 z-10" />
+      }
 
       <main className={mainClasses}>
         {children}

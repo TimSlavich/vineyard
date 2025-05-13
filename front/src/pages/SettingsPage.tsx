@@ -554,13 +554,13 @@ const SettingsPage: React.FC = () => {
         setSaveModalOpen(true);
       })
       .catch(error => {
-        console.error('Ошибка при сохранении пороговых значений:', error);
+        console.error('Помилка при збереженні порогових значень:', error);
 
         // Отображаем ошибку пользователю
         import('../services/notificationService').then(({ addAlert }) => {
           addAlert({
-            title: 'Ошибка',
-            message: 'Не удалось сохранить пороговые значения',
+            title: 'Помилка',
+            message: 'Не вдалося зберегти порогові значення',
             type: 'critical',
             sensorId: 'threshold-save-error',
           });
@@ -581,8 +581,8 @@ const SettingsPage: React.FC = () => {
         // Отображаем ошибку пользователю
         import('../services/notificationService').then(({ addAlert }) => {
           addAlert({
-            title: 'Ошибка',
-            message: 'Не удалось сбросить пороговые значения',
+            title: 'Помилка',
+            message: 'Не вдалося скинути порогові значення',
             type: 'critical',
             sensorId: 'threshold-reset-error',
           });
@@ -610,7 +610,7 @@ const SettingsPage: React.FC = () => {
   const handleTestAlert = () => {
     // Создаем переменную для хранения состояния кнопки
     const btnElement = document.querySelector('button.border-warning');
-    const originalText = btnElement?.textContent || 'Тестове оповіщення';
+    const originalText = btnElement?.textContent || 'Тестове сповіщення';
 
     if (btnElement) {
       btnElement.textContent = 'Відправка...';
@@ -624,14 +624,14 @@ const SettingsPage: React.FC = () => {
       // Устанавливаем обработчик для получения ответа от сервера
       const unsubscribe = websocketService.subscribe('request_completed', (data) => {
         // Проверяем, что это ответ на тестовое оповещение
-        if (data && data.message && data.message.includes('Тестовое оповещение')) {
+        if (data && data.message && (data.message.includes('Тестове сповіщення') || data.message.includes('Тестовое оповещение'))) {
           unsubscribe();
 
           // Импортируем addAlert для создания оповещения
           import('../services/notificationService').then(({ addAlert }) => {
             addAlert({
-              title: 'Тестове оповіщення',
-              message: 'Тестове оповіщення успішно отримано. Система оповіщень працює нормально.',
+              title: 'Тестове сповіщення',
+              message: 'Тестове сповіщення успішно отримано. Система сповіщень працює нормально.',
               type: 'info',
               sensorId: 'test-notification',
             });

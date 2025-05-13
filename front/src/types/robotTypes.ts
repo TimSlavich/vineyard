@@ -2,13 +2,15 @@ export interface RobotStatus {
     id: string;
     name: string;
     type: 'drone' | 'harvester' | 'seeder' | 'maintenance';
-    category: 'air' | 'ground';
+    category?: 'air' | 'ground';
     status: 'active' | 'idle' | 'charging' | 'maintenance';
     battery: number;
     location: string;
     currentTask?: string;
     capabilities: string[];
-    lastSyncTime: string;
+    lastSyncTime?: string;
+    lastActive?: string;
+    lastMaintenance?: string;
 }
 
 export interface ScheduledTask {

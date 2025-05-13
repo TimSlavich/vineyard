@@ -55,9 +55,7 @@ const CalibratePage: React.FC = () => {
     useEffect(() => {
         const loadCalibrations = async () => {
             try {
-                console.log('Загрузка информации о калибровках...');
                 const response = await calibrationApi.getAllCalibrations();
-                console.log('Получен ответ о калибровках:', response);
 
                 if (response.success && response.data) {
                     // Собираем ID датчиков с завершенной калибровкой
@@ -65,7 +63,6 @@ const CalibratePage: React.FC = () => {
                         .filter((cal: CalibrationStatus) => cal.status === 'completed')
                         .map((cal: CalibrationStatus) => cal.sensor_id);
 
-                    console.log('Найдены завершенные калибровки для датчиков:', completedSensorIds);
                     setCalibrated(completedSensorIds);
                 }
             } catch (err) {
