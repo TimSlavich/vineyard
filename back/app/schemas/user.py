@@ -4,9 +4,9 @@ from datetime import datetime
 from pydantic import BaseModel, EmailStr, Field
 
 
-# Base User schema
+# Базовая схема пользователя
 class UserBase(BaseModel):
-    """Base schema for user data."""
+    """Базовая схема для данных пользователя."""
 
     email: EmailStr
     username: str
@@ -18,17 +18,17 @@ class UserBase(BaseModel):
     is_admin: Optional[bool] = False
 
 
-# Schema for creating a user
+# Схема для создания пользователя
 class UserCreate(UserBase):
-    """Schema for creating a new user."""
+    """Схема для создания нового пользователя."""
 
     password: str = Field(..., min_length=8)
     password_confirm: str
 
 
-# Schema for updating a user
+# Схема для обновления пользователя
 class UserUpdate(BaseModel):
-    """Schema for updating user data."""
+    """Схема для обновления данных пользователя."""
 
     email: Optional[EmailStr] = None
     username: Optional[str] = None
@@ -39,17 +39,17 @@ class UserUpdate(BaseModel):
     is_active: Optional[bool] = None
 
 
-# Schema for user authentication
+# Схема для аутентификации пользователя
 class UserAuthenticate(BaseModel):
-    """Schema for user authentication."""
+    """Схема для аутентификации пользователя."""
 
     username: str
     password: str
 
 
-# Schema for user response
+# Схема для ответа пользователя
 class UserResponse(BaseModel):
-    """Schema for user responses."""
+    """Схема для ответов пользователя."""
 
     id: int
     email: EmailStr
@@ -65,30 +65,30 @@ class UserResponse(BaseModel):
     updated_at: datetime
 
     class Config:
-        """Configure Pydantic to parse objects (ORM models)."""
+        """Конфигурация Pydantic для парсинга объектов (ORM моделей)."""
 
         from_attributes = True
 
 
-# Schema for token response
+# Схема для ответа на токен
 class TokenResponse(BaseModel):
-    """Schema for JWT token response."""
+    """Схема для ответа на JWT токен."""
 
     access_token: str
     refresh_token: str
     token_type: str = "bearer"
 
 
-# Schema for token refresh
+# Схема для обновления токена
 class TokenRefresh(BaseModel):
-    """Schema for refreshing JWT token."""
+    """Схема для обновления JWT токена."""
 
     refresh_token: str
 
 
-# Schema for password change
+# Схема для изменения пароля
 class PasswordChange(BaseModel):
-    """Schema for changing password."""
+    """Схема для изменения пароля."""
 
     current_password: str
     new_password: str = Field(..., min_length=8)

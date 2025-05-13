@@ -2,11 +2,11 @@ from typing import Optional, Dict, Any, List
 from datetime import datetime, date
 from enum import Enum
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel
 
 
 class ReportTypeEnum(str, Enum):
-    """Enumeration of report types."""
+    """Перечисление типов отчетов."""
 
     SENSOR_DATA = "sensor_data"
     FERTILIZER_APPLICATIONS = "fertilizer_applications"
@@ -16,16 +16,16 @@ class ReportTypeEnum(str, Enum):
 
 
 class ReportFormatEnum(str, Enum):
-    """Enumeration of report formats."""
+    """Перечисление форматов отчетов."""
 
     JSON = "json"
     CSV = "csv"
     PDF = "pdf"
-    EXCEL = "excel"
+    EXCEL = "xlsx"
 
 
 class ReportStatusEnum(str, Enum):
-    """Enumeration of report statuses."""
+    """Перечисление статусов отчетов."""
 
     PENDING = "pending"
     PROCESSING = "processing"
@@ -35,7 +35,7 @@ class ReportStatusEnum(str, Enum):
 
 # Base report schema
 class ReportBase(BaseModel):
-    """Base schema for reports."""
+    """Базовая схема для отчетов."""
 
     name: str
     report_type: ReportTypeEnum
@@ -45,14 +45,14 @@ class ReportBase(BaseModel):
 
 # Schema for creating a report
 class ReportCreate(ReportBase):
-    """Schema for creating a report."""
+    """Схема для создания отчета."""
 
     pass
 
 
 # Schema for updating a report
 class ReportUpdate(BaseModel):
-    """Schema for updating a report."""
+    """Схема для обновления отчета."""
 
     name: Optional[str] = None
     format: Optional[ReportFormatEnum] = None
@@ -61,7 +61,7 @@ class ReportUpdate(BaseModel):
 
 # Schema for report response
 class ReportResponse(ReportBase):
-    """Schema for report response."""
+    """Схема ответа с отчетом."""
 
     id: int
     status: ReportStatusEnum
@@ -75,14 +75,14 @@ class ReportResponse(ReportBase):
     is_scheduled: bool
 
     class Config:
-        """Pydantic model configuration."""
+        """Конфигурация модели Pydantic."""
 
         from_attributes = True
 
 
 # Base report schedule schema
 class ReportScheduleBase(BaseModel):
-    """Base schema for report schedule."""
+    """Базовая схема для расписания отчетов."""
 
     name: str
     report_type: ReportTypeEnum
@@ -94,14 +94,14 @@ class ReportScheduleBase(BaseModel):
 
 # Schema for creating a report schedule
 class ReportScheduleCreate(ReportScheduleBase):
-    """Schema for creating a report schedule."""
+    """Схема для создания расписания отчетов."""
 
     pass
 
 
 # Schema for updating a report schedule
 class ReportScheduleUpdate(BaseModel):
-    """Schema for updating a report schedule."""
+    """Схема для обновления расписания отчетов."""
 
     name: Optional[str] = None
     format: Optional[ReportFormatEnum] = None
@@ -113,7 +113,7 @@ class ReportScheduleUpdate(BaseModel):
 
 # Schema for report schedule response
 class ReportScheduleResponse(ReportScheduleBase):
-    """Schema for report schedule response."""
+    """Схема ответа с расписанием отчетов."""
 
     id: int
     created_by_id: int
@@ -124,14 +124,14 @@ class ReportScheduleResponse(ReportScheduleBase):
     is_active: bool
 
     class Config:
-        """Pydantic model configuration."""
+        """Конфигурация модели Pydantic."""
 
         from_attributes = True
 
 
 # Base report template schema
 class ReportTemplateBase(BaseModel):
-    """Base schema for report templates."""
+    """Базовая схема для шаблонов отчетов."""
 
     name: str
     type: ReportTypeEnum
@@ -142,14 +142,14 @@ class ReportTemplateBase(BaseModel):
 
 # Schema for creating a report template
 class ReportTemplateCreate(ReportTemplateBase):
-    """Schema for creating a report template."""
+    """Схема для создания шаблона отчета."""
 
     pass
 
 
 # Schema for updating a report template
 class ReportTemplateUpdate(BaseModel):
-    """Schema for updating a report template."""
+    """Схема для обновления шаблона отчета."""
 
     name: Optional[str] = None
     type: Optional[ReportTypeEnum] = None
@@ -161,7 +161,7 @@ class ReportTemplateUpdate(BaseModel):
 
 # Schema for report template response
 class ReportTemplateResponse(ReportTemplateBase):
-    """Schema for report template response."""
+    """Схема ответа с шаблоном отчета."""
 
     id: int
     created_by_id: int
@@ -170,14 +170,14 @@ class ReportTemplateResponse(ReportTemplateBase):
     is_active: bool
 
     class Config:
-        """Pydantic model configuration."""
+        """Конфигурация модели Pydantic."""
 
         from_attributes = True
 
 
 # Schema for report generation
 class ReportGenerate(BaseModel):
-    """Schema for generating a report."""
+    """Схема для генерации отчета."""
 
     title: str
     type: ReportTypeEnum
@@ -190,7 +190,7 @@ class ReportGenerate(BaseModel):
 
 # Schema for report query parameters
 class ReportQueryParams(BaseModel):
-    """Schema for report query parameters."""
+    """Схема для параметров запроса отчетов."""
 
     type: Optional[ReportTypeEnum] = None
     status: Optional[ReportStatusEnum] = None
@@ -202,4 +202,6 @@ class ReportQueryParams(BaseModel):
     offset: Optional[int] = 0
 
     class Config:
-        """Pydantic model configuration."""
+        """Конфигурация модели Pydantic."""
+
+        extra = "ignore"

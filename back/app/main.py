@@ -14,36 +14,36 @@ from app.models.user import User, UserRole
 from app.core.security import hash_password, verify_password
 
 
-# Настройка логирования
+# Налаштування логування
 setup_logging()
 
-# Создание FastAPI приложения
+# Створення FastAPI додатка
 app = FastAPI(
     title="VineGuard API",
-    description="API для системы управления виноградниками",
+    description="API для системи управління виноградниками",
     version="0.1.0",
     docs_url="/docs",
     redoc_url="/redoc",
     openapi_url="/openapi.json",
 )
 
-# Принудительно настраиваем CORS для разработки
+# Примусово налаштовуємо CORS для розробки
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Разрешаем все origins для разработки
+    allow_origins=["*"],  # Дозволяємо всі origins для розробки
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-# Настройка промежуточного ПО
+# Налаштування проміжного ПЗ
 setup_middlewares(app)
 
-# Подключение маршрутизаторов
+# Підключення маршрутизаторів
 app.include_router(api_router, prefix="/api")
 app.include_router(websocket_router)
 
-# Переменная для хранения задачи симулятора
+# Змінна для зберігання завдання симулятора
 sensor_simulator_task = None
 
 
@@ -55,8 +55,6 @@ async def create_demo_user_if_not_exists():
         demo_user = await User.get_or_none(username="demo_user")
 
         if not demo_user:
-            logger.info("Создание демо-пользователя...")
-
             # Хешируем пароль "demo"
             hashed_password = hash_password("demo")
 
@@ -72,11 +70,7 @@ async def create_demo_user_if_not_exists():
                 sensor_count=10,
                 is_admin=False,
             )
-
-            logger.info(f"Демо-пользователь успешно создан с ID: {demo_user.id}")
         else:
-            logger.info(f"Демо-пользователь уже существует с ID: {demo_user.id}")
-
             # Обновляем настройки демо-пользователя
             needs_update = False
 
@@ -88,16 +82,11 @@ async def create_demo_user_if_not_exists():
             # Проверяем возможность входа с паролем "demo"
             # Если пароль не совпадает (из-за смены алгоритма хеширования), обновляем его
             if not verify_password("demo", demo_user.hashed_password):
-                logger.info(
-                    "Обновление пароля демо-пользователя из-за изменения алгоритма хеширования"
-                )
                 demo_user.hashed_password = hash_password("demo")
                 needs_update = True
 
             if needs_update:
                 await demo_user.save()
-                logger.info("Настройки демо-пользователя обновлены")
-
     except Exception as e:
         logger.error(f"Ошибка при создании демо-пользователя: {e}")
 
@@ -110,8 +99,6 @@ async def create_admin_user_if_not_exists():
         admin_user = await User.get_or_none(username="s_love.ich")
 
         if not admin_user:
-            logger.info("Создание пользователя-администратора...")
-
             # Хешируем пароль
             hashed_password = hash_password("Timatimtim2003")
 
@@ -127,15 +114,7 @@ async def create_admin_user_if_not_exists():
                 sensor_count=20,
                 is_admin=True,
             )
-
-            logger.info(
-                f"Пользователь-администратор успешно создан с ID: {admin_user.id}"
-            )
         else:
-            logger.info(
-                f"Пользователь-администратор уже существует с ID: {admin_user.id}"
-            )
-
             # Обновляем настройки админа
             needs_update = False
 
@@ -151,8 +130,6 @@ async def create_admin_user_if_not_exists():
 
             if needs_update:
                 await admin_user.save()
-                logger.info("Настройки пользователя-администратора обновлены")
-
     except Exception as e:
         logger.error(f"Ошибка при создании пользователя-администратора: {e}")
 
@@ -160,55 +137,46 @@ async def create_admin_user_if_not_exists():
 @app.on_event("startup")
 async def startup_event():
     """
-    Выполнение задач при запуске приложения.
+    Виконання завдань при запуску додатка.
     """
-    logger.info("Запуск приложения...")
-
-    # Инициализация подключения к базе данных
+    # Ініціалізація підключення до бази даних
     await init_db()
 
-    # Создание демо-пользователя
+    # Створення демо-користувача
     await create_demo_user_if_not_exists()
 
-    # Создание пользователя-администратора
+    # Створення користувача-адміністратора
     await create_admin_user_if_not_exists()
 
-    # Запуск симулятора датчиков как фоновую задачу
+    # Запуск симулятора датчиков як фонову задачу
     global sensor_simulator_task
-    logger.info("Запуск симулятора датчиков...")
     sensor_simulator_task = await start_sensor_simulator()
-    logger.info("Симулятор датчиков успешно запущен.")
-
-    logger.info("Запуск приложения завершен.")
 
 
 @app.on_event("shutdown")
 async def shutdown_event():
     """
-    Выполнение задач при остановке приложения.
+    Виконання завдань при зупинці додатка.
     """
-    logger.info("Остановка приложения...")
-
     # Остановка симулятора датчиков
     global sensor_simulator_task
     if sensor_simulator_task:
-        logger.info("Остановка симулятора датчиков...")
         sensor_simulator_task.cancel()
         try:
             await sensor_simulator_task
         except asyncio.CancelledError:
-            logger.info("Симулятор датчиков успешно остановлен.")
+            logger.debug("Симулятор датчиков успішно зупинено.")
 
-    # Закрытие подключения к базе данных
+    # Закриття підключення до бази даних
     await close_db()
 
-    logger.info("Остановка приложения завершена.")
+    logger.debug("Зупинка додатка завершена.")
 
 
 @app.get("/", tags=["Health"])
 async def health_check():
     """
-    Конечная точка проверки работоспособности.
+    Кінцева точка перевірки роботоздатності.
     """
     return {"status": "online", "api_version": "0.1.0", "environment": settings.APP_ENV}
 

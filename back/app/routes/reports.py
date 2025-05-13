@@ -1,40 +1,31 @@
 from typing import List, Optional, Dict, Any
 from datetime import datetime, timedelta
 from enum import Enum
-import os
 import json
-import base64
 import io
 import csv
-from tempfile import NamedTemporaryFile
-
+import xlsxwriter
+from reportlab.lib.pagesizes import A4
+from reportlab.lib import colors
+from reportlab.platypus import (
+    SimpleDocTemplate,
+    Table,
+    TableStyle,
+    Paragraph,
+    Spacer,
+)
+from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+from reportlab.pdfbase import pdfmetrics
+from reportlab.pdfbase.ttfonts import TTFont
+from reportlab.lib.enums import TA_CENTER
+from loguru import logger
 from fastapi import APIRouter, Depends, Query, HTTPException, status, Body, Response
-from fastapi.responses import JSONResponse, FileResponse, StreamingResponse
+from fastapi.responses import JSONResponse
 
 from app.deps.auth import get_current_user
 from app.models.user import User
-from app.models.sensor_data import SensorData
-from app.models.fertilizer_application import FertilizerApplication
 
-# Добавляем библиотеки для генерации PDF и Excel
-try:
-    import xlsxwriter
-    from reportlab.lib.pagesizes import A4
-    from reportlab.lib import colors
-    from reportlab.platypus import (
-        SimpleDocTemplate,
-        Table,
-        TableStyle,
-        Paragraph,
-        Spacer,
-    )
-    from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
-    from reportlab.pdfbase import pdfmetrics
-    from reportlab.pdfbase.ttfonts import TTFont
-    from reportlab.lib.enums import TA_CENTER
-except ImportError:
-    # Если библиотеки не установлены, будем использовать заглушки
-    pass
+
 
 
 # Типы отчетов
@@ -49,7 +40,7 @@ class ReportType(str, Enum):
 # Форматы отчетов
 class ReportFormat(str, Enum):
     PDF = "pdf"
-    EXCEL = "excel"
+    EXCEL = "xlsx"
     CSV = "csv"
     JSON = "json"
 
@@ -179,7 +170,7 @@ async def get_saved_reports(
                 "date": "10.10.2023, 09:15:07",
                 "size": "2.12 MB",
                 "type": "weekly",
-                "format": "excel",
+                "format": "xlsx",
                 "url": "/reports/download/report-2.xlsx",
             },
             {

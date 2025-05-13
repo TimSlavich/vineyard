@@ -20,7 +20,7 @@ export interface ScheduledApplication {
     id: number;
     date: string;
     type: string;
-    status: 'scheduled' | 'completed' | 'cancelled';
+    status: 'заплановано' | 'виконано' | 'скасовано';
     amount?: string;
 }
 

@@ -20,7 +20,7 @@ async def run_diagnostics(current_user: User = Depends(get_current_user)):
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Помилка при виконанні діагностики: {str(e)}",
+            detail=f"Ошибка при выполнении диагностики: {str(e)}",
         )
 
 
@@ -42,5 +42,5 @@ async def get_recommendations(
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Помилка при отриманні рекомендацій: {str(e)}",
+            detail=f"Ошибка при получении рекомендаций: {str(e)}",
         )

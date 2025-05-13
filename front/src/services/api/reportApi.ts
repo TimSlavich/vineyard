@@ -1,7 +1,7 @@
 import { BaseApi, ApiResponse } from './baseApi';
 
 export type ReportType = 'daily' | 'weekly' | 'monthly' | 'custom';
-export type ReportFormat = 'pdf' | 'excel' | 'csv' | 'json';
+export type ReportFormat = 'pdf' | 'xlsx' | 'csv' | 'json';
 export type ReportCategory = 'all' | 'temperature' | 'soil_moisture' | 'humidity' | 'fertilizer';
 
 export interface ReportParams {
@@ -193,7 +193,7 @@ export class ReportApi extends BaseApi {
                     data = this.convertToCSV(content);
                     break;
 
-                case 'excel':
+                case 'xlsx':
                     // Для Excel возвращаем данные, которые можно будет скачать как CSV и открыть в Excel
                     data = this.convertToCSV(content);
                     break;
@@ -466,7 +466,7 @@ export class ReportApi extends BaseApi {
                 case 'pdf':
                     sizeBase *= 1.2;
                     break;
-                case 'excel':
+                case 'xlsx':
                     sizeBase *= 0.9;
                     break;
                 case 'csv':
@@ -721,7 +721,7 @@ export class ReportApi extends BaseApi {
         switch (format) {
             case 'pdf':
                 return 'application/pdf';
-            case 'excel':
+            case 'xlsx':
                 return 'application/vnd.ms-excel';
             case 'csv':
                 return 'text/csv';
@@ -777,7 +777,7 @@ export class ReportApi extends BaseApi {
                         date: '10.10.2023, 09:15:07',
                         size: '2.12 MB',
                         type: 'weekly',
-                        format: 'excel',
+                        format: 'xlsx',
                         url: '/mock-reports/report-2.xlsx'
                     },
                     {

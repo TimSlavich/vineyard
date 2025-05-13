@@ -35,8 +35,6 @@ async def init_db() -> None:
     """
     Инициализация подключения к базе данных.
     """
-    logger.info(f"Инициализация базы данных: {settings.DB_PATH}")
-
     await Tortoise.init(
         db_url=DB_URL,
         modules={"models": MODELS_LIST},
@@ -48,14 +46,11 @@ async def init_db() -> None:
     )
 
     if not db_exists and settings.DEBUG:
-        logger.info("Генерация схемы базы данных...")
         await Tortoise.generate_schemas()
-        logger.info("Схема успешно сгенерирована")
 
 
 async def close_db() -> None:
     """
     Закрытие подключения к базе данных.
     """
-    logger.info("Закрытие подключения к базе данных")
     await Tortoise.close_connections()

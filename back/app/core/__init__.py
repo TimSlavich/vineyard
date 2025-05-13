@@ -1,3 +1,3 @@
 """
-Core module with application setup and configuration.
+Основной модуль с настройкой и конфигурацией приложения.
 """

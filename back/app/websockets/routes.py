@@ -1,4 +1,4 @@
-from typing import Optional, List, Dict, Any
+from typing import Optional, List
 from datetime import datetime
 
 from fastapi import (
@@ -6,19 +6,16 @@ from fastapi import (
     WebSocket,
     WebSocketDisconnect,
     Query,
-    Depends,
     HTTPException,
     status,
 )
 from loguru import logger
-from pydantic import ValidationError
 from tortoise.exceptions import DoesNotExist
 
 from app.deps.auth import validate_token
 from app.models.user import User
 from app.schemas.common import WebSocketMessage
 from app.websockets.connection_manager import manager
-from app.services.sensor_simulator import SENSOR_RANGES, generate_and_save_sensor_data
 
 # Создание WebSocket-маршрутизатора
 router = APIRouter()
@@ -58,10 +55,6 @@ async def websocket_endpoint(
                 )
                 await websocket.close(code=status.WS_1008_POLICY_VIOLATION)
                 return
-
-            logger.info(
-                f"Аутентифицировано WebSocket-соединение для пользователя {auth_user_id}"
-            )
 
             # Проверка соответствия user_id из токена и параметра
             if user_id is not None and user_id != auth_user_id:
@@ -108,16 +101,9 @@ async def websocket_endpoint(
         user_group = f"user:{user_id}"
         if user_group not in groups:
             groups.append(user_group)
-            logger.info(
-                f"Добавлена группа пользователя {user_group} к WebSocket-соединению. "
-                f"Это гарантирует, что пользователь будет получать только свои данные."
-            )
 
     # Принятие соединения
     await manager.connect(websocket, user_id, groups)
-    logger.info(
-        f"WebSocket-соединение принято. Пользователь: {user_id}, Группы: {groups}"
-    )
 
     try:
         # Отправка приветственного сообщения
@@ -133,9 +119,6 @@ async def websocket_endpoint(
 
         # Если передан специальный запрос, обрабатываем его сразу
         if special_request == "get_thresholds":
-            logger.info(
-                f"Обработка специального запроса get_thresholds для пользователя {user_id}"
-            )
             # Создаем и отправляем запрос на получение пороговых значений
             from app.models.sensor_data import (
                 SensorAlertThreshold,
@@ -150,9 +133,6 @@ async def websocket_endpoint(
 
             # Если пороговых значений нет в базе, создаем на основе диапазонов датчиков
             if not thresholds:
-                logger.info(
-                    f"Создание пороговых значений по умолчанию для пользователя {user_id}"
-                )
                 thresholds = []
 
                 for sensor_type, range_data in SENSOR_RANGES.items():
@@ -256,10 +236,6 @@ async def websocket_endpoint(
             elif msg_type == "request_data":
                 # Обработка запроса на обновление данных
                 if msg_data.get("target") == "sensor_data":
-                    logger.info(
-                        f"Запрошено ручное обновление данных датчиков пользователем {user_id}"
-                    )
-
                     from app.services.sensor_simulator import (
                         generate_and_save_sensor_data,
                     )
@@ -270,9 +246,6 @@ async def websocket_endpoint(
                             check_thresholds = not is_manual_request
                             data = await generate_and_save_sensor_data(
                                 user_id, check_thresholds=check_thresholds
-                            )
-                            logger.info(
-                                f"Сгенерировано {len(data)} показаний датчиков для пользователя {user_id}"
                             )
                             confirm_message = WebSocketMessage(
                                 type="request_completed",
@@ -302,17 +275,13 @@ async def websocket_endpoint(
                             )
                 # Обработка запроса тестового оповещения
                 elif msg_data.get("target") == "test_alert":
-                    logger.info(
-                        f"Запрошено тестовое оповещение пользователем {user_id}"
-                    )
-
                     try:
                         # Отправляем простой ответ о работоспособности системы оповещений
                         confirm_message = WebSocketMessage(
                             type="request_completed",
                             data={
                                 "status": "success",
-                                "message": "Тестовое оповещение: система оповещений работает нормально",
+                                "message": "Тестове сповіщення: система сповіщень працює нормально",
                                 "user_id": user_id,
                                 "timestamp": datetime.utcnow().isoformat(),
                             },
@@ -325,7 +294,7 @@ async def websocket_endpoint(
                             type="system",
                             data={
                                 "status": "error",
-                                "message": f"Ошибка при создании тестового оповещения: {str(e)}",
+                                "message": f"Помилка при створенні тестового сповіщення: {str(e)}",
                                 "timestamp": datetime.utcnow().isoformat(),
                             },
                         )
@@ -333,8 +302,6 @@ async def websocket_endpoint(
 
                 # Обработка запроса на получение пороговых значений
                 elif msg_data.get("target") == "get_thresholds":
-                    logger.info(f"Запрошены пороговые значения пользователем {user_id}")
-
                     try:
                         from app.models.sensor_data import (
                             SensorAlertThreshold,
@@ -349,9 +316,6 @@ async def websocket_endpoint(
 
                         # Если пороговых значений нет в базе, создаем на основе диапазонов датчиков
                         if not thresholds:
-                            logger.info(
-                                f"Создание пороговых значений по умолчанию для пользователя {user_id}"
-                            )
                             thresholds = []
 
                             for sensor_type, range_data in SENSOR_RANGES.items():
@@ -408,7 +372,7 @@ async def websocket_endpoint(
                             type="request_completed",
                             data={
                                 "status": "success",
-                                "message": f"Получено {len(thresholds_data)} пороговых значений",
+                                "message": f"Отримано {len(thresholds_data)} порогових значень",
                                 "count": len(thresholds_data),
                                 "user_id": user_id,
                                 "timestamp": datetime.utcnow().isoformat(),
@@ -422,7 +386,7 @@ async def websocket_endpoint(
                             type="system",
                             data={
                                 "status": "error",
-                                "message": f"Ошибка при получении пороговых значений: {str(e)}",
+                                "message": f"Помилка при отриманні порогових значень: {str(e)}",
                                 "timestamp": datetime.utcnow().isoformat(),
                             },
                         )
@@ -430,10 +394,6 @@ async def websocket_endpoint(
 
                 # Обработка запроса на сохранение пороговых значений
                 elif msg_data.get("target") == "save_thresholds":
-                    logger.info(
-                        f"Запрошено сохранение пороговых значений пользователем {user_id}"
-                    )
-
                     try:
                         from app.models.sensor_data import (
                             SensorAlertThreshold,
@@ -504,7 +464,7 @@ async def websocket_endpoint(
                             type="request_completed",
                             data={
                                 "status": "success",
-                                "message": f"Сохранено {saved_count} пороговых значений",
+                                "message": f"Збережено {saved_count} порогових значень",
                                 "count": saved_count,
                                 "user_id": user_id,
                                 "timestamp": datetime.utcnow().isoformat(),
@@ -547,7 +507,7 @@ async def websocket_endpoint(
                             type="system",
                             data={
                                 "status": "error",
-                                "message": f"Ошибка при сохранении пороговых значений: {str(e)}",
+                                "message": f"Помилка при збереженні порогових значень: {str(e)}",
                                 "timestamp": datetime.utcnow().isoformat(),
                             },
                         )
@@ -555,10 +515,6 @@ async def websocket_endpoint(
 
                 # Обработка запроса на сброс пороговых значений
                 elif msg_data.get("target") == "reset_thresholds":
-                    logger.info(
-                        f"Запрошен сброс пороговых значений пользователем {user_id}"
-                    )
-
                     try:
                         from app.models.sensor_data import SensorAlertThreshold
 
@@ -567,16 +523,12 @@ async def websocket_endpoint(
                             created_by_id=user_id
                         ).delete()
 
-                        logger.info(
-                            f"Удалено {deleted_count} пороговых значений пользователя {user_id}"
-                        )
-
                         # Отправляем подтверждение
                         confirm_message = WebSocketMessage(
                             type="request_completed",
                             data={
                                 "status": "success",
-                                "message": f"Удалено {deleted_count} пороговых значений. При следующем запросе будут созданы новые значения по умолчанию.",
+                                "message": f"Удалено {deleted_count} порогових значень. При наступному запиті будуть створені нові значення за замовчуванням.",
                                 "count": deleted_count,
                                 "user_id": user_id,
                                 "timestamp": datetime.utcnow().isoformat(),
@@ -644,7 +596,7 @@ async def websocket_endpoint(
                             type="system",
                             data={
                                 "status": "error",
-                                "message": f"Ошибка при сбросе пороговых значений: {str(e)}",
+                                "message": f"Помилка при збереженні порогових значень: {str(e)}",
                                 "timestamp": datetime.utcnow().isoformat(),
                             },
                         )
@@ -652,8 +604,6 @@ async def websocket_endpoint(
 
                 # Обработка запроса на получение оповещений
                 elif msg_data.get("target") == "get_alerts":
-                    logger.info(f"Запрошены оповещения пользователем {user_id}")
-
                     try:
                         from app.models.sensor_data import SensorAlert
                         from app.services.sensor import get_alerts_for_user
@@ -703,7 +653,7 @@ async def websocket_endpoint(
                             type="request_completed",
                             data={
                                 "status": "success",
-                                "message": f"Получено {len(alerts_data)} оповещений",
+                                "message": f"Отримано {len(alerts_data)} сповіщень",
                                 "count": len(alerts_data),
                                 "user_id": user_id,
                                 "timestamp": datetime.utcnow().isoformat(),
@@ -717,7 +667,7 @@ async def websocket_endpoint(
                             type="system",
                             data={
                                 "status": "error",
-                                "message": f"Ошибка при получении оповещений: {str(e)}",
+                                "message": f"Помилка при отриманні сповіщень: {str(e)}",
                                 "timestamp": datetime.utcnow().isoformat(),
                             },
                         )
@@ -725,10 +675,6 @@ async def websocket_endpoint(
 
                 # Обработка запроса на разрешение (закрытие) оповещения
                 elif msg_data.get("target") == "resolve_alert":
-                    logger.info(
-                        f"Запрошено закрытие оповещения пользователем {user_id}"
-                    )
-
                     try:
                         from app.models.sensor_data import SensorAlert
                         from app.services.sensor import resolve_alert
@@ -774,7 +720,7 @@ async def websocket_endpoint(
                                 type="request_completed",
                                 data={
                                     "status": "success",
-                                    "message": f"Оповещение с ID {alert_id} закрыто",
+                                    "message": f"Сповіщення з ID {alert_id} закрито",
                                     "alert_id": alert_id,
                                     "user_id": user_id,
                                     "timestamp": datetime.utcnow().isoformat(),
@@ -789,7 +735,7 @@ async def websocket_endpoint(
                                 type="system",
                                 data={
                                     "status": "error",
-                                    "message": f"Оповещение с ID {alert_id} не найдено",
+                                    "message": f"Сповіщення з ID {alert_id} не знайдено",
                                     "timestamp": datetime.utcnow().isoformat(),
                                 },
                             )
@@ -803,7 +749,7 @@ async def websocket_endpoint(
                             type="system",
                             data={
                                 "status": "error",
-                                "message": f"Ошибка при закрытии оповещения: {str(e)}",
+                                "message": f"Помилка при закритті сповіщення: {str(e)}",
                                 "timestamp": datetime.utcnow().isoformat(),
                             },
                         )
@@ -830,9 +776,6 @@ async def websocket_endpoint(
 
     except WebSocketDisconnect:
         # Отключение клиента
-        logger.info(
-            f"WebSocket-клиент отключен. Пользователь: {user_id}, Группы: {groups}"
-        )
         manager.disconnect(websocket)
 
     except Exception as e:

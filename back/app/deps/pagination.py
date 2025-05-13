@@ -1,4 +1,4 @@
-from typing import Any, Dict, Generic, List, Optional, Tuple, Type, TypeVar
+from typing import Any, Dict, List, Optional, Tuple, Type, TypeVar
 
 from fastapi import Depends, Query
 from pydantic import BaseModel
@@ -17,13 +17,13 @@ P = TypeVar("P", bound=BaseModel)
 
 class PaginationParams:
     """
-    Pagination parameters for API endpoints.
+    Параметры пагинации для конечных точек API.
     """
 
     def __init__(
         self,
-        page: int = Query(1, ge=1, description="Page number"),
-        size: int = Query(20, ge=1, le=100, description="Items per page"),
+        page: int = Query(1, ge=1, description="Номер страницы"),
+        size: int = Query(20, ge=1, le=100, description="Количество элементов на странице"),
     ):
         self.page = page
         self.size = size
@@ -75,18 +75,18 @@ def create_paginated_response(
     pages: int,
 ) -> PaginatedResponse[P]:
     """
-    Create a paginated response from ORM models.
+    Создание постраничного ответа из моделей ORM.
 
     Args:
-        model_cls: Pydantic model class for response items
-        items: List of ORM models
-        total: Total count
-        page: Current page
-        size: Page size
-        pages: Total pages
+        model_cls: Класс модели Pydantic для элементов ответа
+        items: Список ORM-моделей
+        total: Общее количество
+        page: Текущая страница
+        размер: Размер страницы
+        страницы: Всего страниц
 
     Returns:
-        PaginatedResponse containing serialized items and pagination metadata
+        PaginatedResponse, содержащий сериализованные элементы и метаданные пагинации
     """
     return PaginatedResponse[model_cls](
         items=[model_cls.from_orm(item) for item in items],

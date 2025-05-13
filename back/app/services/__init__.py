@@ -1,3 +1,3 @@
 """
-Business logic services.
+Бизнес-логика сервисов.
 """

@@ -125,9 +125,6 @@ async def get_or_create_user_sensors(
 
         # Пересоздание датчиков при несоответствии количества
         if len(user_sensors) != total_sensors:
-            logger.info(
-                f"Пересоздание датчиков для пользователя {user_id} (требуется: {total_sensors}, текущее: {len(user_sensors)})"
-            )
             last_sensor_values[user_id] = {}
             return await get_or_create_user_sensors(user_id, count_per_type)
 
@@ -177,8 +174,6 @@ async def get_or_create_user_sensors(
                 }
 
             sensors_created += 1
-
-    logger.info(f"Создано {len(user_sensors)} датчиков для пользователя {user_id}")
     return user_sensors
 
 
@@ -198,10 +193,6 @@ async def generate_sensor_value(
         Новое значение датчика
     """
     global last_sensor_values
-
-    # Если нет текущего времени, используем текущее UTC время
-    if current_time is None:
-        current_time = datetime.utcnow()
 
     # Получаем текущий час (0-23)
     current_hour = current_time.hour
@@ -352,10 +343,6 @@ async def generate_and_save_sensor_data(
 
             logger.error(f"Трассировка: {traceback.format_exc()}")
 
-    # Логирование
-    logger.info(
-        f"Сгенерировано и сохранено {len(created_data)} показаний датчиков для пользователя {user_id}"
-    )
     return created_data
 
 
@@ -410,9 +397,6 @@ async def start_sensor_simulator():
             await get_or_create_user_sensors(user.id)
             # При инициализации тоже включаем проверку порогов
             await generate_and_save_sensor_data(user.id, check_thresholds=True)
-            logger.info(
-                f"Сгенерированы начальные данные датчиков для пользователя {user.id}"
-            )
     except Exception as e:
         logger.error(f"Ошибка генерации начальных данных датчиков: {e}")
 

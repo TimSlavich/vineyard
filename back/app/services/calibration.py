@@ -58,7 +58,6 @@ async def start_sensor_calibration(
     sensor_id: str, user_id: int, sensor_type: SensorType = None
 ) -> Dict[str, Any]:
     """Запуск процесса калибровки датчика"""
-    logger.info(f"Запуск калибровки для датчика {sensor_id} пользователя {user_id}")
 
     # Проверяем, не запущена ли уже калибровка для этого датчика
     if sensor_id in active_calibrations:
@@ -126,8 +125,6 @@ async def perform_calibration(
         calibration.message = "Калібрування успішно завершено"
         calibration.end_time = datetime.now()
         calibration.adjustment_value = adjustment
-
-        logger.info(f"Калибровка датчика {sensor_id} успешно завершена")
 
     except Exception as e:
         logger.error(f"Ошибка при калибровке датчика {sensor_id}: {str(e)}")

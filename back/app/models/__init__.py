@@ -1,3 +1,3 @@
 """
-Database models using Tortoise ORM.
+Модели баз данных с использованием Tortoise ORM.
 """

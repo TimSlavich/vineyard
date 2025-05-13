@@ -6,24 +6,24 @@ import pytz
 
 def get_utc_now() -> datetime:
     """
-    Get current UTC datetime.
+    Получить текущую дату и время в UTC.
 
     Returns:
-        datetime: Current UTC datetime
+        datetime: Текущая дата и время в UTC
     """
     return datetime.now(pytz.UTC)
 
 
 def format_datetime(dt: datetime, format_str: str = "%Y-%m-%d %H:%M:%S") -> str:
     """
-    Format datetime object to string.
+    Преобразовать объект datetime в строку.
 
     Args:
-        dt: Datetime to format
-        format_str: Format string
+        dt: Дата и время для форматирования
+        format_str: Строка формата
 
     Returns:
-        str: Formatted datetime string
+        str: Отформатированная строка даты и времени
     """
     if dt.tzinfo is None:
         dt = pytz.UTC.localize(dt)
@@ -33,17 +33,17 @@ def format_datetime(dt: datetime, format_str: str = "%Y-%m-%d %H:%M:%S") -> str:
 
 def parse_datetime(dt_str: str, format_str: str = "%Y-%m-%d %H:%M:%S") -> datetime:
     """
-    Parse datetime string to datetime object.
+    Преобразовать строку даты и времени в объект datetime.
 
     Args:
-        dt_str: Datetime string
-        format_str: Format string
+        dt_str: Строка даты и времени
+        format_str: Строка формата
 
     Returns:
-        datetime: Parsed datetime
+        datetime: Преобразованная дата и время
 
     Raises:
-        ValueError: If string cannot be parsed
+        ValueError: Если строка не может быть преобразована
     """
     dt = datetime.strptime(dt_str, format_str)
     return pytz.UTC.localize(dt)
@@ -55,17 +55,17 @@ def get_date_range(
     days: Optional[int] = None,
 ) -> Tuple[date, date]:
     """
-    Get a date range.
+    Получить диапазон дат.
 
-    If start_date and end_date are provided, returns them.
-    If only start_date is provided, returns (start_date, start_date + days)
-    If only end_date is provided, returns (end_date - days, end_date)
-    If none are provided, returns (today - days, today)
+    Если start_date и end_date предоставлены, возвращают их.
+    Если предоставлена только start_date, возвращают (start_date, start_date + days)
+    Если предоставлена только end_date, возвращают (end_date - days, end_date)
+    Если ничего не предоставлено, возвращают (today - days, today)
 
     Args:
-        start_date: Optional start date
-        end_date: Optional end date
-        days: Number of days in range (default: 7)
+        start_date: Необязательная начальная дата
+        end_date: Необязательная конечная дата
+        days: Количество дней в диапазоне (по умолчанию: 7)
 
     Returns:
         Tuple[date, date]: (start_date, end_date)
@@ -99,13 +99,13 @@ def get_date_range(
 
 def get_start_of_day(dt: Optional[datetime] = None) -> datetime:
     """
-    Get the start of day (00:00:00) for the given datetime.
+    Получить начало дня (00:00:00) для заданной даты и времени.
 
     Args:
-        dt: Optional datetime (default: now)
+        dt: Необязательная дата и время (по умолчанию: текущая дата и время)
 
     Returns:
-        datetime: Start of day
+        datetime: Начало дня
     """
     if dt is None:
         dt = datetime.now()
@@ -115,13 +115,13 @@ def get_start_of_day(dt: Optional[datetime] = None) -> datetime:
 
 def get_end_of_day(dt: Optional[datetime] = None) -> datetime:
     """
-    Get the end of day (23:59:59) for the given datetime.
+    Получить конец дня (23:59:59) для заданной даты и времени.
 
     Args:
-        dt: Optional datetime (default: now)
+        dt: Необязательная дата и время (по умолчанию: текущая дата и время)
 
     Returns:
-        datetime: End of day
+        datetime: Конец дня
     """
     if dt is None:
         dt = datetime.now()
@@ -131,14 +131,14 @@ def get_end_of_day(dt: Optional[datetime] = None) -> datetime:
 
 def get_date_range_list(start_date: date, end_date: date) -> List[date]:
     """
-    Get a list of dates between start_date and end_date (inclusive).
+    Получить список дат между start_date и end_date (включительно).
 
     Args:
-        start_date: Start date
-        end_date: End date
+        start_date: Начальная дата
+        end_date: Конечная дата
 
     Returns:
-        List[date]: List of dates
+        List[date]: Список дат
     """
     delta = end_date - start_date
     return [start_date + timedelta(days=i) for i in range(delta.days + 1)]

@@ -5,10 +5,10 @@ from email_validator import validate_email, EmailNotValidError
 
 def validate_email_address(email: str) -> Tuple[bool, Optional[str]]:
     """
-    Validate email address.
+    Проверка адреса электронной почты.
 
     Args:
-        email: Email address to validate
+        email: Адрес электронной почты для проверки
 
     Returns:
         Tuple[bool, Optional[str]]: (is_valid, error_message)
@@ -23,48 +23,48 @@ def validate_email_address(email: str) -> Tuple[bool, Optional[str]]:
 
 def validate_password_strength(password: str) -> Tuple[bool, Optional[str]]:
     """
-    Validate password strength.
+    Проверка надежности пароля.
 
-    Requirements:
-    - At least 8 characters
-    - Contains at least one uppercase letter
-    - Contains at least one lowercase letter
-    - Contains at least one digit
-    - Contains at least one special character
+    Требования:
+    - Хотя бы 8 символов
+    - Содержит хотя бы одну заглавную букву
+    - Содержит хотя бы одну строчную букву
+    - Содержит хотя бы одну цифру
+    - Содержит хотя бы один специальный символ
 
     Args:
-        password: Password to validate
+        password: Пароль для проверки
 
     Returns:
         Tuple[bool, Optional[str]]: (is_valid, error_message)
     """
     if len(password) < 8:
-        return False, "Password must be at least 8 characters long"
+        return False, "Пароль должен быть не менее 8 символов"
 
     if not re.search(r"[A-Z]", password):
-        return False, "Password must contain at least one uppercase letter"
+        return False, "Пароль должен содержать хотя бы одну заглавную букву"
 
     if not re.search(r"[a-z]", password):
-        return False, "Password must contain at least one lowercase letter"
+        return False, "Пароль должен содержать хотя бы одну строчную букву"
 
     if not re.search(r"[0-9]", password):
-        return False, "Password must contain at least one digit"
+        return False, "Пароль должен содержать хотя бы одну цифру"
 
     if not re.search(r'[!@#$%^&*(),.?":{}|<>]', password):
-        return False, "Password must contain at least one special character"
+        return False, "Пароль должен содержать хотя бы один специальный символ"
 
     return True, None
 
 
 def validate_ip_address(ip: str) -> bool:
     """
-    Validate IP address.
+    Проверка IP-адреса.
 
     Args:
-        ip: IP address to validate
+        ip: IP-адрес для проверки
 
     Returns:
-        bool: True if valid IP address, False otherwise
+        bool: True, если IP-адрес действителен, False в противном случае
     """
     # Regex pattern for IPv4
     ipv4_pattern = r"^(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})$"
@@ -83,13 +83,13 @@ def validate_ip_address(ip: str) -> bool:
 
 def validate_mac_address(mac: str) -> bool:
     """
-    Validate MAC address.
+    Проверьте MAC-адрес.
 
     Args:
-        mac: MAC address to validate
+        mac: MAC-адрес для проверки
 
     Returns:
-        bool: True if valid MAC address, False otherwise
+        bool: True, если MAC-адрес действителен, False в противном случае
     """
     # Regex pattern for MAC address (e.g., 00:1A:2B:3C:4D:5E or 00-1A-2B-3C-4D-5E)
     mac_pattern = r"^([0-9A-Fa-f]{2}[:-]){5}([0-9A-Fa-f]{2})$"
@@ -99,35 +99,35 @@ def validate_mac_address(mac: str) -> bool:
 
 def validate_coordinates(latitude: float, longitude: float) -> bool:
     """
-    Validate geographic coordinates.
+    Проверка географических координат.
 
     Args:
-        latitude: Latitude (-90 to 90)
-        longitude: Longitude (-180 to 180)
+        latitude: Широта (-90 до 90)
+        longitude: Долгота (-180 до 180)
 
     Returns:
-        bool: True if valid coordinates, False otherwise
+        bool: True, если координаты действительны, False в противном случае
     """
     return -90 <= latitude <= 90 and -180 <= longitude <= 180
 
 
 def clean_input(text: str) -> str:
     """
-    Clean and sanitize input text.
+    Очистка и очистка входного текста.
 
     Args:
-        text: Text to clean
+        text: Текст для очистки
 
     Returns:
-        str: Cleaned text
+        str: Очищенный текст
     """
-    # Remove any HTML tags
+    # Удалить любые HTML-теги
     text = re.sub(r"<[^>]*>", "", text)
 
-    # Remove multiple whitespaces
+    # Удалить несколько пробелов
     text = re.sub(r"\s+", " ", text)
 
-    # Trim whitespace
+    # Обрезать пробелы
     text = text.strip()
 
     return text

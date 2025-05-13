@@ -7,7 +7,6 @@ from app.deps.auth import get_current_user, get_admin_user
 from app.models.user import User
 from app.schemas.common import SuccessResponse
 
-# Create settings router
 router = APIRouter()
 
 
@@ -44,12 +43,11 @@ async def update_system_settings(
     settings: Dict[str, Any] = Body(...), current_user: User = Depends(get_admin_user)
 ):
     """Обновление системных настроек. Доступно только администраторам."""
-    logger.info(f"Системные настройки обновлены пользователем {current_user.username}")
     logger.debug(f"Новые настройки: {settings}")
 
     return {
         "status": "success",
-        "message": "Системные настройки успешно обновлены",
+        "message": "Системні налаштування успішно оновлено",
         "data": settings,
     }
 
@@ -78,12 +76,11 @@ async def update_user_preferences(
     current_user: User = Depends(get_current_user),
 ):
     """Обновление пользовательских настроек для текущего пользователя."""
-    logger.info(f"Настройки пользователя обновлены для {current_user.username}")
     logger.debug(f"Новые настройки: {preferences}")
 
     return {
         "status": "success",
-        "message": "Пользовательские настройки успешно обновлены",
+        "message": "Користувацькі налаштування успішно оновлено",
         "data": preferences,
     }
 
@@ -140,13 +137,10 @@ async def update_notification_settings(
     settings: Dict[str, Any] = Body(...), current_user: User = Depends(get_current_user)
 ):
     """Обновление настроек уведомлений для текущего пользователя."""
-    logger.info(
-        f"Настройки уведомлений обновлены для пользователя {current_user.username}"
-    )
     logger.debug(f"Новые настройки уведомлений: {settings}")
 
     return {
         "status": "success",
-        "message": "Настройки уведомлений успешно обновлены",
+        "message": "Налаштування повідомлень успішно оновлено",
         "data": settings,
     }

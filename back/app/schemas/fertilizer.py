@@ -1,12 +1,12 @@
-from typing import Optional, Dict, Any, List
+from typing import Optional, Dict, Any
 from datetime import datetime, date
 from enum import Enum
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel
 
 
 class FertilizerTypeEnum(str, Enum):
-    """Enumeration of fertilizer types."""
+    """Перечисление типов удобрений."""
 
     NITROGEN = "nitrogen"
     PHOSPHORUS = "phosphorus"
@@ -19,7 +19,7 @@ class FertilizerTypeEnum(str, Enum):
 
 
 class ApplicationMethodEnum(str, Enum):
-    """Enumeration of application methods."""
+    """Перечисление методов применения."""
 
     BROADCAST = "broadcast"
     DRIP = "drip"
@@ -31,7 +31,7 @@ class ApplicationMethodEnum(str, Enum):
 
 
 class ApplicationStatusEnum(str, Enum):
-    """Enumeration of application status."""
+    """Перечисление статусов применения."""
 
     PLANNED = "planned"
     IN_PROGRESS = "in_progress"
@@ -42,7 +42,7 @@ class ApplicationStatusEnum(str, Enum):
 
 # Base fertilizer application schema
 class FertilizerApplicationBase(BaseModel):
-    """Base schema for fertilizer application."""
+    """Базовая схема для применения удобрений."""
 
     fertilizer_type: FertilizerTypeEnum
     name: str
@@ -59,16 +59,16 @@ class FertilizerApplicationBase(BaseModel):
     weather_conditions: Optional[Dict[str, Any]] = None
 
 
-# Schema for creating fertilizer application
+# Схема для создания применения удобрений
 class FertilizerApplicationCreate(FertilizerApplicationBase):
-    """Schema for creating fertilizer application."""
+    """Схема для создания применения удобрений."""
 
     pass
 
 
-# Schema for updating fertilizer application
+# Схема для обновления применения удобрений
 class FertilizerApplicationUpdate(BaseModel):
-    """Schema for updating fertilizer application."""
+    """Схема для обновления применения удобрений."""
 
     fertilizer_type: Optional[FertilizerTypeEnum] = None
     name: Optional[str] = None
@@ -86,9 +86,9 @@ class FertilizerApplicationUpdate(BaseModel):
     weather_conditions: Optional[Dict[str, Any]] = None
 
 
-# Schema for fertilizer application response
+# Схема для ответа на применение удобрений
 class FertilizerApplicationResponse(FertilizerApplicationBase):
-    """Schema for fertilizer application response."""
+    """Схема для ответа на применение удобрений."""
 
     id: int
     created_by_id: int
@@ -97,14 +97,14 @@ class FertilizerApplicationResponse(FertilizerApplicationBase):
     completed_at: Optional[datetime] = None
 
     class Config:
-        """Pydantic model configuration."""
+        """Конфигурация Pydantic модели."""
 
         from_attributes = True
 
 
 # Base fertilizer schedule schema
 class FertilizerScheduleBase(BaseModel):
-    """Base schema for fertilizer schedule."""
+    """Базовая схема для расписания удобрений."""
 
     name: str
     fertilizer_type: FertilizerTypeEnum
@@ -120,14 +120,14 @@ class FertilizerScheduleBase(BaseModel):
 
 # Schema for creating fertilizer schedule
 class FertilizerScheduleCreate(FertilizerScheduleBase):
-    """Schema for creating fertilizer schedule."""
+    """Схема для создания расписания удобрений."""
 
     pass
 
 
 # Schema for updating fertilizer schedule
 class FertilizerScheduleUpdate(BaseModel):
-    """Schema for updating fertilizer schedule."""
+    """Схема для обновления расписания удобрений."""
 
     name: Optional[str] = None
     fertilizer_type: Optional[FertilizerTypeEnum] = None
@@ -144,7 +144,7 @@ class FertilizerScheduleUpdate(BaseModel):
 
 # Schema for fertilizer schedule response
 class FertilizerScheduleResponse(FertilizerScheduleBase):
-    """Schema for fertilizer schedule response."""
+    """Схема для ответа на расписание удобрений."""
 
     id: int
     created_by_id: int
@@ -153,14 +153,14 @@ class FertilizerScheduleResponse(FertilizerScheduleBase):
     is_active: bool
 
     class Config:
-        """Pydantic model configuration."""
+        """Конфигурация Pydantic модели."""
 
         from_attributes = True
 
 
-# Schema for fertilizer application query parameters
+# Схема для параметров запроса применения удобрений
 class FertilizerQueryParams(BaseModel):
-    """Schema for fertilizer application query parameters."""
+    """Схема для параметров запроса применения удобрений."""
 
     fertilizer_type: Optional[FertilizerTypeEnum] = None
     location_id: Optional[str] = None
@@ -171,6 +171,6 @@ class FertilizerQueryParams(BaseModel):
     offset: Optional[int] = 0
 
     class Config:
-        """Pydantic model configuration."""
+        """Конфигурация Pydantic модели."""
 
         extra = "ignore"

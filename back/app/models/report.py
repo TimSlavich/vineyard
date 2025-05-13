@@ -20,7 +20,7 @@ class ReportFormat(str, Enum):
     JSON = "json"
     CSV = "csv"
     PDF = "pdf"
-    EXCEL = "excel"
+    EXCEL = "xlsx"
 
 
 class ReportStatus(str, Enum):

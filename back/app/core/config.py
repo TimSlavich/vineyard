@@ -28,7 +28,7 @@ class Settings(BaseSettings):
     CORS_ORIGINS: List[Union[str, AnyHttpUrl]] = []
 
     # Логирование
-    LOG_LEVEL: str = "INFO"
+    LOG_LEVEL: str = "DEBUG"
 
     @field_validator("CORS_ORIGINS", mode="before")
     def assemble_cors_origins(cls, v: Union[str, List[str]]) -> Union[List[str], str]:
@@ -39,7 +39,6 @@ class Settings(BaseSettings):
             return [i.strip() for i in v.split(",")]
         elif isinstance(v, (list, str)):
             return v
-        raise ValueError(v)
 
     class Config:
         case_sensitive = True

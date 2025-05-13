@@ -56,7 +56,6 @@ async def create_device(
         mode=DeviceMode.OFF,
     )
 
-    logger.info(f"Устройство создано: {device.name} ({device.device_id})")
     return device
 
 
@@ -122,7 +121,6 @@ async def update_device(
     update_data = device_data.dict(exclude_unset=True)
     if update_data:
         await device.update_from_dict(update_data).save()
-        logger.info(f"Устройство обновлено: {device.name} ({device.device_id})")
 
     return device
 
@@ -141,7 +139,6 @@ async def delete_device(
         )
 
     await device.delete()
-    logger.info(f"Устройство удалено: {device.name} ({device.device_id})")
 
     return {"status": "success", "message": f"Устройство {device_id} успешно удалено"}
 
@@ -177,7 +174,6 @@ async def create_device_settings(
     # Обновление режима устройства
     await device.update_from_dict({"mode": data.mode}).save()
 
-    logger.info(f"Созданы настройки устройства для: {device.name} ({device.device_id})")
     return settings
 
 
@@ -244,10 +240,6 @@ async def execute_device_action(
     # Обновление журнала действий с результатом
     await action_log.update_from_dict({"result": result, "status": "completed"}).save()
 
-    logger.info(
-        f"Действие {data.action} выполнено на устройстве: {device.name} ({device.device_id})"
-    )
-
     return {
         "device_id": device_id,
         "action": data.action,
@@ -310,8 +302,5 @@ async def update_device_status(
 
     # Обновление статуса
     await device.update_from_dict({"status": status}).save()
-    logger.info(
-        f"Статус устройства обновлен: {device.name} ({device.device_id}) -> {status}"
-    )
 
     return device

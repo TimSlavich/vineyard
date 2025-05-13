@@ -47,19 +47,11 @@ class ConnectionManager:
             if user_id not in self.user_connections:
                 self.user_connections[user_id] = []
             self.user_connections[user_id].append(websocket)
-            logger.info(
-                f"Добавлено WebSocket-соединение для пользователя {user_id}. "
-                f"Всего соединений пользователя: {len(self.user_connections[user_id])}"
-            )
 
         # Добавление в группы если указаны
         if groups:
             for group in groups:
                 await self.add_to_group(websocket, group)
-
-        logger.info(
-            f"WebSocket-клиент подключен. Активных соединений: {len(self.active_connections)}, ID пользователя: {user_id}"
-        )
 
     def disconnect(self, websocket: WebSocket) -> None:
         """
@@ -86,9 +78,6 @@ class ConnectionManager:
                 if not connections:
                     del self.group_connections[group]
 
-        logger.info(
-            f"WebSocket-клиент отключен. Активных соединений: {len(self.active_connections)}"
-        )
 
     async def add_to_group(self, websocket: WebSocket, group: str) -> None:
         """

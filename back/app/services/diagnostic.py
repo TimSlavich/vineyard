@@ -1,11 +1,10 @@
 import asyncio
 from typing import Dict, List, Any
-from datetime import datetime, timedelta
+from datetime import datetime
 
 from loguru import logger
 
 from app.models.sensor_data import SensorData, SensorType
-from app.models.device_settings import Device
 
 
 class DiagnosticResult:
@@ -28,8 +27,6 @@ class DiagnosticResult:
 
 async def run_system_diagnostics(user_id: int) -> List[Dict[str, Any]]:
     """Запуск полной диагностики системы"""
-    logger.info(f"Запущена диагностика системы для пользователя {user_id}")
-
     results = []
 
     # Проверка базы данных

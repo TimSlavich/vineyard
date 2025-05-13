@@ -118,9 +118,6 @@ async def create_user(user_data: UserCreate) -> User:
             is_admin=is_admin,
         )
 
-        logger.info(
-            f"Создан новый пользователь: {user.username} ({user.email}), роль: {role}, датчиков: {sensor_count}"
-        )
         return user
 
     except IntegrityError as e:
@@ -342,9 +339,6 @@ async def revoke_refresh_token(token: str) -> bool:
 
         if not token_obj.is_revoked:
             await token_obj.update_from_dict({"is_revoked": True}).save()
-            logger.info(
-                f"Отозван токен обновления для пользователя: {token_obj.user_id}"
-            )
             return True
 
         return False

@@ -25,38 +25,38 @@ import { setRedirectCallback } from './services/api/baseApi';
 import { loginAsDemoAndRedirect } from './utils/demoHelper';
 import { initializeWebSocketConnection } from './services/websocketService';
 
-// Защищенный маршрут, который проверяет аутентификацию
+// Захищений маршрут, який перевіряє аутентифікацію
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
 
-  // Проверяем, авторизован ли пользователь
+  // Перевіряємо, чи авторизований користувач
   if (!isAuthenticated()) {
-    // Если пользователь не авторизован, автоматически логиним его в демо-режиме
+    // Якщо користувач не авторизований, автоматично логінимо його в демо-режимі
     if (!loading) {
-      // Устанавливаем флаг загрузки, чтобы избежать повторных вызовов
+      // Встановлюємо прапор завантаження, щоб уникнути повторних викликів
       setLoading(true);
 
-      // Запускаем автоматический вход в демо-режим и перенаправление на dashboard
+      // Запускаємо автоматичний вхід в демо-режим та перенаправлення на панель керування
       loginAsDemoAndRedirect(navigate, setLoading);
     }
 
-    // Пока идет процесс авторизации, можно показать загрузчик
+    // Поки йде процес авторизації, можна показати індикатор завантаження
     return <div className="flex items-center justify-center h-screen">
       <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
     </div>;
   }
 
-  // Если пользователь уже авторизован, показываем защищенный контент
+  // Якщо користувач вже авторизований, показуємо захищений контент
   return <>{children}</>;
 };
 
-// Компонент для перенаправления аутентифицированных пользователей с логина на дашборд
+// Компонент для перенаправлення аутентифікованих користувачів з логіну на панель керування
 const RedirectIfAuthenticated = ({ children }: { children: React.ReactNode }) => {
   return isAuthenticated() ? <Navigate to="/dashboard" /> : <>{children}</>;
 };
 
-// Внутренний компонент AppContent для использования хуков роутера
+// Внутрішній компонент AppContent для використання хуків роутера
 const AppContent = () => {
   const navigate = useNavigate();
 
@@ -155,13 +155,13 @@ function App() {
     try {
       // Проверка доступности localStorage
       if (!isLocalStorageAvailable()) {
-        console.error('localStorage is not available. Authentication will not work properly.');
+        console.error('localStorage недоступен. Аутентификация не будет работать корректно.');
       }
 
       // Установка версии приложения в localStorage
       setItem('version', '1.0.0');
     } catch (error) {
-      console.error('Error initializing application:', error);
+      console.error('Ошибка инициализации приложения:', error);
     }
   }, []);
 

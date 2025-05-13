@@ -121,9 +121,6 @@ async def get_sensor_data_by_id(
     return data
 
 
-# Threshold management endpoints
-
-
 @router.post(
     "/thresholds",
     response_model=SensorThresholdResponse,

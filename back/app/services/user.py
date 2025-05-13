@@ -13,7 +13,7 @@ from app.core.security import hash_password, verify_password
 # Constants
 SECRET_KEY = "your-256-bit-secret"
 ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_MINUTES = 30
+ACCESS_TOKEN_EXPIRE_MINUTES = 60
 
 # Password hashing
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
@@ -54,19 +54,19 @@ class User(UserBase):
 
 async def create_user(user_data: UserCreate) -> User:
     """
-    Create a new user.
+    Создание нового пользователя.
 
     Args:
-        user_data: User creation data
+        user_data: Данные для создания пользователя
 
     Returns:
-        Created user object
+        Созданный объект пользователя
 
     Raises:
-        HTTPException: If user creation fails
+        HTTPException: Если создание пользователя не удалось
     """
     try:
-        # Check if username or email already exists
+        # Проверка, существует ли уже такой пользователь
         existing_username = await User.exists(username=user_data.username)
         if existing_username:
             raise HTTPException(
@@ -81,24 +81,23 @@ async def create_user(user_data: UserCreate) -> User:
                 detail="Email already exists",
             )
 
-        # Check if password and confirm_password match
+        # Проверьте, совпадают ли пароль и confirm_password.
         if user_data.password != user_data.password_confirm:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail="Passwords do not match",
             )
 
-        # Create the user
+        # Создайте пользователя
         user_dict = user_data.dict(exclude={"password_confirm"})
-        user_dict["password"] = hash_password(user_data.password)  # Hash the password
+        user_dict["password"] = hash_password(user_data.password)  # Хеширование пароля
 
         user = await User.create(**user_dict)
-        logger.info(f"User created: {user.username}")
 
         return user
 
     except HTTPException as e:
-        # Re-raise HTTP exceptions
+        # Снова поднимите HTTP исключения
         raise e
     except Exception as e:
         logger.error(f"Error creating user: {e}")
@@ -184,7 +183,6 @@ async def update_user_profile(user: User, user_data: UserUpdate) -> User:
 
         # Применяем обновления
         await user.update_from_dict(update_data).save()
-        logger.info(f"Профиль пользователя обновлен: {user.username}")
 
         return user
 
@@ -227,7 +225,6 @@ async def change_user_password(
         hashed_password = hash_password(new_password)
         await user.update_from_dict({"hashed_password": hashed_password}).save()
 
-        logger.info(f"Пароль изменен для пользователя: {user.username}")
         return True
 
     except HTTPException:

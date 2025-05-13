@@ -2,13 +2,13 @@ from typing import Optional, Dict, Any, List
 from datetime import datetime
 from enum import Enum
 
-from pydantic import BaseModel, Field, validator, field_validator
+from pydantic import BaseModel
 
 from app.models.sensor_data import SensorType, AlertType
 
 
 class SensorTypeEnum(str, Enum):
-    """Enumeration of sensor types."""
+    """Перечисление типов датчиков."""
 
     TEMPERATURE = "temperature"
     HUMIDITY = "humidity"
@@ -24,7 +24,7 @@ class SensorTypeEnum(str, Enum):
 
 # Base sensor data schema
 class SensorDataBase(BaseModel):
-    """Base schema for sensor data."""
+    """Базовая схема для данных датчика."""
 
     sensor_id: str
     type: SensorTypeEnum
@@ -52,7 +52,7 @@ class SensorDataCreate(BaseModel):
 
 # Schema for updating sensor data
 class SensorDataUpdate(BaseModel):
-    """Schema for updating sensor data."""
+    """Схема для обновления данных датчика."""
 
     value: Optional[float] = None
     unit: Optional[str] = None
@@ -79,14 +79,14 @@ class SensorDataResponse(BaseModel):
 
 # Schema for batch sensor data creation
 class SensorDataBatchCreate(BaseModel):
-    """Schema for batch creating sensor data."""
+    """Схема для пакетного создания данных датчиков."""
 
     data: List[SensorDataCreate]
 
 
 # Base threshold schema
 class SensorThresholdBase(BaseModel):
-    """Base schema for sensor threshold."""
+    """Базовая схема для пороговых значений датчика."""
 
     sensor_type: SensorTypeEnum
     min_value: float
@@ -96,14 +96,14 @@ class SensorThresholdBase(BaseModel):
 
 # Schema for creating a threshold
 class SensorThresholdCreate(SensorThresholdBase):
-    """Schema for creating sensor threshold."""
+    """Схема для создания пороговых значений датчика."""
 
     pass
 
 
 # Schema for updating a threshold
 class SensorThresholdUpdate(BaseModel):
-    """Schema for updating sensor threshold."""
+    """Схема для обновления пороговых значений датчика."""
 
     min_value: Optional[float] = None
     max_value: Optional[float] = None
@@ -113,7 +113,7 @@ class SensorThresholdUpdate(BaseModel):
 
 # Schema for threshold response
 class SensorThresholdResponse(SensorThresholdBase):
-    """Schema for sensor threshold response."""
+    """Схема ответа с пороговыми значениями датчика."""
 
     id: int
     created_at: datetime
@@ -122,14 +122,14 @@ class SensorThresholdResponse(SensorThresholdBase):
     created_by_id: Optional[int] = None
 
     class Config:
-        """Pydantic model configuration."""
+        """Конфигурация модели Pydantic."""
 
         from_attributes = True
 
 
 # Schema for sensor data query parameters
 class SensorDataQueryParams(BaseModel):
-    """Schema for sensor data query parameters."""
+    """Схема для параметров запроса данных датчика."""
 
     sensor_id: Optional[str] = None
     type: Optional[SensorTypeEnum] = None
@@ -141,7 +141,7 @@ class SensorDataQueryParams(BaseModel):
     offset: Optional[int] = 0
 
     class Config:
-        """Pydantic model configuration."""
+        """Конфигурация модели Pydantic."""
 
         extra = "ignore"
 

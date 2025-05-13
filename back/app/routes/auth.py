@@ -81,10 +81,10 @@ async def logout(
 
     if revoked:
         logger.debug(f"Пользователь {current_user.username} вышел из системы")
-        return {"status": "success", "message": "Выход из системы выполнен успешно"}
+        return {"status": "success", "message": "Вихід із системи виконано успішно"}
     else:
         logger.debug(f"Некорректная попытка выхода для {current_user.username}")
-        return {"status": "warning", "message": "Токен уже истек или недействителен"}
+        return {"status": "warning", "message": "Токен уже закінчився або недійсний"}
 
 
 @router.get("/me", response_model=UserResponse)
@@ -147,7 +147,7 @@ async def change_password(
         await current_user.update_from_dict({"hashed_password": hashed_password}).save()
 
         logger.debug(f"Пароль изменен для пользователя {current_user.username}")
-        return {"status": "success", "message": "Пароль успешно изменен"}
+        return {"status": "success", "message": "Пароль успішно змінено"}
     except HTTPException:
         raise
     except Exception as e:
@@ -169,8 +169,7 @@ async def delete_account(current_user: User = Depends(get_current_user)):
         # Удаляем пользователя
         await current_user.delete()
 
-        logger.info(f"Учетная запись пользователя {username} (ID: {user_id}) удалена")
-        return {"status": "success", "message": "Учетная запись успешно удалена"}
+        return {"status": "success", "message": "Обліковий запис успішно видалено"}
     except Exception as e:
         logger.error(f"Ошибка при удалении учетной записи пользователя: {e}")
         raise HTTPException(

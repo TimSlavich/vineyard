@@ -5,7 +5,7 @@ from fastapi import APIRouter, Depends, Query, Path, HTTPException, status
 from loguru import logger
 
 from app.deps.auth import get_current_user, get_manager_user
-from app.deps.pagination import PaginationParams, paginate, create_paginated_response
+from app.deps.pagination import PaginationParams, paginate
 from app.models.user import User
 from app.models.fertilizer_application import (
     FertilizerApplication,
@@ -42,8 +42,6 @@ async def create_application(
     application = await FertilizerApplication.create(
         **data.dict(), created_by=current_user
     )
-
-    logger.info(f"Создано внесение удобрений: {application.name} ({application.id})")
 
     # Broadcast via WebSocket
     await broadcast_fertilizer_event(
@@ -141,7 +139,6 @@ async def update_application(
             was_completed = True
 
         await application.update_from_dict(update_data).save()
-        logger.info(f"Запись обновлена: {application.name} ({application.id})")
 
         # Broadcast update via WebSocket
         event_type = (
@@ -176,7 +173,6 @@ async def delete_application(
 
     # Delete application
     await application.delete()
-    logger.info(f"Запись удалена: {app_info['name']} ({app_info['id']})")
 
     # Broadcast delete via WebSocket
     message = WebSocketMessage(
@@ -215,8 +211,6 @@ async def create_schedule(
     """Создание нового графика внесения удобрений"""
     # Create schedule
     schedule = await FertilizerSchedule.create(**data.dict(), created_by=current_user)
-
-    logger.info(f"График внесения создан: {schedule.name} ({schedule.id})")
 
     return schedule
 
@@ -274,7 +268,6 @@ async def update_schedule(
     update_data = schedule_data.dict(exclude_unset=True)
     if update_data:
         await schedule.update_from_dict(update_data).save()
-        logger.info(f"График обновлен: {schedule.name} ({schedule.id})")
 
     return schedule
 
@@ -294,7 +287,6 @@ async def delete_schedule(
 
     # Delete schedule
     await schedule.delete()
-    logger.info(f"График удален: {schedule.name} ({schedule.id})")
 
     return {
         "status": "success",

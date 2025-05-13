@@ -5,14 +5,14 @@ from pydantic import BaseModel, Field
 
 
 class StatusMessage(BaseModel):
-    """Schema for status message responses."""
+    """Схема для ответов на сообщения о состоянии."""
 
     status: str
     message: str
 
 
 class ErrorResponse(BaseModel):
-    """Schema for API error responses."""
+    """Схема для API ошибок."""
 
     status: str = "error"
     message: str
@@ -22,7 +22,7 @@ class ErrorResponse(BaseModel):
 
 
 class SuccessResponse(BaseModel):
-    """Schema for API success responses."""
+    """Схема для API успешных ответов."""
 
     status: str = "success"
     message: str
@@ -30,20 +30,20 @@ class SuccessResponse(BaseModel):
     timestamp: datetime = Field(default_factory=datetime.utcnow)
 
 
-# Generic type for pagination
+# Универсальный тип для пагинации
 T = TypeVar("T")
 
 
 class PaginatedResponse(BaseModel, Generic[T]):
     """
-    Generic schema for paginated responses.
+    Универсальная схема для ответов на пагинацию.
 
     Attributes:
-        items: List of paginated items
-        total: Total count of items
-        page: Current page number
-        size: Page size
-        pages: Total number of pages
+        items: Список элементов на странице
+        total: Общее количество элементов
+        page: Номер текущей страницы
+        size: Размер страницы
+        pages: Общее количество страниц
     """
 
     items: List[T]
@@ -53,13 +53,13 @@ class PaginatedResponse(BaseModel, Generic[T]):
     pages: int
 
     class Config:
-        """Pydantic model configuration."""
+        """Конфигурация Pydantic модели."""
 
         from_attributes = True
 
 
 class WebSocketMessage(BaseModel):
-    """Schema for WebSocket messages."""
+    """Схема для WebSocket сообщений."""
 
     type: str
     data: Dict[str, Any]

@@ -270,7 +270,7 @@ const ReportsPage: React.FC = () => {
                                     disabled={isGenerating}
                                 >
                                     <option value="pdf">PDF</option>
-                                    <option value="excel">Excel</option>
+                                    <option value="xlsx">Excel</option>
                                     <option value="csv">CSV</option>
                                     <option value="json">JSON</option>
                                 </select>

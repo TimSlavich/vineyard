@@ -1,9 +1,5 @@
-from typing import List, Dict, Any, Optional, Union
-from datetime import datetime, timedelta
-import json
-import uuid
-import math
-import logging
+from typing import List, Dict, Optional
+from datetime import datetime
 from tortoise.exceptions import DoesNotExist
 
 from fastapi import HTTPException, status
@@ -182,10 +178,6 @@ async def create_sensor_threshold(
         unit=data.unit,
         created_by_id=user_id,
     )
-
-    logger.info(
-        f"Создано новое пороговое значение для {data.sensor_type}: от {data.min_value} до {data.max_value} {data.unit}"
-    )
     return threshold
 
 
@@ -260,9 +252,6 @@ async def update_sensor_threshold(
             threshold.is_active = is_active
 
         await threshold.save()
-        logger.info(
-            f"Обновлено пороговое значение ID {threshold_id}: от {threshold.min_value} до {threshold.max_value} {threshold.unit}"
-        )
         return threshold
 
     except DoesNotExist:
@@ -318,10 +307,6 @@ async def check_sensor_thresholds(sensor_data: SensorData) -> None:
 
         # Если создано новое оповещение, отправим его через WebSocket
         if alert:
-            logger.info(
-                f"Создано оповещение: {alert.alert_type} для датчика {sensor_data.sensor_id}, значение: {sensor_data.value} {sensor_data.unit}"
-            )
-
             # Отправка оповещения через WebSocket
             await broadcast_sensor_alert(alert)
 
@@ -424,13 +409,6 @@ async def broadcast_sensor_alert(alert: SensorAlert) -> None:
         "is_active": alert.is_active,
         "user_id": alert.user_id,
     }
-
-    logger.info(
-        f"Отправка оповещения - alert_id: {alert.id}, "
-        f"sensor_id: {alert.sensor_id}, "
-        f"type: {alert.alert_type.value}, "
-        f"user_id: {alert.user_id}"
-    )
 
     # Создание WebSocket сообщения
     message = WebSocketMessage(

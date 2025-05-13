@@ -1,12 +1,12 @@
-from typing import Optional, Dict, Any, List
+from typing import Optional, Dict, Any
 from datetime import datetime
 from enum import Enum
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel
 
 
 class DeviceTypeEnum(str, Enum):
-    """Enumeration of device types."""
+    """Перечисление типов устройств."""
 
     IRRIGATION = "irrigation"
     FERTILIZER = "fertilizer"
@@ -20,7 +20,7 @@ class DeviceTypeEnum(str, Enum):
 
 
 class DeviceModeEnum(str, Enum):
-    """Enumeration of device modes."""
+    """Перечисление режимов устройств."""
 
     AUTO = "auto"
     MANUAL = "manual"
@@ -30,7 +30,7 @@ class DeviceModeEnum(str, Enum):
 
 
 class DeviceStatusEnum(str, Enum):
-    """Enumeration of device statuses."""
+    """Перечисление статусов устройств."""
 
     ONLINE = "online"
     OFFLINE = "offline"
@@ -41,7 +41,7 @@ class DeviceStatusEnum(str, Enum):
 
 # Base device schema
 class DeviceBase(BaseModel):
-    """Base schema for devices."""
+    """Базовая схема для устройств."""
 
     name: str
     device_id: str
@@ -55,14 +55,14 @@ class DeviceBase(BaseModel):
 
 # Schema for creating a device
 class DeviceCreate(DeviceBase):
-    """Schema for creating a device."""
+    """Схема для создания устройства."""
 
     pass
 
 
 # Schema for updating a device
 class DeviceUpdate(BaseModel):
-    """Schema for updating a device."""
+    """Схема для обновления устройства."""
 
     name: Optional[str] = None
     type: Optional[DeviceTypeEnum] = None
@@ -77,7 +77,7 @@ class DeviceUpdate(BaseModel):
 
 # Schema for device response
 class DeviceResponse(DeviceBase):
-    """Schema for device response."""
+    """Схема ответа с устройством."""
 
     id: int
     status: DeviceStatusEnum
@@ -87,14 +87,14 @@ class DeviceResponse(DeviceBase):
     updated_at: datetime
 
     class Config:
-        """Pydantic model configuration."""
+        """Конфигурация модели Pydantic."""
 
         from_attributes = True
 
 
 # Base device settings schema
 class DeviceSettingsBase(BaseModel):
-    """Base schema for device settings."""
+    """Базовая схема для настроек устройства."""
 
     device_id: int
     mode: DeviceModeEnum
@@ -105,14 +105,14 @@ class DeviceSettingsBase(BaseModel):
 
 # Schema for creating device settings
 class DeviceSettingsCreate(DeviceSettingsBase):
-    """Schema for creating device settings."""
+    """Схема для создания настроек устройства."""
 
     pass
 
 
 # Schema for updating device settings
 class DeviceSettingsUpdate(BaseModel):
-    """Schema for updating device settings."""
+    """Схема для обновления настроек устройства."""
 
     mode: Optional[DeviceModeEnum] = None
     parameters: Optional[Dict[str, Any]] = None
@@ -123,7 +123,7 @@ class DeviceSettingsUpdate(BaseModel):
 
 # Schema for device settings response
 class DeviceSettingsResponse(DeviceSettingsBase):
-    """Schema for device settings response."""
+    """Схема ответа с настройками устройства."""
 
     id: int
     created_by_id: int
@@ -132,14 +132,14 @@ class DeviceSettingsResponse(DeviceSettingsBase):
     is_active: bool
 
     class Config:
-        """Pydantic model configuration."""
+        """Конфигурация модели Pydantic."""
 
         from_attributes = True
 
 
 # Schema for device action
 class DeviceAction(BaseModel):
-    """Schema for device action."""
+    """Схема для действия устройства."""
 
     action: str
     parameters: Optional[Dict[str, Any]] = None
@@ -147,7 +147,7 @@ class DeviceAction(BaseModel):
 
 # Schema for device action response
 class DeviceActionResponse(BaseModel):
-    """Schema for device action response."""
+    """Схема ответа с действием устройства."""
 
     device_id: int
     action: str
@@ -156,14 +156,14 @@ class DeviceActionResponse(BaseModel):
     timestamp: datetime
 
     class Config:
-        """Pydantic model configuration."""
+        """Конфигурация модели Pydantic."""
 
         from_attributes = True
 
 
 # Schema for device query parameters
 class DeviceQueryParams(BaseModel):
-    """Schema for device query parameters."""
+    """Схема для параметров запроса устройств."""
 
     type: Optional[DeviceTypeEnum] = None
     location_id: Optional[str] = None
@@ -173,6 +173,6 @@ class DeviceQueryParams(BaseModel):
     offset: Optional[int] = 0
 
     class Config:
-        """Pydantic model configuration."""
+        """Конфигурация модели Pydantic."""
 
         extra = "ignore"

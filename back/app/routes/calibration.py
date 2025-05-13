@@ -31,14 +31,13 @@ async def start_calibration(
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Помилка при запуску калібрування: {str(e)}",
+            detail=f"Ошибка при запуске калибровки: {str(e)}",
         )
 
 
 @router.get("/{sensor_id}/status", response_model=Dict[str, Any])
 async def get_status(
     sensor_id: str = Path(..., description="ID датчика"),
-    current_user: User = Depends(get_current_user),
 ):
     """Получение текущего статуса калибровки датчика"""
     try:
@@ -47,7 +46,7 @@ async def get_status(
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Помилка при отриманні статусу калібрування: {str(e)}",
+            detail=f"Ошибка при получении статуса калибровки: {str(e)}",
         )
 
 
@@ -60,7 +59,7 @@ async def list_all_calibrations(current_user: User = Depends(get_current_user)):
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Помилка при отриманні списку калібрувань: {str(e)}",
+            detail=f"Ошибка при получении списка калибровок: {str(e)}",
         )
 
 
@@ -76,5 +75,5 @@ async def reset_sensor_calibration(
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Помилка при скиданні калібрування: {str(e)}",
+            detail=f"Ошибка при сбросе калибровки: {str(e)}",
         )
