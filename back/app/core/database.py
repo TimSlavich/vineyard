@@ -16,6 +16,7 @@ MODELS_LIST = [
     "app.models.fertilizer_application",
     "app.models.device_settings",
     "app.models.report",
+    "app.models.irrigation",
     "aerich.models",
 ]
 

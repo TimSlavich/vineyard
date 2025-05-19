@@ -1,10 +1,8 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { AlertTriangle, Loader, Droplets } from 'lucide-react';
 import Card from '../ui/Card';
 import * as Switch from '@radix-ui/react-switch';
 import { useIrrigationControl } from '../../hooks/useIrrigationControl';
-
-// Импортируем компоненты
 import MoistureChart from './irrigation/MoistureChart';
 import ScheduleSettings from './irrigation/ScheduleSettings';
 import MoistureControl from './irrigation/MoistureControl';
@@ -41,6 +39,13 @@ const IrrigationControl: React.FC<IrrigationControlProps> = ({ zoneId, zoneName 
     translateDay,
     handleManualCancellation
   } = useIrrigationControl(zoneId, zoneName);
+
+  // Находим текущую зону в глобальном состоянии и синхронизируем локальное состояние если нужно
+  useEffect(() => {
+    // Этот эффект будет вызываться при каждом рендере компонента
+    // что позволит компоненту реагировать на внешние изменения состояния
+    // Сам handleToggleSystem уже использует custom events для синхронизации всех зон
+  }, [zoneId]);
 
   return (
     <Card

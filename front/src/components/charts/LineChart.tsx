@@ -7,7 +7,8 @@ import {
   YAxis,
   CartesianGrid,
   Tooltip,
-  ComposedChart
+  ComposedChart,
+  ReferenceLine
 } from 'recharts';
 
 interface LineChartProps {
@@ -19,6 +20,8 @@ interface LineChartProps {
   showCard?: boolean;
   height?: number;
   noDataMessage?: string;
+  threshold?: number;
+  thresholdLabel?: string;
 }
 
 const LineChart: React.FC<LineChartProps> = ({
@@ -29,7 +32,9 @@ const LineChart: React.FC<LineChartProps> = ({
   timeFormat = 'hour',
   showCard = true,
   height = 200,
-  noDataMessage = 'Немає даних для відображення'
+  noDataMessage = 'Немає даних для відображення',
+  threshold,
+  thresholdLabel = 'Поріг активації'
 }) => {
   if (data.length === 0) {
     return <div className="text-center py-10 text-gray-500">{noDataMessage}</div>;
@@ -63,7 +68,8 @@ const LineChart: React.FC<LineChartProps> = ({
   // Получаем минимальное и максимальное значения для настройки осей
   const values = chartData.map(d => d.value);
   const min = Math.floor(Math.min(...values) * 0.9);
-  const max = Math.ceil(Math.max(...values) * 1.1);
+  // Учитываем threshold при расчете максимума, если он задан
+  const max = Math.ceil(Math.max(Math.max(...values) * 1.1, threshold ? threshold * 1.1 : 0));
 
   // Кастомный тултип для отображения информации при наведении
   const CustomTooltip = ({ active, payload, label }: any) => {
@@ -111,6 +117,14 @@ const LineChart: React.FC<LineChartProps> = ({
             width={40}
           />
           <Tooltip content={<CustomTooltip />} />
+          {threshold && (
+            <ReferenceLine
+              y={threshold}
+              stroke="#F59E0B"
+              strokeDasharray="3 3"
+              label={{ value: thresholdLabel, position: 'insideBottomRight', fill: '#F59E0B', fontSize: 10 }}
+            />
+          )}
           <Line
             type="monotone"
             dataKey="value"

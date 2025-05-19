@@ -11,11 +11,22 @@ import ApplicationHistory from './fertilizer/ApplicationHistory';
 import ControlPanel from './fertilizer/ControlPanel';
 import SchedulerModal from './fertilizer/SchedulerModal';
 
-const FertilizerControl: React.FC = () => {
+interface FertilizerControlProps {
+  isActive?: boolean;
+  autoMode?: boolean;
+  onToggle?: (active: boolean) => void;
+  onToggleAutoMode?: (auto: boolean) => void;
+}
+
+const FertilizerControl: React.FC<FertilizerControlProps> = ({
+  isActive = false,
+  autoMode: externalAutoMode,
+  onToggle = () => { },
+  onToggleAutoMode = () => { }
+}) => {
   const {
     // Состояния
-    isActive,
-    autoMode,
+    autoMode: internalAutoMode,
     nutrients,
     fieldSize,
     applicationRate,
@@ -48,9 +59,8 @@ const FertilizerControl: React.FC = () => {
     calculatedAmount,
 
     // Методы
-    setModalMsgOpen,
-    handleToggleSystem,
-    handleToggleAutoMode,
+    handleToggleSystem: internalHandleToggleSystem,
+    handleToggleAutoMode: internalHandleToggleAutoMode,
     handleApplyNow,
     handleOpenScheduler,
     handleConfirmSchedule,
@@ -67,8 +77,23 @@ const FertilizerControl: React.FC = () => {
     setModalFieldSize,
     setModalApplicationRate,
     setSchedulerModalOpen,
+    setModalMsgOpen,
     showModalMsg
   } = useFertilizerControl();
+
+  // Используем внешнее состояние, если оно передано
+  const effectiveAutoMode = externalAutoMode !== undefined ? externalAutoMode : internalAutoMode;
+
+  // Обработчики, учитывающие как внутреннее, так и внешнее состояние
+  const handleToggleSystem = (value: boolean) => {
+    internalHandleToggleSystem(value);
+    onToggle(value);
+  };
+
+  const handleToggleAutoMode = (value: boolean) => {
+    internalHandleToggleAutoMode(value);
+    onToggleAutoMode(value);
+  };
 
   return (
     <Card
@@ -106,7 +131,7 @@ const FertilizerControl: React.FC = () => {
             <div>
               <ControlPanel
                 isActive={isActive}
-                autoMode={autoMode}
+                autoMode={effectiveAutoMode}
                 fieldSize={fieldSize}
                 applicationRate={applicationRate}
                 fieldSizeText={fieldSizeText}
@@ -151,7 +176,7 @@ const FertilizerControl: React.FC = () => {
             </div>
 
             {/* Правая колонка - уровни питательных веществ и график */}
-                    <div>
+            <div>
               {/* Уровни питательных веществ */}
               <NutrientLevels nutrients={nutrients} />
 
@@ -171,7 +196,7 @@ const FertilizerControl: React.FC = () => {
             Останнє оновлення: {new Date(lastUpdated).toLocaleString('uk-UA')}
           </div>
         )}
-              </div>
+      </div>
 
       {/* Модальные окна */}
       <ModalMessage
@@ -196,7 +221,7 @@ const FertilizerControl: React.FC = () => {
         showDatePicker={showDatePicker}
         isLoading={isLoading}
         onClose={() => setSchedulerModalOpen(false)}
-        onDateChange={() => { }} // Не используется напрямую, заменено на onSelectDate
+        onDateChange={(date) => setSelectedDate(new Date(date))}
         onFertilizerNameChange={setModalFertilizerName}
         onFieldSizeChange={setModalFieldSize}
         onApplicationRateChange={setModalApplicationRate}

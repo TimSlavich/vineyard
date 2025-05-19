@@ -123,6 +123,13 @@ export const useRobotControl = () => {
     // Функция для отправки команд роботам на бэкенд
     const sendRobotCommand = useCallback(async (robotId: string, command: string) => {
         try {
+            // Проверяем, не является ли этот робот "Робот-сіяч 1" (seeder-1)
+            // который всегда должен оставаться в режиме обслуживания
+            if (robotId === 'seeder-1') {
+                // Сразу возвращаемся для этого робота, не изменяя его состояние
+                return;
+            }
+
             setIsLoading(true);
             // Эмулируем задержку и успешный ответ
             const timerId = setTimeout(() => {
@@ -157,6 +164,11 @@ export const useRobotControl = () => {
 
     // Функция для обновления статуса робота
     const updateRobotStatus = useCallback((robotId: string, status: 'active' | 'idle' | 'charging' | 'maintenance') => {
+        // Если это "Робот-сіяч 1", всегда сохраняем его в режиме обслуживания
+        if (robotId === 'seeder-1') {
+            status = 'maintenance';
+        }
+
         setRobots(prevRobots =>
             prevRobots.map(robot =>
                 robot.id === robotId ? { ...robot, status } : robot
@@ -536,6 +548,15 @@ export const useRobotControl = () => {
             ? deviceRobots
             : deviceRobots.filter(robot => robot.category === selectedTab);
     }, [selectedTab, deviceRobots]);
+
+    // Эффект для установки робота "Робот-сіяч 1" в режим обслуживания при инициализации
+    useEffect(() => {
+        // Находим "Робот-сіяч 1" и обеспечиваем его нахождение в режиме обслуживания
+        const seedRobot = deviceRobots.find(robot => robot.id === 'seeder-1');
+        if (seedRobot && seedRobot.status !== 'maintenance') {
+            updateRobotStatus('seeder-1', 'maintenance');
+        }
+    }, [deviceRobots, updateRobotStatus]);
 
     return {
         // Состояния

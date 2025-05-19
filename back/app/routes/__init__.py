@@ -11,6 +11,7 @@ from app.routes import (
     diagnostic,
     settings,
     reports,
+    irrigation,
 )
 
 # Создание главного роутера
@@ -27,6 +28,7 @@ api_router.include_router(
 api_router.include_router(diagnostic.router, prefix="/diagnostic", tags=["diagnostic"])
 api_router.include_router(settings.router, prefix="/settings", tags=["settings"])
 api_router.include_router(reports.router, prefix="/reports", tags=["reports"])
+api_router.include_router(irrigation.router, prefix="/irrigation", tags=["irrigation"])
 
 # Создание роутера для API
 router = APIRouter()

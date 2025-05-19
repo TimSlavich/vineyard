@@ -40,7 +40,7 @@ const MoistureControl: React.FC<MoistureControlProps> = ({
                     <Droplets size={20} className="text-blue-500 mr-2" />
                     <span className="text-sm font-medium">Поточна вологість:</span>
                 </div>
-                <div className="text-xl font-bold text-blue-600">{currentMoisture}%</div>
+                <div className="text-xl font-bold text-blue-600">{currentMoisture.toFixed(0)}%</div>
             </div>
 
             {/* Порог срабатывания */}

@@ -11,7 +11,6 @@ import {
   translateSensorType,
   translateSensorLocation
 } from '../utils/translations';
-import NotificationSettings from '../components/settings/NotificationSettings';
 import {
   loadUserSettings,
   saveUserSettings,
@@ -760,13 +759,6 @@ const SettingsPage: React.FC = () => {
           Порогові значення
         </button>
         <button
-          className={getTabClass('notifications')}
-          onClick={() => setActiveTab('notifications')}
-        >
-          <Bell className="inline-block w-4 h-4 mr-1 -mt-0.5" />
-          Сповіщення
-        </button>
-        <button
           className={getTabClass('account')}
           onClick={() => setActiveTab('account')}
         >
@@ -800,16 +792,6 @@ const SettingsPage: React.FC = () => {
           handleResetThresholds={handleResetThresholds}
           handleTestAlert={handleTestAlert}
           loading={loading.thresholds}
-        />
-      )}
-
-      {/* Вкладка "Уведомления" */}
-      {activeTab === 'notifications' && (
-        <NotificationSettings
-          settings={userSettings.notifications.channels}
-          onToggleChannel={handleToggleNotificationChannel}
-          onSaveSettings={handleSaveNotificationSettings}
-          onResetSettings={handleResetNotificationSettings}
         />
       )}
 
@@ -921,24 +903,6 @@ const SettingsPage: React.FC = () => {
         type="success"
       >
         Порогові значення було скинуто до початкових.
-      </ModalMessage>
-
-      <ModalMessage
-        isOpen={notifSaveModalOpen}
-        onClose={() => setNotifSaveModalOpen(false)}
-        title="Налаштування сповіщень збережено"
-        type="success"
-      >
-        Налаштування сповіщень було успішно збережено.
-      </ModalMessage>
-
-      <ModalMessage
-        isOpen={notifResetModalOpen}
-        onClose={() => setNotifResetModalOpen(false)}
-        title="Налаштування сповіщень скинуто"
-        type="success"
-      >
-        Налаштування сповіщень було скинуто до початкових значень.
       </ModalMessage>
 
       {/* Модалка деталей устройства */}

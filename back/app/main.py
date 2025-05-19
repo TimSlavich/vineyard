@@ -30,7 +30,7 @@ app = FastAPI(
 # Примусово налаштовуємо CORS для розробки
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Дозволяємо всі origins для розробки
+    allow_origins=settings.CORS_ORIGINS,  # Используем настройки из конфига
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
