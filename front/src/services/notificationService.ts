@@ -215,57 +215,79 @@ export const convertSensorAlertToAlert = (sensorAlert: SensorAlert): Alert => {
 
 // Инициализация подписки на WebSocket-оповещения от датчиков
 export const initSensorAlertSubscription = () => {
-    console.debug('Инициализация подписки на уведомления датчиков');
+    // Для проверки текущих подписчиков
+    // Регистрируем глобальный обработчик оповещений
+    window.handleSensorAlert = (sensorAlert) => {
+        processSensorAlert(sensorAlert);
+    };
 
-    const unsubscribe = websocketService.subscribe<SensorAlert>('sensor_alert', (sensorAlert) => {
-        console.debug('Получено уведомление от датчика через WebSocket:', sensorAlert);
-
-        // Проверяем роль пользователя
-        const userData = getUserData();
-        if (userData?.role === 'new_user') {
-            // Для new_user не добавляем оповещения
-            console.debug('Оповещение скрыто для пользователя с ролью new_user');
-            return;
-        }
-
-        // Проверяем, есть ли уже оповещения от этого датчика с тем же типом алерта
-        const sensorIdStr = sensorAlert.id.toString();
-        console.debug(`Проверка существующих уведомлений для датчика ID=${sensorIdStr}, тип=${sensorAlert.alert_type}`);
-
-        const existingAlerts = globalAlerts.filter(alert => {
-            // Анализируем ID, чтобы извлечь ID датчика
-            // Новый формат: sensor-alert-{id}-{timestamp}-{random}
-            const match = alert.id.match(/^sensor-alert-(\d+)-/);
-
-            if (match && match[1] === sensorIdStr) {
-                // Определяем тип алерта для сравнения
-                const alertType =
-                    sensorAlert.alert_type === 'high' ? 'високе' :
-                        sensorAlert.alert_type === 'low' ? 'низьке' :
-                            'нормальне';
-
-                return alert.title.includes(alertType);
+    try {
+        const unsubscribe = websocketService.subscribe<SensorAlert>('sensor_alert', (sensorAlert) => {
+            // Проверяем наличие корректных данных
+            if (!sensorAlert) {
+                return;
             }
-            return false;
+
+            processSensorAlert(sensorAlert);
         });
 
-        console.debug(`Найдено ${existingAlerts.length} существующих уведомлений для данного датчика`);
+        return unsubscribe;
+    } catch (error) {
+        console.error('[Оповещения] Ошибка при инициализации подписки на уведомления:', error);
+        return () => { }; // возвращаем пустую функцию отписки в случае ошибки
+    }
+};
 
-        // Удаляем существующие оповещения от этого датчика с тем же типом
-        if (existingAlerts.length > 0) {
-            const alertIdsToRemove = existingAlerts.map(alert => alert.id);
-            globalAlerts = globalAlerts.filter(alert => !alertIdsToRemove.includes(alert.id));
-            console.debug(`Удалены существующие уведомления: ${alertIdsToRemove.join(', ')}`);
+// Функция для обработки оповещений датчиков
+const processSensorAlert = (sensorAlert: SensorAlert) => {
+    // Проверяем роль пользователя
+    const userData = getUserData();
+
+    if (userData?.role === 'new_user') {
+        // Для new_user не добавляем оповещения
+        return;
+    }
+
+    // Проверяем наличие необходимых данных
+    if (!sensorAlert || !sensorAlert.id) {
+        console.error('[Оповещения] Получены некорректные данные оповещения:', sensorAlert);
+        return;
+    }
+
+    // Проверяем, есть ли уже оповещения от этого датчика с тем же типом алерта
+    const sensorIdStr = sensorAlert.id.toString();
+
+    const existingAlerts = globalAlerts.filter(alert => {
+        // Анализируем ID, чтобы извлечь ID датчика
+        // Новый формат: sensor-alert-{id}-{timestamp}-{random}
+        const match = alert.id.match(/^sensor-alert-(\d+)-/);
+
+        if (match && match[1] === sensorIdStr) {
+            // Определяем тип алерта для сравнения
+            const alertType =
+                sensorAlert.alert_type === 'high' ? 'високе' :
+                    sensorAlert.alert_type === 'low' ? 'низьке' :
+                        'нормальне';
+
+            return alert.title.includes(alertType);
         }
-
-        // Преобразуем оповещение от датчика в формат Alert
-        const alert = convertSensorAlertToAlert(sensorAlert);
-        console.debug('Преобразованное уведомление:', alert);
-
-        // Добавляем новое оповещение
-        console.debug('Вызов addAlert для нового уведомления от датчика');
-        addAlert(alert);
+        return false;
     });
 
-    return unsubscribe;
+    // Удаляем существующие оповещения от этого датчика с тем же типом
+    if (existingAlerts.length > 0) {
+        const alertIdsToRemove = existingAlerts.map(alert => alert.id);
+        globalAlerts = globalAlerts.filter(alert => !alertIdsToRemove.includes(alert.id));
+    }
+
+    try {
+        // Преобразуем оповещение от датчика в формат Alert
+        const alert = convertSensorAlertToAlert(sensorAlert);
+
+        // Добавляем новое оповещение
+        addAlert(alert);
+
+    } catch (error) {
+        console.error('[Оповещения] Ошибка при обработке оповещения:', error);
+    }
 };

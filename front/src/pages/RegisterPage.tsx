@@ -66,7 +66,6 @@ const RegisterPage: React.FC = () => {
         console.warn('Токен доступа не был сохранен после регистрации!');
         // Попробуем сохранить снова, если токен есть в ответе
         if (registerResponse && registerResponse.access_token) {
-          console.log('Повторно сохраняем токены из ответа');
           setItem('accessToken', registerResponse.access_token);
           setItem('refreshToken', registerResponse.refresh_token || '');
         } else {

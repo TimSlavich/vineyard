@@ -1,6 +1,7 @@
 import { BaseApi } from './baseApi';
 import { ApiResponse, PaginatedResponse, RobotCommandRequest } from './types';
-import { RobotStatus } from '../../components/automation/RobotControl';
+import { RobotStatus } from '../../types/robotTypes';
+import { irrigationApi } from './irrigationApi';
 
 /**
  * Сервис для работы с роботами
@@ -62,9 +63,6 @@ export class RobotApi extends BaseApi {
         try {
             // TODO: Заменить на реальный API запрос
             // return this.post<ApiResponse<{ status: string; message: string }>>('/robots/command', command);
-
-            // Временное решение - имитируем успешное выполнение команды
-            console.log(`Отправка команды ${command.command} роботу ${command.robotId}`, command.params);
 
             return {
                 success: true,
@@ -180,9 +178,6 @@ export class RobotApi extends BaseApi {
             // TODO: Заменить на реальный API запрос
             // return this.post<ApiResponse<{ success: number; failed: number }>>('/robots/group-command', { command });
 
-            // Временное решение - имитируем успешное выполнение команды
-            console.log(`Выполнение групповой команды ${command}`);
-
             return {
                 success: true,
                 data: {
@@ -192,6 +187,55 @@ export class RobotApi extends BaseApi {
             };
         } catch (error) {
             console.error(`Error executing group command ${command}:`, error);
+            throw error;
+        }
+    }
+
+    /**
+     * Получает список точек навигации для роботов
+     * @returns список точек навигации
+     */
+    async getNavigationPoints(): Promise<ApiResponse<string[]>> {
+        try {
+            // Базовые точки навигации
+            let navigationPoints: string[] = [
+                'Повернення на базу',
+                'Станція зарядки',
+                'Технічний відсік'
+            ];
+
+            try {
+                const irrigationZonesResponse = await irrigationApi.getZones();
+
+                if (irrigationZonesResponse.success) {
+                    if (irrigationZonesResponse.data && irrigationZonesResponse.data.length > 0) {
+                        // Получаем имена зон напрямую, без преобразований
+                        const zoneNames = irrigationZonesResponse.data.map(zone => zone.name);
+
+                        // Сначала получаем уникальный список зон
+                        const uniqueZones = [...new Set([...zoneNames, ...navigationPoints])];
+
+                        // Обновляем navigationPoints, но сохраняем базовые точки в конце
+                        const basePoints = navigationPoints.filter(point =>
+                            !point.includes('Блок')
+                        );
+                        const blockPoints = uniqueZones.filter(point =>
+                            point.includes('Блок')
+                        );
+
+                        navigationPoints = [...blockPoints, ...basePoints];
+                    }
+                }
+            } catch (error) {
+                console.error('Ошибка при получении зон из irrigationApi:', error);
+            }
+
+            return {
+                success: true,
+                data: navigationPoints
+            };
+        } catch (error) {
+            console.error('Error getting navigation points:', error);
             throw error;
         }
     }

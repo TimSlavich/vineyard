@@ -33,18 +33,15 @@ export class DiagnosticApi extends BaseApi {
 
             // Если ответ уже в формате ApiResponse, возвращаем как есть
             if (response && typeof response === 'object' && 'success' in response) {
-                console.log('Получен ответ в формате ApiResponse:', response);
                 return response as ApiResponse<DiagnosticResult[]>;
             }
 
             // Если получен неожиданный формат, генерируем результаты на основе данных о датчиках
-            console.log('Получен неожиданный формат ответа, генерируем данные на основе sensorData');
             return this.generateDiagnosticResults(sensorData);
         } catch (error) {
             console.error('Error running diagnostic:', error);
 
             // В случае ошибки генерируем результаты на основе данных о датчиках
-            console.log('Ошибка при запуске диагностики, генерируем данные на основе sensorData');
             return this.generateDiagnosticResults(sensorData);
         }
     }

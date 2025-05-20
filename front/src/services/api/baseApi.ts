@@ -357,8 +357,6 @@ export class BaseApi {
         try {
             isRefreshingToken = true;
 
-            console.log('Токен истек, пробуем обновить...');
-
             // Отправляем запрос на обновление токена
             const response = await fetch(`${this.baseUrl}/auth/refresh`, {
                 method: 'POST',
@@ -388,8 +386,6 @@ export class BaseApi {
 
                 // Сбрасываем счетчик попыток при успешном обновлении
                 tokenRefreshAttempts = 0;
-
-                console.log('Токен успешно обновлен');
 
                 // Выполняем запросы из очереди
                 processQueue(data.access_token);

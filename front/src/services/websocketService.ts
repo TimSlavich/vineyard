@@ -1,6 +1,13 @@
 import { isAuthenticated, getItem, getUserData, setItem } from '../utils/storage';
 import { BaseApi } from './api/baseApi';
 
+// Добавляем декларацию для глобального объекта window
+declare global {
+    interface Window {
+        handleSensorAlert?: (data: any) => void;
+    }
+}
+
 type WebSocketMessageType = 'sensor_data' | 'notification' | 'system' | 'request_data' | 'request_completed' | 'welcome' | 'echo' | 'pong' | 'subscribed' | 'unsubscribed' | 'test_alert' | 'thresholds_data' | 'sensor_alert';
 
 interface WebSocketMessage {
@@ -30,6 +37,23 @@ class WebSocketService {
     private tokenRefreshInProgress: boolean = false;
 
     private messageHandlers: Record<WebSocketMessageType, WebSocketMessageListener[]> = {
+        'sensor_data': [],
+        'notification': [],
+        'system': [],
+        'request_data': [],
+        'request_completed': [],
+        'welcome': [],
+        'echo': [],
+        'pong': [],
+        'subscribed': [],
+        'unsubscribed': [],
+        'test_alert': [],
+        'thresholds_data': [],
+        'sensor_alert': []
+    };
+
+    // Кэш сообщений, которые пришли до регистрации обработчиков
+    private unhandledMessages: Record<WebSocketMessageType, WebSocketMessage[]> = {
         'sensor_data': [],
         'notification': [],
         'system': [],
@@ -323,18 +347,15 @@ class WebSocketService {
     }
 
     /**
-     * Подписка на определенный тип сообщений от WebSocket
+     * Регистрирует обработчик и отправляет все накопленные сообщения
      * @param type Тип сообщения
-     * @param callback Функция обратного вызова
-     * @returns Функция для отписки
+     * @param callback Функция обработчик
+     * @returns Функция отписки
      */
     public subscribe<T = any>(type: WebSocketMessageType, callback: (data: T) => void): () => void {
-        console.debug(`Подписка на события типа: ${type}`);
-
         const listener = (message: WebSocketMessage) => {
             try {
                 if (message.type === type) {
-                    console.debug(`Получено событие типа ${type}:`, message.data);
                     callback(message.data);
                 }
             } catch (error) {
@@ -345,9 +366,20 @@ class WebSocketService {
         // Добавляем слушатель
         this.addMessageListener(type, listener);
 
+        // Отправляем все накопленные сообщения этого типа
+        setTimeout(() => {
+            if (this.unhandledMessages[type].length > 0) {
+                // Обрабатываем сохраненные сообщения
+                this.unhandledMessages[type].forEach(savedMsg => {
+                    listener(savedMsg);
+                });
+                // Очищаем обработанные сообщения
+                this.unhandledMessages[type] = [];
+            }
+        }, 100);
+
         // Возвращаем функцию отписки
         return () => {
-            console.debug(`Отписка от событий типа: ${type}`);
             this.removeMessageListener(type, listener);
         };
     }
@@ -364,14 +396,6 @@ class WebSocketService {
                 timestamp: new Date().toISOString()
             }
         });
-    }
-
-    /**
-     * Логирует пороговые значения без отправки на сервер
-     * @param thresholds Массив пороговых значений для логирования
-     */
-    public logThresholds(thresholds: any[]): void {
-        console.log("Пороговые значения (только для визуализации):", thresholds);
     }
 
     /**
@@ -427,9 +451,37 @@ class WebSocketService {
             const handlers = this.messageHandlers[message.type];
             if (handlers && handlers.length > 0) {
                 handlers.forEach(handler => handler(message));
+            } else if (message.type !== 'system') {
+                // Сохраняем сообщение в кэш для будущей обработки
+                this.unhandledMessages[message.type].push(message);
+
+                // Если это сообщение sensor_alert, регистрируем обработчик по умолчанию
+                if (message.type === 'sensor_alert' && !this.messageHandlers['sensor_alert']?.length) {
+                    // Динамически импортируем notificationService для добавления оповещения
+                    import('./notificationService').then(({ initSensorAlertSubscription }) => {
+                        // Инициализируем подписку на оповещения
+                        initSensorAlertSubscription();
+
+                        // Обрабатываем сохраненные сообщения типа sensor_alert
+                        setTimeout(() => {
+                            const handlers = this.messageHandlers['sensor_alert'];
+                            if (handlers && handlers.length > 0) {
+                                // Обрабатываем все сохраненные сообщения
+                                this.unhandledMessages['sensor_alert'].forEach(savedMsg => {
+                                    handlers.forEach(handler => handler(savedMsg));
+                                });
+                                // Очищаем обработанные сообщения
+                                this.unhandledMessages['sensor_alert'] = [];
+                            }
+                        }, 200);
+                    }).catch(err => {
+                        console.error('[WebSocket] Ошибка при регистрации обработчика оповещений:', err);
+                    });
+                }
             }
         } catch (error) {
-            console.error('Error parsing WebSocket message:', error);
+            console.error('[WebSocket] Ошибка разбора сообщения:', error);
+            console.error('[WebSocket] Сырые данные сообщения:', event.data);
         }
     }
 
@@ -622,10 +674,35 @@ class WebSocketService {
 const WS_URL = import.meta.env.VITE_WS_URL || 'ws://localhost:8000/ws';
 const websocketService = new WebSocketService(WS_URL);
 
+// Флаг для отслеживания состояния инициализации
+let isInitializing = false;
+let isInitialized = false;
+
 /**
  * Инициализирует WebSocket подключение с обновлением токена
  */
 export const initializeWebSocketConnection = async () => {
+    // Предотвращаем повторную инициализацию
+    if (isInitializing) {
+        console.debug('WebSocket инициализация уже выполняется');
+        // Ждем завершения инициализации
+        return new Promise<boolean>((resolve) => {
+            const checkInterval = setInterval(() => {
+                if (isInitialized || websocketService.isConnected()) {
+                    clearInterval(checkInterval);
+                    resolve(true);
+                }
+            }, 200);
+        });
+    }
+
+    if (isInitialized && websocketService.isConnected()) {
+        console.debug('WebSocket уже инициализирован');
+        return true;
+    }
+
+    isInitializing = true;
+
     try {
         // Обновляем токен перед подключением
         await websocketService.ensureValidToken();
@@ -635,10 +712,14 @@ export const initializeWebSocketConnection = async () => {
 
         // Если подключение успешно
         if (websocketService.isConnected()) {
-
             // Запускаем периодическое обновление токена
             startTokenRefreshInterval();
 
+            // Регистрируем стандартные обработчики
+            await registerDefaultHandlers();
+
+            isInitialized = true;
+            isInitializing = false;
             return true;
         } else {
             // Пробуем подключиться к альтернативному URL
@@ -650,17 +731,41 @@ export const initializeWebSocketConnection = async () => {
             await websocketService.connect();
 
             if (websocketService.isConnected()) {
-
+                // Запускаем периодическое обновление токена
                 startTokenRefreshInterval();
+
+                // Регистрируем стандартные обработчики
+                await registerDefaultHandlers();
+
+                isInitialized = true;
+                isInitializing = false;
                 return true;
             }
 
             // Возвращаем изначальный URL
             websocketService.setUrl(originalUrl);
+            isInitializing = false;
             return false;
         }
     } catch (error) {
         console.error('Помилка ініціалізації WebSocket:', error);
+        isInitializing = false;
+        return false;
+    }
+};
+
+/**
+ * Регистрирует стандартные обработчики сообщений
+ */
+const registerDefaultHandlers = async () => {
+    try {
+        // Импортируем и инициализируем сервис уведомлений
+        const { initSensorAlertSubscription } = await import('./notificationService');
+        initSensorAlertSubscription();
+
+        return true;
+    } catch (error) {
+        console.error('Ошибка при регистрации стандартных обработчиков:', error);
         return false;
     }
 };

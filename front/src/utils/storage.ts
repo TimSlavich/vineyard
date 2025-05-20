@@ -122,7 +122,6 @@ export function isAuthenticated(): boolean {
 export function updateTokens(accessToken: string, refreshToken: string): void {
     setItem('accessToken', accessToken);
     setItem('refreshToken', refreshToken);
-    console.log('Токены обновлены');
 }
 
 /**
@@ -160,7 +159,6 @@ export const getUserData = (): any => {
             userData.id = Number(userData.id);
             // Обновляем данные в localStorage с конвертированным ID
             setItem('user', userData);
-            console.log('ID пользователя конвертирован из строки в число:', userData.id);
         }
     }
 

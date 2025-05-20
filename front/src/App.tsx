@@ -60,6 +60,7 @@ const RedirectIfAuthenticated = ({ children }: { children: React.ReactNode }) =>
 // Внутрішній компонент AppContent для використання хуків роутера
 const AppContent = () => {
   const navigate = useNavigate();
+  const [websocketInitialized, setWebsocketInitialized] = useState(false);
 
   // Устанавливаем функцию редиректа при инициализации приложения
   useEffect(() => {
@@ -71,18 +72,20 @@ const AppContent = () => {
 
   // Инициализируем WebSocket соединение при загрузке приложения
   useEffect(() => {
-    if (isAuthenticated()) {
+    if (isAuthenticated() && !websocketInitialized) {
       // Инициализируем соединение для получения данных с датчиков
       initializeWebSocketConnection()
-        .then(() => {
-          // Инициализируем подписку на уведомления датчиков
-          initSensorAlertSubscription();
+        .then((connected) => {
+          if (connected) {
+            // Отмечаем, что WebSocket инициализирован
+            setWebsocketInitialized(true);
+          }
         })
         .catch(error => {
-          console.error('Ошибка при инициализации WebSocket соединения:', error);
+          console.error('[App] Ошибка при инициализации WebSocket соединения:', error);
         });
     }
-  }, []);
+  }, [websocketInitialized]);
 
   return (
     <>

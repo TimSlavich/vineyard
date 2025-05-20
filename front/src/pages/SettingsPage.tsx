@@ -622,12 +622,16 @@ const SettingsPage: React.FC = () => {
 
     // Отправляем тестовое оповещение через WebSocket
     import('../services/websocketService').then(({ default: websocketService }) => {
+      // Флаг для отслеживания, было ли уже добавлено оповещение
+      let alertAdded = false;
+
       websocketService.sendTestAlert();
 
       // Устанавливаем обработчик для получения ответа от сервера
       const unsubscribe = websocketService.subscribe('request_completed', (data) => {
-        // Проверяем, что это ответ на тестовое оповещение
-        if (data && data.message && (data.message.includes('Тестове сповіщення') || data.message.includes('Тестовое оповещение'))) {
+        // Проверяем, что это ответ на тестовое оповещение и что оповещение еще не было добавлено
+        if (!alertAdded && data && data.message && (data.message.includes('Тестове сповіщення') || data.message.includes('Тестовое оповещение'))) {
+          alertAdded = true;
           unsubscribe();
 
           // Импортируем addAlert для создания оповещения
@@ -1097,7 +1101,7 @@ const SettingsPage: React.FC = () => {
 
                     // Вызываем API для удаления аккаунта
                     await userApi.deleteAccount();
-                    
+
                     setTimeout(() => {
                       navigate('/');
                     }, 200);

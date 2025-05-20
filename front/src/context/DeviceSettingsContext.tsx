@@ -46,7 +46,7 @@ interface DeviceSettingsContextType {
     };
 }
 
-const DeviceSettingsContext = createContext<DeviceSettingsContextType | undefined>(undefined);
+export const DeviceSettingsContext = createContext<DeviceSettingsContextType | undefined>(undefined);
 
 export const DeviceSettingsProvider = ({ children }: { children: React.ReactNode }) => {
     const [devices, setDevices] = useState<Device[]>(defaultDevices);
@@ -89,22 +89,22 @@ export const DeviceSettingsProvider = ({ children }: { children: React.ReactNode
             category: 'air',
             status: 'idle',
             battery: 85,
-            location: 'Блок A',
+            location: 'Блок 2',
             lastActive: randomDate(),
-            capabilities: ['Моніторинг посівів', 'Фотографування', 'Картографування'],
+            capabilities: ['Моніторинг посівів', 'Фотографування'],
             currentTask: '',
             lastMaintenance: randomDate()
         },
         {
             id: 'drone-2',
-            name: 'Дрон-дослідник 2',
+            name: 'Дрон-розвідник 2',
             type: 'drone',
             category: 'air',
             status: 'charging',
             battery: 32,
-            location: 'Станція зарядки',
+            location: 'Блок 3',
             lastActive: randomDate(),
-            capabilities: ['Моніторинг', 'Зробити знімки', 'Аналіз ґрунту'],
+            capabilities: ['Моніторинг', 'Зробити знімки'],
             currentTask: 'Заряджання батареї',
             lastMaintenance: randomDate()
         },
@@ -115,7 +115,7 @@ export const DeviceSettingsProvider = ({ children }: { children: React.ReactNode
             category: 'ground',
             status: 'idle',
             battery: 65,
-            location: 'Блок B',
+            location: 'Блок 2',
             lastActive: randomDate(),
             capabilities: ['Підготовка до збору врожаю', 'Збір винограду', 'Транспортування'],
             currentTask: '',
@@ -143,7 +143,7 @@ export const DeviceSettingsProvider = ({ children }: { children: React.ReactNode
             battery: 72,
             location: 'Блок C',
             lastActive: randomDate(),
-            capabilities: ['Формування виноградних лоз', 'Обрізка', 'Діагностика'],
+            capabilities: ['Формування виноградних лоз', 'Обрізка'],
             currentTask: 'Формування лоз',
             lastMaintenance: randomDate()
         }
@@ -243,7 +243,10 @@ export const DeviceSettingsProvider = ({ children }: { children: React.ReactNode
 
             const response = await robotApi.getRobots();
             if (response.data.length > 0) {
-                setRobots(response.data);
+                setRobots(response.data.map(robot => ({
+                    ...robot,
+                    category: robot.category || 'ground'
+                })));
             }
         } catch (error) {
             setErrors(prev => ({
@@ -307,8 +310,6 @@ export const DeviceSettingsProvider = ({ children }: { children: React.ReactNode
                         if (data && data.thresholds && Array.isArray(data.thresholds)) {
                             setThresholds(data.thresholds);
                         } else if (Array.isArray(data)) {
-                            // Обратная совместимость со старым форматом
-                            console.log("Using updated thresholds from array data:", data);
                             setThresholds(data);
                         } else {
                             console.error("Unexpected updated thresholds data format:", data);
@@ -334,18 +335,35 @@ export const DeviceSettingsProvider = ({ children }: { children: React.ReactNode
     // Проверяем, нужно ли создать пороговые значения по умолчанию
     useEffect(() => {
         const createDefaultThresholdsIfNeeded = async () => {
-            // Если пороговые значения отсутствуют после определенного времени, создаем их
+            // Проверяем, подключен ли WebSocket
+            const { default: websocketService } = await import('../services/websocketService');
+
+            // Проверяем, что сервис инициализирован и пороговые значения отсутствуют
             if (thresholds.length === 0) {
-                try {
-                    await resetThresholds();
-                } catch (error) {
-                    console.error("Помилка при створенні стандартних порогових значень:", error);
+                // Если соединение не установлено, ждем несколько секунд
+                let attempts = 0;
+                const maxAttempts = 5;
+
+                while (!websocketService.isConnected() && attempts < maxAttempts) {
+                    // Ждем 1 секунду между попытками
+                    await new Promise(resolve => setTimeout(resolve, 1000));
+                    attempts++;
+                }
+
+                if (websocketService.isConnected()) {
+                    try {
+                        await resetThresholds();
+                    } catch (error) {
+                        console.error("[DeviceSettings] Ошибка при создании стандартных пороговых значений:", error);
+                    }
+                } else {
+                    console.warn('[DeviceSettings] WebSocket не подключен после ожидания, пороговые значения не созданы');
                 }
             }
         };
 
-        // Проверяем через 3 секунды после монтирования компонента
-        const timer = setTimeout(createDefaultThresholdsIfNeeded, 3000);
+        // Уменьшаем время задержки до 5 секунд
+        const timer = setTimeout(createDefaultThresholdsIfNeeded, 5000);
 
         return () => clearTimeout(timer);
     }, [thresholds]);
@@ -387,7 +405,16 @@ export const DeviceSettingsProvider = ({ children }: { children: React.ReactNode
             setErrors(prev => ({ ...prev, thresholds: null }));
 
             // Запрашиваем сброс пороговых значений через WebSocket
-            await import('../services/websocketService').then(({ default: websocketService }) => {
+            await import('../services/websocketService').then(async ({ default: websocketService }) => {
+                // Проверяем подключение с ожиданием
+                let attempts = 0;
+                const maxAttempts = 10;
+
+                while (!websocketService.isConnected() && attempts < maxAttempts) {
+                    await new Promise(resolve => setTimeout(resolve, 1000));
+                    attempts++;
+                }
+
                 if (websocketService.isConnected()) {
                     websocketService.resetThresholds();
 
@@ -401,15 +428,16 @@ export const DeviceSettingsProvider = ({ children }: { children: React.ReactNode
                             setThresholds(data);
                         }
                         unsubscribe(); // Отписываемся после получения данных
+                        setLoading(prev => ({ ...prev, thresholds: false }));
                     });
 
                     // Таймаут для предотвращения бесконечного ожидания
                     setTimeout(() => {
                         unsubscribe();
                         setLoading(prev => ({ ...prev, thresholds: false }));
-                    }, 3000);
+                    }, 5000);
                 } else {
-                    throw new Error('WebSocket не подключен. Невозможно сбросить пороговые значения.');
+                    throw new Error('WebSocket не подключен после нескольких попыток. Повторите позже.');
                 }
             });
         } catch (error) {

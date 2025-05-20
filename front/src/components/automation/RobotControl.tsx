@@ -1,10 +1,11 @@
-import React from 'react';
-import { Loader, AlertTriangle, X } from 'lucide-react';
+import React, { useContext, useRef, useEffect } from 'react';
+import { Battery, MapPin, PowerOff, AlertTriangle, Loader, X } from 'lucide-react';
 import Card from '../ui/Card';
 import * as Tabs from '@radix-ui/react-tabs';
 import RobotDetailsModal from '../ui/RobotDetailsModal';
 import ModalMessage from '../ui/ModalMessage';
 import { useRobotControl } from '../../hooks/useRobotControl';
+import { DeviceSettingsContext } from '../../context/DeviceSettingsContext';
 
 // Импортируем компоненты
 import RobotStatusCard from './robot/RobotStatusCard';
@@ -17,6 +18,30 @@ interface RobotControlProps {
   status?: 'idle' | 'active' | 'error' | 'maintenance';
   onStatusChange?: (status: 'idle' | 'active' | 'error' | 'maintenance') => void;
 }
+
+// Безопасная обертка для проверки наличия контекста
+const RobotControlWithProvider: React.FC<RobotControlProps> = (props) => {
+  // Проверяем, доступен ли контекст
+  const context = useContext(DeviceSettingsContext);
+
+  if (!context) {
+    // Если контекст недоступен, показываем сообщение об ошибке
+    return (
+      <Card
+        title="Керування роботами та дронами"
+        className="h-full"
+      >
+        <div className="flex items-center justify-center py-8 text-red-500">
+          <AlertTriangle className="mr-2" size={18} />
+          <span>Помилка ініціалізації. Оновіть сторінку.</span>
+        </div>
+      </Card>
+    );
+  }
+
+  // Если контекст доступен, рендерим основной компонент
+  return <RobotControl {...props} />;
+};
 
 const RobotControl: React.FC<RobotControlProps> = ({
   status: externalStatus,
@@ -75,58 +100,70 @@ const RobotControl: React.FC<RobotControlProps> = ({
     navigateRobot,
     selectNavigationTarget,
     getFilteredRobots,
-    sendRobotCommand
+    sendRobotCommand,
+    handleNavigationComplete
   } = useRobotControl();
 
-  // Обрабатываем внешнее состояние, если оно передано
-  React.useEffect(() => {
-    if (externalStatus && deviceRobots.length > 0) {
-      // Проверяем, нужно ли фактически менять статусы роботов
-      const needStatusUpdate = deviceRobots.some(robot =>
-        robot.status !== externalStatus &&
-        robot.status !== 'maintenance' &&
-        robot.id !== 'seeder-1'
-      );
+  // Добавляем ref для отслеживания предыдущего статуса
+  const prevStatusRef = useRef(externalStatus);
 
-      // Обновляем статус только если действительно нужно
-      if (needStatusUpdate) {
-        // Обновляем статус всех роботов в соответствии с внешним статусом
-        deviceRobots.forEach(robot => {
-          if (robot.status !== externalStatus && robot.status !== 'maintenance' && robot.id !== 'seeder-1') {
-            sendRobotCommand(robot.id, externalStatus === 'active' ? 'start' : 'stop');
-          }
-        });
-      }
+  // Добавляем ref для таймера debounce
+  const statusUpdateTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Обрабатываем внешнее состояние, если оно передано
+  useEffect(() => {
+    // Уйдем, если нет внешнего статуса или нет роботов
+    if (!externalStatus || deviceRobots.length === 0) {
+      return;
     }
-  }, [externalStatus, deviceRobots, sendRobotCommand]);
+
+    // Проверяем, нужно ли фактически менять статусы роботов
+    const needStatusUpdate = deviceRobots.some(robot =>
+      robot.status !== externalStatus &&
+      robot.status !== 'maintenance' &&
+      robot.id !== 'seeder-1'
+    );
+
+    // Обновляем статус только если действительно нужно
+    if (needStatusUpdate) {
+      // Чтобы избежать зацикливания, используем ref для отслеживания обработки
+      const command = externalStatus === 'active' ? 'start' : 'stop';
+
+      // Обновляем статус всех роботов в соответствии с внешним статусом
+      deviceRobots.forEach(robot => {
+        if (robot.status !== externalStatus && robot.status !== 'maintenance' && robot.id !== 'seeder-1') {
+          // Напрямую устанавливаем статус без вызова sendRobotCommand
+          if (externalStatus === 'active' && robot.status !== 'active') {
+            sendRobotCommand(robot.id, 'start');
+          } else if (externalStatus !== 'active' && robot.status === 'active') {
+            sendRobotCommand(robot.id, 'stop');
+          }
+        }
+      });
+    }
+  }, [externalStatus, deviceRobots]);
 
   // Добавляем обработчик события robot-state-change
-  React.useEffect(() => {
+  useEffect(() => {
     const handleRobotStateChange = (event: Event) => {
       const customEvent = event as CustomEvent;
       if (customEvent.detail) {
         const { active, excludeRobots } = customEvent.detail;
 
-        // Проверяем, нужно ли вообще обновлять роботов
+        // Определяем целевой статус
         const targetStatus = active ? 'active' : 'idle';
-        const needToUpdate = deviceRobots.some(robot => {
+
+        // Обновляем статус всех роботов, кроме исключенных и находящихся в обслуживании
+        deviceRobots.forEach(robot => {
+          // Проверяем, не входит ли робот в список исключений
           const isExcluded = excludeRobots && excludeRobots.includes(robot.id);
-          return robot.status !== targetStatus && robot.status !== 'maintenance' && !isExcluded;
+
+          // Не меняем статус роботов в режиме обслуживания и исключенных роботов
+          if (robot.status !== 'maintenance' && !isExcluded && robot.status !== targetStatus) {
+            // Отправляем команду роботу напрямую, без взаимодействия с сервером
+            sendRobotCommand(robot.id, active ? 'start' : 'stop');
+          }
         });
-
-        // Обновляем только если есть что менять
-        if (needToUpdate) {
-          // Обновляем статус всех роботов, кроме исключенных (например, "Робот-сіяч 1")
-          deviceRobots.forEach(robot => {
-            // Проверяем, не входит ли робот в список исключений
-            const isExcluded = excludeRobots && excludeRobots.includes(robot.id);
-
-            // Не меняем статус роботов в режиме обслуживания и исключенных роботов
-            if (robot.status !== 'maintenance' && !isExcluded && robot.status !== targetStatus) {
-              sendRobotCommand(robot.id, active ? 'start' : 'stop');
-            }
-          });
-        }
       }
     };
 
@@ -139,9 +176,9 @@ const RobotControl: React.FC<RobotControlProps> = ({
     };
   }, [deviceRobots, sendRobotCommand]);
 
-  // Отслеживаем изменения статуса всех роботов
-  React.useEffect(() => {
-    // Определяем общий статус на основе статусов всех роботов
+  // Отслеживаем изменения статуса всех роботов с debounce для предотвращения моргания
+  useEffect(() => {
+    // Предотвращаем циклические обновления - проверяем изменился ли статус роботов
     if (deviceRobots.length > 0) {
       // Если хотя бы один робот активен, считаем статус 'active'
       const isAnyActive = deviceRobots.some(robot => robot.status === 'active');
@@ -155,13 +192,33 @@ const RobotControl: React.FC<RobotControlProps> = ({
         newStatus = 'maintenance';
       }
 
-      // Предотвращаем циклические обновления, проверяя равен ли новый статус внешнему
-      if (newStatus !== externalStatus) {
-        // Уведомляем родительский компонент об изменении статуса
-        onStatusChange(newStatus);
+      // Предотвращаем циклические обновления, проверяя изменился ли статус
+      if (newStatus !== externalStatus && newStatus !== prevStatusRef.current) {
+        // Сохраняем новый статус в ref
+        prevStatusRef.current = newStatus;
+
+        // Очищаем предыдущий таймер, если он существует
+        if (statusUpdateTimerRef.current) {
+          clearTimeout(statusUpdateTimerRef.current);
+        }
+
+        // Вызываем onStatusChange только если он существует
+        if (typeof onStatusChange === 'function') {
+          // Устанавливаем debounce для вызова onStatusChange
+          statusUpdateTimerRef.current = setTimeout(() => {
+            onStatusChange(newStatus);
+          }, 300); // Задержка в 300 мс для предотвращения частых обновлений
+        }
       }
     }
-  }, [deviceRobots, onStatusChange, externalStatus]);
+
+    // Очищаем таймер при размонтировании
+    return () => {
+      if (statusUpdateTimerRef.current) {
+        clearTimeout(statusUpdateTimerRef.current);
+      }
+    };
+  }, [deviceRobots, externalStatus]);
 
   const filteredRobots = getFilteredRobots();
 
@@ -340,7 +397,7 @@ const RobotControl: React.FC<RobotControlProps> = ({
         step={navigationStep}
         target={navigationTarget}
         navigationPoints={navigationPoints}
-        onClose={() => setNavigationModalOpen(false)}
+        onClose={handleNavigationComplete}
         onSelectTarget={selectNavigationTarget}
       />
 
@@ -365,4 +422,4 @@ const RobotControl: React.FC<RobotControlProps> = ({
   );
 };
 
-export default RobotControl;
+export default RobotControlWithProvider;

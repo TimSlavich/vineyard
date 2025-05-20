@@ -1,6 +1,5 @@
 import { BaseApi, ApiResponse } from './baseApi';
 import { devices } from '../../data/mockData';
-import { getItem } from '../../utils/storage';
 
 export interface Device {
     id: string;
@@ -18,24 +17,18 @@ export class DevicesApi extends BaseApi {
      * @returns список устройств
      */
     async getAllDevices(): Promise<ApiResponse<Device[]>> {
-        console.log('Запрос списка устройств с сервера');
-
         try {
             const response = await this.get<Device[]>('/devices');
 
             // Проверяем, содержит ли ответ ошибку авторизации
             if (response && typeof response === 'object' && 'detail' in response &&
                 (response.detail as string).includes('авторизац')) {
-
-                console.log('Ошибка авторизации при получении устройств, используем запасной вариант');
-
                 // Делаем запрос к другому API-эндпоинту
                 try {
                     // Пробуем получить данные с альтернативного эндпоинта
                     const altResponse = await this.get<Device[]>('/devices/all');
 
                     if (Array.isArray(altResponse)) {
-                        console.log('Получены данные с альтернативного эндпоинта', altResponse);
                         return {
                             success: true,
                             data: altResponse
@@ -50,7 +43,6 @@ export class DevicesApi extends BaseApi {
                 }
 
                 // Если не удалось получить данные с альтернативного эндпоинта, используем моковые данные
-                console.log('Используем моковые данные из-за ошибки авторизации');
                 return {
                     success: true,
                     data: devices
@@ -59,7 +51,6 @@ export class DevicesApi extends BaseApi {
 
             // Оборачиваем ответ в формат ApiResponse, если он не в этом формате
             if (Array.isArray(response)) {
-                console.log('Получен массив устройств с сервера:', response);
                 return {
                     success: true,
                     data: response
@@ -68,11 +59,9 @@ export class DevicesApi extends BaseApi {
 
             // Если ответ уже в формате ApiResponse, возвращаем как есть
             if (response && typeof response === 'object' && 'success' in response) {
-                console.log('Получен ответ в формате ApiResponse:', response);
                 return response as ApiResponse<Device[]>;
             }
 
-            console.log('Получен неожиданный формат ответа, используем моковые данные');
             return {
                 success: true,
                 data: devices
@@ -81,7 +70,6 @@ export class DevicesApi extends BaseApi {
             console.error('Error getting devices:', error);
 
             // В случае ошибки возвращаем моковые данные
-            console.log('Ошибка при получении устройств, используем моковые данные');
             return {
                 success: true,
                 data: devices
@@ -95,8 +83,6 @@ export class DevicesApi extends BaseApi {
      * @returns информация об устройстве
      */
     async getDeviceById(deviceId: string): Promise<ApiResponse<Device>> {
-        console.log(`Запрос устройства ${deviceId} с сервера`);
-
         try {
             const response = await this.get<Device>(`/devices/${deviceId}`);
 
@@ -132,8 +118,6 @@ export class DevicesApi extends BaseApi {
      * @returns список устройств указанного типа
      */
     async getDevicesByType(type: string): Promise<ApiResponse<Device[]>> {
-        console.log(`Запрос устройств типа ${type} с сервера`);
-
         try {
             const response = await this.get<Device[]>(`/devices/type/${type}`);
 

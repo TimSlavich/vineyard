@@ -85,15 +85,17 @@ const TaskScheduleList: React.FC<TaskScheduleListProps> = ({
                                 <span className={`text-xs px-2 py-1 rounded-full ${getStatusClass(task.status)}`}>
                                     {getStatusText(task.status)}
                                 </span>
-                                <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    className="text-gray-600"
-                                    disabled={isLoading}
-                                    onClick={() => onEditTask(task)}
-                                >
-                                    {task.status === 'in-progress' ? 'Переглянути' : 'Редагувати'}
-                                </Button>
+                                {task.status !== 'in-progress' && task.status !== 'completed' && (
+                                    <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        className="text-gray-600"
+                                        disabled={isLoading}
+                                        onClick={() => onEditTask(task)}
+                                    >
+                                        Редагувати
+                                    </Button>
+                                )}
                             </div>
                         </div>
                     ))

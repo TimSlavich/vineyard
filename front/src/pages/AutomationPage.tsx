@@ -89,7 +89,7 @@ const AutomationPage: React.FC = () => {
 
       // Если данных нет, создадим тестовые данные для демонстрации
       if (!soilMoistureSensors || soilMoistureSensors.length === 0) {
-        console.error('No soil moisture sensors found, creating test data');
+        return;
       } else {
         // Передаем данные сенсоров в метод getZones
         const response = await irrigationApi.getZones(soilMoistureSensors);

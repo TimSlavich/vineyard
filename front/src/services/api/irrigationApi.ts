@@ -39,7 +39,7 @@ export class IrrigationApi extends BaseApi {
                     return response;
                 }
             } catch (error) {
-                console.log('Could not fetch zones from backend, using local data');
+                console.error('Could not fetch zones from backend, using local data');
             }
 
             // Получаем данные о зонах из данных сенсоров
@@ -106,7 +106,9 @@ export class IrrigationApi extends BaseApi {
             } else {
                 // Если не переданы данные сенсоров, пробуем получить их из localStorage
                 try {
-                    const storedSensorData = localStorage.getItem('vineguard_latest_sensor_data_' + (localStorage.getItem('user_id') || 'guest'));
+                    const userKey = localStorage.getItem('user_id') || 'guest';
+                    const storedSensorData = localStorage.getItem('vineguard_latest_sensor_data_' + userKey);
+
                     if (storedSensorData) {
                         const storedData = JSON.parse(storedSensorData);
                         const soilMoistureSensors = Object.values(storedData).filter((sensor: any) =>
@@ -135,16 +137,6 @@ export class IrrigationApi extends BaseApi {
                 } catch (err) {
                     console.error('Error extracting zones from sensor data:', err);
                 }
-            }
-
-            // Если нет зон из сенсоров, возвращаем моковые данные
-            if (zones.length === 0) {
-                zones = [
-                    { id: 'zone1', name: 'Блок A', location: 'Головна територія' },
-                    { id: 'zone2', name: 'Блок B', location: 'Головна територія' },
-                    { id: 'zone3', name: 'Блок C', location: 'Теплица' },
-                    { id: 'zone4', name: 'Блок D', location: 'Теплица' }
-                ];
             }
 
             return {

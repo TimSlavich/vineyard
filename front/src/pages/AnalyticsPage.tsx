@@ -102,7 +102,6 @@ const AnalyticsPage: React.FC = () => {
 
     // Проверяем, есть ли данные
     if (filteredSensors.length === 0) {
-      console.log('Нет данных для графика:', { sensorType, locationId });
       return [];
     }
 

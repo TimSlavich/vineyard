@@ -239,8 +239,6 @@ export class CalibrationApi extends BaseApi {
         const completedCalibrations = JSON.parse(localStorage.getItem(completedCalibrationsKey) || '[]');
 
         if (completedCalibrations.includes(sensorId)) {
-            // Если датчик уже откалиброван, возвращаем статус о завершенной калибровке
-            console.log(`Датчик ${sensorId} имеет завершенную калибровку`);
             return {
                 success: true,
                 data: {
@@ -358,8 +356,6 @@ export class CalibrationApi extends BaseApi {
      * Получает список калибровок из localStorage
      */
     private getLocalCalibrations(): ApiResponse<CalibrationStatus[]> {
-        console.log('Получение списка локальных калибровок');
-
         // Получаем список завершенных калибровок из localStorage
         const completedCalibrationsKey = 'completed_calibrations';
         const completedCalibrations = JSON.parse(localStorage.getItem(completedCalibrationsKey) || '[]');
