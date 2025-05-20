@@ -1,0 +1,59 @@
+{
+  "type": "sensor_data",
+  "generated_at": "2025-05-20T13:33:38.784353",
+  "generated_by": "demo_user",
+  "parameters": {
+    "start_date": "2025-05-20T00:00:00+00:00",
+    "end_date": "2025-05-20T23:59:59.999000+00:00",
+    "sensor_type": "temperature",
+    "location_id": null
+  },
+  "summary": {
+    "total_records": 3,
+    "sensor_types": [
+      "temperature"
+    ],
+    "date_range": {
+      "start": "2025-05-20T00:00:00+00:00",
+      "end": "2025-05-20T23:59:59.999000+00:00"
+    }
+  },
+  "statistics": {
+    "temperature": {
+      "min": 26.631360836230968,
+      "max": 27.178113630602933,
+      "avg": 26.863836202990854,
+      "median": 26.78203414213866,
+      "count": 3,
+      "unit": "°C"
+    }
+  },
+  "data": {
+    "temperature": [
+      {
+        "timestamp": "2025-05-20T13:33:18.397351+00:00",
+        "value": 26.631360836230968,
+        "unit": "°C",
+        "sensor_id": "1_temperature_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-20T13:32:30.289863+00:00",
+        "value": 27.178113630602933,
+        "unit": "°C",
+        "sensor_id": "1_temperature_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      },
+      {
+        "timestamp": "2025-05-20T13:32:30.153529+00:00",
+        "value": 26.78203414213866,
+        "unit": "°C",
+        "sensor_id": "1_temperature_1",
+        "location_id": "location_1_2",
+        "status": "normal"
+      }
+    ]
+  }
+}

@@ -270,6 +270,16 @@ async def check_sensor_thresholds(sensor_data: SensorData) -> None:
     Args:
         sensor_data: Данные датчика для проверки
     """
+
+    # Проверка на наличие user_id
+    if sensor_data.user_id is None:
+        logger.warning(
+            f"[Оповещения] User_id отсутствует в данных датчика sensor_id={sensor_data.sensor_id}. Оповещения не будут созданы."
+        )
+        sensor_data.status = "normal"
+        await sensor_data.save()
+        return
+
     # Получение активного порогового значения для этого типа датчика и единицы измерения
     threshold = await SensorAlertThreshold.filter(
         sensor_type=sensor_data.type, unit=sensor_data.unit, is_active=True
@@ -277,6 +287,9 @@ async def check_sensor_thresholds(sensor_data: SensorData) -> None:
 
     if not threshold:
         # Нет порогового значения, поддержание нормального статуса
+        logger.warning(
+            f"[Оповещения] Не найдены пороговые значения для sensor_type={sensor_data.type.value}, unit={sensor_data.unit}"
+        )
         sensor_data.status = "normal"
         await sensor_data.save()
         return
@@ -294,21 +307,29 @@ async def check_sensor_thresholds(sensor_data: SensorData) -> None:
 
     # Создание оповещения если значение выходит за пороговые или возвращается к норме
     if sensor_data.user_id:
-        alert = await check_sensor_value_against_threshold(
-            sensor_id=sensor_data.sensor_id,
-            sensor_type=sensor_data.type,
-            value=sensor_data.value,
-            threshold=threshold,
-            unit=sensor_data.unit,
-            location_id=sensor_data.location_id,
-            device_id=sensor_data.device_id,
-            user_id=sensor_data.user_id,
-        )
+        try:
+            alert = await check_sensor_value_against_threshold(
+                sensor_id=sensor_data.sensor_id,
+                sensor_type=sensor_data.type,
+                value=sensor_data.value,
+                threshold=threshold,
+                unit=sensor_data.unit,
+                location_id=sensor_data.location_id,
+                device_id=sensor_data.device_id,
+                user_id=sensor_data.user_id,
+            )
 
-        # Если создано новое оповещение, отправим его через WebSocket
-        if alert:
-            # Отправка оповещения через WebSocket
-            await broadcast_sensor_alert(alert)
+            # Если создано новое оповещение, отправим его через WebSocket
+            if alert:
+                # Отправка оповещения через WebSocket
+                await broadcast_sensor_alert(alert)
+        except Exception as e:
+            logger.error(
+                f"[Оповещения] Ошибка при создании или отправке оповещения: {e}"
+            )
+            import traceback
+
+            logger.error(f"[Оповещения] Трассировка: {traceback.format_exc()}")
 
 
 async def broadcast_sensor_data(sensor_data: SensorData) -> None:
@@ -393,53 +414,80 @@ async def broadcast_sensor_alert(alert: SensorAlert) -> None:
     Args:
         alert: Оповещение для отправки
     """
-    # Подготовка данных для WebSocket сообщения
-    data = {
-        "id": alert.id,
-        "sensor_id": alert.sensor_id,
-        "sensor_type": alert.sensor_type.value,
-        "alert_type": alert.alert_type.value,
-        "value": alert.value,
-        "threshold_value": alert.threshold_value,
-        "unit": alert.unit,
-        "location_id": alert.location_id,
-        "device_id": alert.device_id,
-        "message": alert.message,
-        "timestamp": alert.timestamp.isoformat(),
-        "is_active": alert.is_active,
-        "user_id": alert.user_id,
-    }
+    try:
 
-    # Создание WebSocket сообщения
-    message = WebSocketMessage(
-        type="sensor_alert",
-        data=data,
-    )
+        # Подготовка данных для WebSocket сообщения
+        data = {
+            "id": alert.id,
+            "sensor_id": alert.sensor_id,
+            "sensor_type": alert.sensor_type.value,
+            "alert_type": alert.alert_type.value,
+            "value": alert.value,
+            "threshold_value": alert.threshold_value,
+            "unit": alert.unit,
+            "location_id": alert.location_id,
+            "device_id": alert.device_id,
+            "message": alert.message,
+            "timestamp": alert.timestamp.isoformat(),
+            "is_active": alert.is_active,
+            "user_id": alert.user_id,
+        }
 
-    # Отправка в пользовательскую группу если есть user_id
-    if alert.user_id:
-        # Отправка в группу пользователя
-        user_group = f"user:{alert.user_id}"
-        connections_count = len(manager.group_connections.get(user_group, []))
-        logger.debug(
-            f"Отправка оповещения в группу '{user_group}' с {connections_count} соединениями"
+        # Создание WebSocket сообщения
+        message = WebSocketMessage(
+            type="sensor_alert",
+            data=data,
         )
-        await manager.broadcast_to_group(message, user_group)
 
-        # Отправка напрямую в соединения пользователя (для обратной совместимости)
-        user_connections = manager.user_connections.get(alert.user_id, [])
-        for connection in user_connections:
-            await manager.send_personal_message(message, connection)
-    else:
-        logger.warning(
-            f"Оповещение без user_id: {alert.id}. Это может привести к видимости оповещений для всех пользователей."
+        # Отправка в пользовательскую группу если есть user_id
+        if alert.user_id:
+            # Отправка в группу пользователя
+            user_group = f"user:{alert.user_id}"
+            connections_count = len(manager.group_connections.get(user_group, []))
+
+            if connections_count > 0:
+                await manager.broadcast_to_group(message, user_group)
+            else:
+                logger.warning(
+                    f"[Оповещения:broadcast] Нет активных соединений в группе '{user_group}', отправка не выполнена"
+                )
+
+            # Отправка напрямую в соединения пользователя (для обратной совместимости)
+            user_connections = manager.user_connections.get(alert.user_id, [])
+
+            if len(user_connections) > 0:
+                for connection in user_connections:
+                    try:
+                        await manager.send_personal_message(message, connection)
+                    except Exception as e:
+                        logger.error(
+                            f"[Оповещения:broadcast] Ошибка при отправке оповещения напрямую пользователю {alert.user_id}: {e}"
+                        )
+            else:
+                logger.warning(
+                    f"[Оповещения:broadcast] Нет прямых соединений пользователя {alert.user_id}, отправка не выполнена"
+                )
+        else:
+            logger.warning(
+                f"[Оповещения:broadcast] Оповещение без user_id: {alert.id}. Это может привести к видимости оповещений для всех пользователей."
+            )
+            # Отправляем всем
+            total_connections = len(manager.active_connections)
+
+            if total_connections > 0:
+                await manager.broadcast(message)
+            else:
+                logger.warning(
+                    f"[Оповещения:broadcast] Нет активных соединений, отправка не выполнена"
+                )
+
+    except Exception as e:
+        logger.error(
+            f"[Оповещения:broadcast] Ошибка при отправке оповещения ID={alert.id}: {e}"
         )
-        # Отправляем всем
-        await manager.broadcast(message)
+        import traceback
 
-    logger.debug(
-        f"Всего активных WebSocket соединений после отправки оповещения: {len(manager.active_connections)}"
-    )
+        logger.error(f"[Оповещения:broadcast] Трассировка: {traceback.format_exc()}")
 
 
 async def create_sensor_alert(alert_data: SensorAlertCreate) -> SensorAlert:
@@ -541,84 +589,107 @@ async def check_sensor_value_against_threshold(
     Returns:
         Созданное оповещение или None, если оповещение не требуется
     """
-    # Проверяем последнее активное оповещение для этого датчика
-    last_alert = (
-        await SensorAlert.filter(sensor_id=sensor_id, is_active=True)
-        .order_by("-timestamp")
-        .first()
-    )
+    try:
+        # Проверяем последнее активное оповещение для этого датчика
+        last_alert = (
+            await SensorAlert.filter(sensor_id=sensor_id, is_active=True)
+            .order_by("-timestamp")
+            .first()
+        )
+        alert_data = None
 
-    alert_data = None
+        # Значение выше максимального порога
+        if value > threshold.max_value:
 
-    # Значение выше максимального порога
-    if value > threshold.max_value:
-        # Если нет активного оповещения или последнее оповещение не о высоком значении
-        if not last_alert or last_alert.alert_type != AlertType.HIGH:
+            # Если нет активного оповещения или последнее оповещение не о высоком значении
+            if not last_alert or last_alert.alert_type != AlertType.HIGH:
+                alert_data = SensorAlertCreate(
+                    sensor_id=sensor_id,
+                    sensor_type=sensor_type,
+                    alert_type=AlertType.HIGH,
+                    value=value,
+                    threshold_value=threshold.max_value,
+                    unit=unit,
+                    location_id=location_id,
+                    device_id=device_id,
+                    message=f"Високе значення датчика {sensor_type.value}: {format_sensor_value(value, sensor_type)} {unit} (порог: {threshold.max_value} {unit})",
+                    user_id=user_id,
+                    is_active=True,
+                )
+
+        # Значение ниже минимального порога
+        elif value < threshold.min_value:
+
+            # Если нет активного оповещения или последнее оповещение не о низком значении
+            if not last_alert or last_alert.alert_type != AlertType.LOW:
+
+                alert_data = SensorAlertCreate(
+                    sensor_id=sensor_id,
+                    sensor_type=sensor_type,
+                    alert_type=AlertType.LOW,
+                    value=value,
+                    threshold_value=threshold.min_value,
+                    unit=unit,
+                    location_id=location_id,
+                    device_id=device_id,
+                    message=f"Низьке значення датчика {sensor_type.value}: {format_sensor_value(value, sensor_type)} {unit} (порог: {threshold.min_value} {unit})",
+                    user_id=user_id,
+                    is_active=True,
+                )
+
+        # Значение вернулось в нормальный диапазон
+        elif (
+            last_alert
+            and last_alert.is_active
+            and (
+                last_alert.alert_type == AlertType.HIGH
+                or last_alert.alert_type == AlertType.LOW
+            )
+        ):
+
+            # Закрываем предыдущее оповещение
+            await resolve_alert(last_alert.id)
+
+            # Создаем оповещение о нормализации
             alert_data = SensorAlertCreate(
                 sensor_id=sensor_id,
                 sensor_type=sensor_type,
-                alert_type=AlertType.HIGH,
+                alert_type=AlertType.NORMAL,
                 value=value,
-                threshold_value=threshold.max_value,
+                threshold_value=(
+                    threshold.min_value
+                    if last_alert.alert_type == AlertType.LOW
+                    else threshold.max_value
+                ),
                 unit=unit,
                 location_id=location_id,
                 device_id=device_id,
-                message=f"Високе значення датчика {sensor_type.value}: {format_sensor_value(value, sensor_type)} {unit} (порог: {threshold.max_value} {unit})",
+                message=f"Значення датчика {sensor_type.value} нормалізувалося: {format_sensor_value(value, sensor_type)} {unit}",
                 user_id=user_id,
-                is_active=True,
+                is_active=False,  # Это оповещение сразу неактивно
             )
 
-    # Значение ниже минимального порога
-    elif value < threshold.min_value:
-        # Если нет активного оповещения или последнее оповещение не о низком значении
-        if not last_alert or last_alert.alert_type != AlertType.LOW:
-            alert_data = SensorAlertCreate(
-                sensor_id=sensor_id,
-                sensor_type=sensor_type,
-                alert_type=AlertType.LOW,
-                value=value,
-                threshold_value=threshold.min_value,
-                unit=unit,
-                location_id=location_id,
-                device_id=device_id,
-                message=f"Низьке значення датчика {sensor_type.value}: {format_sensor_value(value, sensor_type)} {unit} (порог: {threshold.min_value} {unit})",
-                user_id=user_id,
-                is_active=True,
-            )
+        # Создаем оповещение, если необходимо
+        if alert_data:
+            try:
+                alert = await create_sensor_alert(alert_data)
+                return alert
+            except Exception as e:
+                logger.error(f"[Оповещения:check] Ошибка при создании оповещения: {e}")
+                import traceback
 
-    # Значение вернулось в нормальный диапазон
-    elif (
-        last_alert
-        and last_alert.is_active
-        and (
-            last_alert.alert_type == AlertType.HIGH
-            or last_alert.alert_type == AlertType.LOW
+                logger.error(
+                    f"[Оповещения:check] Трассировка: {traceback.format_exc()}"
+                )
+                return None
+        else:
+            return None
+
+    except Exception as e:
+        logger.error(
+            f"[Оповещения:check] Ошибка при проверке значения датчика {sensor_id}: {e}"
         )
-    ):
-        # Закрываем предыдущее оповещение
-        await resolve_alert(last_alert.id)
+        import traceback
 
-        # Создаем оповещение о нормализации
-        alert_data = SensorAlertCreate(
-            sensor_id=sensor_id,
-            sensor_type=sensor_type,
-            alert_type=AlertType.NORMAL,
-            value=value,
-            threshold_value=(
-                threshold.min_value
-                if last_alert.alert_type == AlertType.LOW
-                else threshold.max_value
-            ),
-            unit=unit,
-            location_id=location_id,
-            device_id=device_id,
-            message=f"Значення датчика {sensor_type.value} нормалізувалося: {format_sensor_value(value, sensor_type)} {unit}",
-            user_id=user_id,
-            is_active=False,  # Это оповещение сразу неактивно
-        )
-
-    # Создаем оповещение, если необходимо
-    if alert_data:
-        return await create_sensor_alert(alert_data)
-
-    return None
+        logger.error(f"[Оповещения:check] Трассировка: {traceback.format_exc()}")
+        return None

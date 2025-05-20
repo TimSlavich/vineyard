@@ -78,7 +78,6 @@ class ConnectionManager:
                 if not connections:
                     del self.group_connections[group]
 
-
     async def add_to_group(self, websocket: WebSocket, group: str) -> None:
         """
         Добавление WebSocket-соединения в группу.
@@ -200,57 +199,46 @@ class ConnectionManager:
         # Проверка пользовательской группы для детального логирования
         is_user_group = group.startswith("user:")
         if is_user_group:
-            user_id = group.split(":")[-1] if ":" in group else "неизвестный"
-            if (
-                message.data
-                and isinstance(message.data, dict)
-                and "user_id" in message.data
-            ):
-                data_user_id = message.data["user_id"]
-                if str(data_user_id) != str(user_id) and data_user_id is not None:
-                    logger.warning(
-                        f"Сообщение для пользователя {data_user_id} отправляется в группу {group}. Возможно несоответствие."
-                    )
-
-                logger.debug(
-                    f"Рассылка сообщения типа '{message.type}' в группу пользователя '{group}'. "
-                    f"ID пользователя в сообщении: {data_user_id}, ID пользователя группы: {user_id}, "
-                    f"соединений: {connections_count}, ID датчика: {message.data.get('sensor_id', 'Н/Д')}"
-                )
-            else:
-                logger.debug(
-                    f"Рассылка сообщения типа '{message.type}' в группу пользователя '{group}'. Соединений: {connections_count}"
-                )
+            user_id = group.split(":", 1)[1] if ":" in group else "unknown"
         else:
-            logger.debug(
-                f"Рассылка сообщения типа '{message.type}' {connections_count} соединениям в группе '{group}'"
-            )
+            logger.debug(f"Отправка сообщения типа '{message.type}' в группу '{group}'")
 
         # Конвертация сообщения в JSON один раз
         try:
             message_json = message.model_dump_json()
+            logger.debug(
+                f"[WebSocket] Подготовлено сообщение JSON для отправки в группу: {message_json[:200]}..."
+            )
         except Exception as e:
-            logger.error(f"Ошибка сериализации сообщения в JSON: {e}")
+            logger.error(f"[WebSocket] Ошибка сериализации сообщения: {e}")
             return
+
+        # Счетчик успешных отправок
+        success_count = 0
 
         # Создаем копию списка для избежания изменений во время итерации
         for connection in self.group_connections[group][:]:
             try:
                 await connection.send_text(message_json)
+                success_count += 1
+            except WebSocketDisconnect:
+                logger.warning(
+                    f"[WebSocket] Соединение в группе '{group}' было разорвано при отправке"
+                )
+                disconnected.append(connection)
             except Exception as e:
-                logger.error(f"Ошибка рассылки соединению в группе {group}: {e}")
+                logger.error(
+                    f"[WebSocket] Ошибка отправки сообщения в группу '{group}': {e}"
+                )
                 disconnected.append(connection)
 
         # Очистка отключенных клиентов
         for connection in disconnected:
-            logger.warning(f"Удаление отключенного клиента из группы '{group}'")
             self.disconnect(connection)
 
-        # Сообщение об успешной отправке
-        if len(disconnected) == 0 and connections_count > 0:
-            logger.debug(
-                f"Сообщение успешно отправлено {connections_count} клиентам в группе '{group}'"
-            )
+        logger.debug(
+            f"Отправлено сообщение в группу '{group}': {success_count} из {connections_count} соединений"
+        )
 
 
 # Создание глобального экземпляра менеджера соединений
