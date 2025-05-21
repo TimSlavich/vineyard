@@ -19,12 +19,11 @@ import AllSensorsPage from './pages/AllSensorsPage';
 import DiagnosticPage from './pages/DiagnosticPage';
 import CalibratePage from './pages/CalibratePage';
 import ReportsPage from './pages/ReportsPage';
-import { isAuthenticated, isLocalStorageAvailable, setItem } from './utils/storage';
+import { isAuthenticated, isLocalStorageAvailable, setItem, getUserData } from './utils/storage';
 import { DeviceSettingsProvider } from './context/DeviceSettingsContext';
 import { setRedirectCallback } from './services/api/baseApi';
 import { loginAsDemoAndRedirect } from './utils/demoHelper';
 import { initializeWebSocketConnection } from './services/websocketService';
-import { initSensorAlertSubscription } from './services/notificationService';
 
 // Захищений маршрут, який перевіряє аутентифікацію
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
@@ -49,6 +48,26 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   }
 
   // Якщо користувач вже авторизований, показуємо захищений контент
+  return <>{children}</>;
+};
+
+// Маршрут, защищенный от новых пользователей
+const RoleProtectedRoute = ({ children }: { children: React.ReactNode }) => {
+  const navigate = useNavigate();
+  const userData = getUserData();
+
+  // Проверяем, авторизован ли пользователь
+  if (!isAuthenticated()) {
+    return <ProtectedRoute>{children}</ProtectedRoute>;
+  }
+
+  // Проверяем роль пользователя
+  if (userData?.role === 'new_user') {
+    // Если пользователь новый, перенаправляем на панель управления
+    return <Navigate to="/dashboard" replace />;
+  }
+
+  // Если пользователь не новый, показываем защищенный контент
   return <>{children}</>;
 };
 
@@ -123,9 +142,9 @@ const AppContent = () => {
             </ProtectedRoute>
           } />
           <Route path="/automation" element={
-            <ProtectedRoute>
+            <RoleProtectedRoute>
               <AutomationPage />
-            </ProtectedRoute>
+            </RoleProtectedRoute>
           } />
           <Route path="/notifications" element={
             <ProtectedRoute>

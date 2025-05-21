@@ -215,22 +215,22 @@ export const convertSensorAlertToAlert = (sensorAlert: SensorAlert): Alert => {
 
 // Инициализация подписки на WebSocket-оповещения от датчиков
 export const initSensorAlertSubscription = () => {
-    // Для проверки текущих подписчиков
-    // Регистрируем глобальный обработчик оповещений
-    window.handleSensorAlert = (sensorAlert) => {
-        processSensorAlert(sensorAlert);
-    };
-
     try {
+        console.debug('[NotificationService] Инициализация подписки на sensor_alert');
+
+        // Регистрируем только один обработчик через WebSocket
         const unsubscribe = websocketService.subscribe<SensorAlert>('sensor_alert', (sensorAlert) => {
             // Проверяем наличие корректных данных
             if (!sensorAlert) {
+                console.warn('[NotificationService] Получен пустой sensor_alert');
                 return;
             }
 
+            // Обрабатываем оповещение
             processSensorAlert(sensorAlert);
         });
 
+        console.debug('[NotificationService] Подписка на sensor_alert успешно завершена');
         return unsubscribe;
     } catch (error) {
         console.error('[Оповещения] Ошибка при инициализации подписки на уведомления:', error);
@@ -254,30 +254,31 @@ const processSensorAlert = (sensorAlert: SensorAlert) => {
         return;
     }
 
-    // Проверяем, есть ли уже оповещения от этого датчика с тем же типом алерта
-    const sensorIdStr = sensorAlert.id.toString();
-
+    // Проверяем, есть ли уже оповещения от этого конкретного датчика с тем же типом и значением
     const existingAlerts = globalAlerts.filter(alert => {
-        // Анализируем ID, чтобы извлечь ID датчика
-        // Новый формат: sensor-alert-{id}-{timestamp}-{random}
-        const match = alert.id.match(/^sensor-alert-(\d+)-/);
+        // Сравниваем только если это сообщение от того же самого датчика
+        if (alert.sensorId === sensorAlert.sensor_id) {
+            // И только если тип оповещения совпадает
+            if (alert.type === (sensorAlert.alert_type === 'high' ? 'critical' :
+                sensorAlert.alert_type === 'low' ? 'warning' : 'info')) {
 
-        if (match && match[1] === sensorIdStr) {
-            // Определяем тип алерта для сравнения
-            const alertType =
-                sensorAlert.alert_type === 'high' ? 'високе' :
-                    sensorAlert.alert_type === 'low' ? 'низьке' :
-                        'нормальне';
+                // Добавляем временную проверку - игнорируем оповещения старше 10 секунд
+                const alertTime = new Date(alert.timestamp).getTime();
+                const currentTime = Date.now();
+                const timeDiff = currentTime - alertTime;
 
-            return alert.title.includes(alertType);
+                // Если оповещение пришло менее 10 секунд назад
+                if (timeDiff < 10000) {
+                    return true;
+                }
+            }
         }
         return false;
     });
 
-    // Удаляем существующие оповещения от этого датчика с тем же типом
+    // Если найдены похожие недавние уведомления от того же датчика, не создаем новое
     if (existingAlerts.length > 0) {
-        const alertIdsToRemove = existingAlerts.map(alert => alert.id);
-        globalAlerts = globalAlerts.filter(alert => !alertIdsToRemove.includes(alert.id));
+        return;
     }
 
     try {

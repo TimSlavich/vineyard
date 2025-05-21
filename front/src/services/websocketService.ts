@@ -454,30 +454,6 @@ class WebSocketService {
             } else if (message.type !== 'system') {
                 // Сохраняем сообщение в кэш для будущей обработки
                 this.unhandledMessages[message.type].push(message);
-
-                // Если это сообщение sensor_alert, регистрируем обработчик по умолчанию
-                if (message.type === 'sensor_alert' && !this.messageHandlers['sensor_alert']?.length) {
-                    // Динамически импортируем notificationService для добавления оповещения
-                    import('./notificationService').then(({ initSensorAlertSubscription }) => {
-                        // Инициализируем подписку на оповещения
-                        initSensorAlertSubscription();
-
-                        // Обрабатываем сохраненные сообщения типа sensor_alert
-                        setTimeout(() => {
-                            const handlers = this.messageHandlers['sensor_alert'];
-                            if (handlers && handlers.length > 0) {
-                                // Обрабатываем все сохраненные сообщения
-                                this.unhandledMessages['sensor_alert'].forEach(savedMsg => {
-                                    handlers.forEach(handler => handler(savedMsg));
-                                });
-                                // Очищаем обработанные сообщения
-                                this.unhandledMessages['sensor_alert'] = [];
-                            }
-                        }, 200);
-                    }).catch(err => {
-                        console.error('[WebSocket] Ошибка при регистрации обработчика оповещений:', err);
-                    });
-                }
             }
         } catch (error) {
             console.error('[WebSocket] Ошибка разбора сообщения:', error);
@@ -761,7 +737,41 @@ const registerDefaultHandlers = async () => {
     try {
         // Импортируем и инициализируем сервис уведомлений
         const { initSensorAlertSubscription } = await import('./notificationService');
-        initSensorAlertSubscription();
+
+        // Проверяем, есть ли уже обработчики для sensor_alert
+        const handlers = websocketService['messageHandlers']['sensor_alert'];
+
+        // Если нет обработчиков, регистрируем их
+        if (!handlers || handlers.length === 0) {
+            const unsubscribe = initSensorAlertSubscription();
+            console.debug('[WebSocket] Подписка на sensor_alert инициализирована');
+        } else {
+            console.debug('[WebSocket] Обработчики sensor_alert уже зарегистрированы');
+        }
+
+        // Обрабатываем сохраненные сообщения типа sensor_alert после инициализации
+        setTimeout(() => {
+            const handlers = websocketService['messageHandlers']['sensor_alert'];
+
+            if (handlers && handlers.length > 0) {
+                // Обрабатываем все сохраненные сообщения
+                const savedMessages = websocketService['unhandledMessages']['sensor_alert'];
+                if (savedMessages && savedMessages.length > 0) {
+                    console.debug(`[WebSocket] Обработка ${savedMessages.length} сохраненных sensor_alert сообщений`);
+                    savedMessages.forEach(savedMsg => {
+                        handlers.forEach(handler => handler(savedMsg));
+                    });
+                    // Очищаем обработанные сообщения
+                    websocketService['unhandledMessages']['sensor_alert'] = [];
+                }
+            } else {
+                console.warn('[WebSocket] Нет обработчиков для sensor_alert! Регистрирую повторно...');
+                // Попытка повторной регистрации обработчиков
+                import('./notificationService').then(({ initSensorAlertSubscription }) => {
+                    initSensorAlertSubscription();
+                });
+            }
+        }, 300);
 
         return true;
     } catch (error) {

@@ -2,19 +2,18 @@ import React, { useState, useEffect, useMemo, memo, useCallback } from 'react';
 import Card from '../components/ui/Card';
 import Button from '../components/ui/Button';
 import { useDeviceSettings } from '../context/DeviceSettingsContext';
-import { Bell, Smartphone, Save, RefreshCw } from 'lucide-react';
+import { Smartphone, Save, RefreshCw } from 'lucide-react';
 import ModalMessage from '../components/ui/ModalMessage';
 import { getUserData, setItem } from '../utils/storage';
 import { useNavigate } from 'react-router-dom';
 import {
   translateDeviceStatus,
   translateSensorType,
-  translateSensorLocation
+  translateSensorLocation,
+  translateDeviceType
 } from '../utils/translations';
 import {
   loadUserSettings,
-  saveUserSettings,
-  resetUserSettings,
   updateNotificationChannel,
   UserSettings
 } from '../services/userSettingsService';
@@ -30,7 +29,8 @@ const DevicesTab = memo(({
   setDetailsDevice,
   handleUpdateStatus,
   formatSensorValue,
-  isRefreshingData
+  isRefreshingData,
+  userData
 }: {
   allDevices: any[],
   getDeviceStatusClass: (status: string) => string,
@@ -38,8 +38,25 @@ const DevicesTab = memo(({
   setDetailsDevice: React.Dispatch<React.SetStateAction<any>>,
   handleUpdateStatus: () => void,
   formatSensorValue: (value: number | string, unit?: string) => string,
-  isRefreshingData: boolean
+  isRefreshingData: boolean,
+  userData: any
 }) => {
+  // Если пользователь новый, показываем сообщение вместо устройств
+  if (userData?.role === 'new_user') {
+    return (
+      <Card title="Пристрої та датчики" className="mb-6">
+        <div className="bg-white p-6 text-center">
+          <p className="text-gray-700 mb-2">
+            Перегляд пристроїв та датчиків доступний після активації вашого облікового запису.
+          </p>
+          <p className="text-sm text-gray-500">
+            Будь ласка, зв'яжіться з адміністратором системи для отримання повного доступу.
+          </p>
+        </div>
+      </Card>
+    );
+  }
+
   return (
     <Card title="Пристрої та датчики" className="mb-6">
       <div className="mb-4 flex flex-wrap gap-2">
@@ -157,15 +174,33 @@ const ThresholdsTab = memo(({
   handleSaveThresholds,
   handleResetThresholds,
   handleTestAlert,
-  loading
+  loading,
+  userData
 }: {
   localThresholds: any[],
   handleThresholdChange: (id: string, field: 'min' | 'max', value: number) => void,
   handleSaveThresholds: () => void,
   handleResetThresholds: () => void,
   handleTestAlert: () => void,
-  loading: boolean
+  loading: boolean,
+  userData: any
 }) => {
+  // Если пользователь новый, показываем сообщение вместо пороговых значений
+  if (userData?.role === 'new_user') {
+    return (
+      <Card title="Порогові значення" className="mb-6">
+        <div className="bg-white p-6 text-center">
+          <p className="text-gray-700 mb-2">
+            Налаштування порогових значень доступне після активації вашого облікового запису.
+          </p>
+          <p className="text-sm text-gray-500">
+            Будь ласка, зв'яжіться з адміністратором системи для отримання повного доступу.
+          </p>
+        </div>
+      </Card>
+    );
+  }
+
   // Безопасное преобразование строки в число
   const safeParseFloat = (value: string): number => {
     const parsed = parseFloat(value);
@@ -284,6 +319,7 @@ const SettingsPage: React.FC = () => {
     fetchThresholds,
     updateAllThresholds,
     resetThresholds,
+    robots,
     loading
   } = useDeviceSettings();
 
@@ -458,8 +494,33 @@ const SettingsPage: React.FC = () => {
       }
     });
 
-    return sensorDevices;
-  }, [latestSensorData]);
+    // Определяем, является ли текущий аккаунт демо-аккаунтом
+    const isDemo = account.email?.includes('demo') || account.email === 'demo@vineguard.app';
+
+    // В зависимости от типа аккаунта, фильтруем роботов или показываем всех
+    let robotsToShow = robots;
+
+    if (isDemo) {
+      // На демо-аккаунте показываем только роботов из панели автоматизации
+      const automationRobotNames = ['Дрон-розвідник 1', 'Робот-комбайн 1', 'Робот-сіяч 1'];
+      robotsToShow = robots.filter(robot => automationRobotNames.includes(robot.name));
+    }
+
+    // Преобразуем роботов в формат для отображения в таблице
+    const robotDevices = robotsToShow.map(robot => ({
+      id: robot.id,
+      name: robot.name,
+      type: translateDeviceType(robot.type),
+      status: robot.status,
+      battery: robot.battery,
+      lastSyncTime: robot.lastActive,
+      location: robot.location,
+      isRobot: true,
+    }));
+
+    // Объединяем датчики и роботы
+    return [...sensorDevices, ...robotDevices];
+  }, [latestSensorData, robots, getSensorLocation, account.email]);
 
   const handleThresholdChange = (id: string, field: 'min' | 'max', value: number) => {
     // Проверяем значение на NaN и ограничиваем отрицательные значения
@@ -482,31 +543,6 @@ const SettingsPage: React.FC = () => {
     );
   };
 
-  const handleNotificationToggle = (type: 'email' | 'sms' | 'push', enabled: boolean) => {
-    setNotificationSettings(prev =>
-      prev.map(setting =>
-        setting.type === type ? { ...setting, enabled } : setting
-      )
-    );
-  };
-
-  const handleAlertTypeToggle = (
-    type: 'email' | 'sms' | 'push',
-    alertType: 'info' | 'warning' | 'critical',
-    enabled: boolean
-  ) => {
-    setNotificationSettings(prev =>
-      prev.map(setting => {
-        if (setting.type === type) {
-          const alertTypes = enabled
-            ? [...setting.alertTypes, alertType]
-            : setting.alertTypes.filter(t => t !== alertType);
-          return { ...setting, alertTypes };
-        }
-        return setting;
-      })
-    );
-  };
 
   const getTabClass = (tab: string) => {
     return `px-4 py-2 font-medium rounded-md transition-colors ${activeTab === tab
@@ -593,22 +629,6 @@ const SettingsPage: React.FC = () => {
       });
   };
 
-  // Сохранить настройки уведомлений
-  const handleSaveNotifications = () => {
-    setNotifSaveModalOpen(true);
-  };
-
-  // Сбросить настройки уведомлений к стандартным
-  const handleResetNotifications = () => {
-    const defaultSettings: NotificationSetting[] = [
-      { type: 'email' as 'email', enabled: true, alertTypes: ['warning', 'critical'] },
-      { type: 'sms' as 'sms', enabled: true, alertTypes: ['critical'] },
-      { type: 'push' as 'push', enabled: true, alertTypes: ['info', 'warning', 'critical'] }
-    ];
-    setNotificationSettings(defaultSettings);
-    setNotifResetModalOpen(true);
-  };
-
   // Функция для отправки тестового оповещения
   const handleTestAlert = () => {
     // Создаем переменную для хранения состояния кнопки
@@ -625,14 +645,25 @@ const SettingsPage: React.FC = () => {
       // Флаг для отслеживания, было ли уже добавлено оповещение
       let alertAdded = false;
 
+      const sensorAlertUnsubscribe = websocketService.subscribe('sensor_alert', (data) => {
+        if (!alertAdded && data && data.sensor_id === 'test-notification') {
+          alertAdded = true;
+
+          if (sensorAlertUnsubscribe) sensorAlertUnsubscribe();
+          if (requestUnsubscribe) requestUnsubscribe();
+        }
+      });
+
       websocketService.sendTestAlert();
 
       // Устанавливаем обработчик для получения ответа от сервера
-      const unsubscribe = websocketService.subscribe('request_completed', (data) => {
+      // Это оставляем для обратной совместимости
+      const requestUnsubscribe = websocketService.subscribe('request_completed', (data) => {
         // Проверяем, что это ответ на тестовое оповещение и что оповещение еще не было добавлено
         if (!alertAdded && data && data.message && (data.message.includes('Тестове сповіщення') || data.message.includes('Тестовое оповещение'))) {
           alertAdded = true;
-          unsubscribe();
+          requestUnsubscribe();
+          if (sensorAlertUnsubscribe) sensorAlertUnsubscribe();
 
           // Импортируем addAlert для создания оповещения
           import('../services/notificationService').then(({ addAlert }) => {
@@ -652,44 +683,34 @@ const SettingsPage: React.FC = () => {
         }
       });
 
-      // Устанавливаем таймаут на 3 секунды
+      // Устанавливаем таймаут на 5 секунд
       setTimeout(() => {
+        // Отписываемся от обработчиков, если они еще существуют
+        if (sensorAlertUnsubscribe) sensorAlertUnsubscribe();
+        if (requestUnsubscribe) requestUnsubscribe();
+
+        // Если оповещение не было добавлено, показываем сообщение об ошибке
+        if (!alertAdded) {
+          console.warn('[SettingsPage] Тестовое оповещение не было получено за отведенное время');
+
+          // Импортируем addAlert для создания оповещения-ошибки
+          import('../services/notificationService').then(({ addAlert }) => {
+            addAlert({
+              title: 'Помилка',
+              message: 'Не вдалося отримати тестове сповіщення. Перевірте зєднання з сервером.',
+              type: 'critical',
+              sensorId: 'test-notification-error',
+            });
+          });
+        }
+
         // Возвращаем кнопку в исходное состояние
         if (btnElement) {
           btnElement.textContent = originalText;
           btnElement.removeAttribute('disabled');
         }
-      }, 3000);
+      }, 5000);
     });
-  };
-
-  // Обработчики для настроек уведомлений
-  const handleToggleNotificationChannel = (channelType: string, enabled: boolean) => {
-    const updatedSettings = updateNotificationChannel(channelType, { enabled });
-    setUserSettings(updatedSettings);
-  };
-
-  const handleToggleNotificationAlertType = (channelType: string, alertType: string, enabled: boolean) => {
-    const channel = userSettings.notifications.channels.find(ch => ch.type === channelType);
-    if (!channel) return;
-
-    const alertTypes = enabled
-      ? [...channel.alertTypes, alertType]
-      : channel.alertTypes.filter(t => t !== alertType);
-
-    const updatedSettings = updateNotificationChannel(channelType, { alertTypes });
-    setUserSettings(updatedSettings);
-  };
-
-  const handleSaveNotificationSettings = () => {
-    saveUserSettings(userSettings);
-    setNotifSaveModalOpen(true);
-  };
-
-  const handleResetNotificationSettings = () => {
-    const defaultSettings = resetUserSettings();
-    setUserSettings(defaultSettings);
-    setNotifResetModalOpen(true);
   };
 
   // Функция для обновления имени пользователя
@@ -784,6 +805,7 @@ const SettingsPage: React.FC = () => {
           handleUpdateStatus={handleUpdateStatus}
           formatSensorValue={formatSensorValue}
           isRefreshingData={isRefreshingData}
+          userData={userData}
         />
       )}
 
@@ -796,6 +818,7 @@ const SettingsPage: React.FC = () => {
           handleResetThresholds={handleResetThresholds}
           handleTestAlert={handleTestAlert}
           loading={loading.thresholds}
+          userData={userData}
         />
       )}
 

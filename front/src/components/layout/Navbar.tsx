@@ -137,9 +137,11 @@ const Navbar = () => {
               <Link to="/analytics" className={getLinkClasses('/analytics')}>
                 Аналітика
               </Link>
-              <Link to="/automation" className={getLinkClasses('/automation')}>
-                Автоматизація
-              </Link>
+              {userData?.role !== 'new_user' && (
+                <Link to="/automation" className={getLinkClasses('/automation')}>
+                  Автоматизація
+                </Link>
+              )}
               <Link to="/settings" className={getLinkClasses('/settings')}>
                 Налаштування
               </Link>
@@ -248,9 +250,12 @@ const Navbar = () => {
             <Link to="/analytics" className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:bg-gray-100 hover:text-primary">
               Аналітика
             </Link>
-            <Link to="/automation" className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:bg-gray-100 hover:text-primary">
-              Автоматизація
-            </Link>
+            {/* Скрываем ссылку на автоматизацию для новых пользователей */}
+            {userData?.role !== 'new_user' && (
+              <Link to="/automation" className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:bg-gray-100 hover:text-primary">
+                Автоматизація
+              </Link>
+            )}
             <Link to="/settings" className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:bg-gray-100 hover:text-primary">
               Налаштування
             </Link>
